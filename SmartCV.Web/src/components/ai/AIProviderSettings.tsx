@@ -1,0 +1,136 @@
+import { useState } from 'react';
+import { Eye, EyeOff, Check } from 'lucide-react';
+import type { AIProviderType } from '../../types/ai';
+import { AI_PROVIDER_CONFIGS } from '../../types/ai';
+import { useSettingsStore } from '../../store/settingsStore';
+import { OpenAILogo, GeminiLogo, ClaudeLogo, GrokLogo, QianwenLogo, KimiLogo, DoubaoLogo, WenyanyixinLogo } from '../ui/AIProviderLogos';
+import Input from '../ui/Input';
+import Button from '../ui/Button';
+
+const PROVIDER_MODEL_HINTS: Record<AIProviderType, string> = {
+  openai: 'e.g. gpt-4o, gpt-4o-mini, o1',
+  gemini: 'e.g. gemini-2.5-pro, gemini-2.0-flash',
+  claude: 'e.g. claude-opus-4-7, claude-sonnet-4-6',
+  grok: 'e.g. grok-3, grok-3-mini',
+  qianwen: 'e.g. qwen-plus, qwen-max, qwen-turbo',
+  kimi: 'e.g. moonshot-v1-32k, moonshot-v1-128k, kimi-k2-0711-preview',
+  doubao: 'e.g. doubao-pro-32k, doubao-lite-32k',
+  wenyanyixin: 'e.g. ernie-4.0-8k, ernie-speed-128k',
+};
+
+const PROVIDER_LOGOS: Record<AIProviderType, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
+  openai: OpenAILogo,
+  gemini: GeminiLogo,
+  claude: ClaudeLogo,
+  grok: GrokLogo,
+  qianwen: QianwenLogo,
+  kimi: KimiLogo,
+  doubao: DoubaoLogo,
+  wenyanyixin: WenyanyixinLogo
+};
+
+export default function AIProviderSettings() {
+  const { aiSettings, setActiveProvider, setAPIKey, setModel } = useSettingsStore();
+  const [showKeys, setShowKeys] = useState<Record<AIProviderType, boolean>>({
+    openai: false, gemini: false, claude: false, grok: false,
+    qianwen: false, kimi: false, doubao: false, wenyanyixin: false
+  });
+
+  const providers: AIProviderType[] = ['openai', 'gemini', 'claude', 'grok', 'qianwen',
+    // 'kimi', 'doubao','wenyanyixin'
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h2 className="text-lg font-semibold text-gray-900">AI Provider Settings</h2>
+        <p className="text-sm text-gray-500 mt-1">
+          API keys are stored securely in your browser's localStorage and never sent to our servers.
+        </p>
+      </div>
+
+      <div className="space-y-3">
+        {providers.map(provider => {
+          const meta = AI_PROVIDER_CONFIGS[provider];
+          const config = aiSettings.providers[provider];
+          const isActive = aiSettings.activeProvider === provider;
+          const hasKey = !!config.apiKey;
+          const Logo = PROVIDER_LOGOS[provider];
+
+          return (
+            <div
+              key={provider}
+              className={`rounded-xl border-2 p-4 transition-all ${isActive
+                ? 'border-indigo-500 bg-indigo-50/50'
+                : 'border-gray-200 bg-white'
+                }`}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                    style={{ backgroundColor: `${meta.color}18` }}
+                  >
+                    <Logo className="w-5 h-5" style={{ color: meta.color }} />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 text-sm">{meta.name}</h3>
+                    <span className="text-xs flex items-center gap-1">
+                      {hasKey
+                        ? <span className="text-emerald-600 flex items-center gap-1"><Check className="w-3 h-3" />Key configured</span>
+                        : <span className="text-gray-400">No key</span>
+                      }
+                    </span>
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  variant={isActive ? 'primary' : 'outline'}
+                  onClick={() => setActiveProvider(provider)}
+                  disabled={isActive}
+                >
+                  {isActive ? 'Active' : 'Select'}
+                </Button>
+              </div>
+
+              {/* API Key */}
+              <div className="relative">
+                <Input
+                  label="API Key"
+                  type={showKeys[provider] ? 'text' : 'password'}
+                  value={config.apiKey}
+                  onChange={e => setAPIKey(provider, e.target.value.trim())}
+                  placeholder={`Enter your ${meta.name} API key`}
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowKeys(prev => ({ ...prev, [provider]: !prev[provider] }))}
+                  className="absolute right-2 top-7 text-gray-400 hover:text-gray-600"
+                >
+                  {showKeys[provider] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+
+              {/* Model input */}
+              <div className="mt-3">
+                <Input
+                  label="Model"
+                  value={config.model}
+                  onChange={e => setModel(provider, e.target.value)}
+                  placeholder={meta.defaultModel}
+                />
+                <p className="text-xs text-gray-400 mt-1">{PROVIDER_MODEL_HINTS[provider]}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="p-3 bg-amber-50 rounded-lg text-sm text-amber-800">
+        <strong>Privacy:</strong> API keys are stored only in your browser's localStorage.
+        They are sent directly to the AI provider via our backend proxy (no key storage server-side).
+      </div>
+    </div>
+  );
+}

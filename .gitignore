@@ -1,0 +1,24 @@
+# .NET
+*.user
+*.suo
+.claude
+*.vs/
+obj/
+bin/
+SmartCV.API/wwwroot/
+
+# Node
+node_modules/
+dist/
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+demos

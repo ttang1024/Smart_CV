@@ -1,0 +1,6 @@
+@SmartCV.API_HostAddress = http://localhost:5167
+
+GET {{SmartCV.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

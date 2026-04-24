@@ -1,0 +1,70 @@
+trigger:
+  - main
+
+variables:
+  buildConfiguration: 'Release'
+  azureSubscription: 'YOUR_AZURE_SERVICE_CONNECTION'
+  appName: 'smart-cv-app'
+  resourceGroup: 'smart-cv-rg'
+
+stages:
+  - stage: Build
+    displayName: Build
+    jobs:
+      - job: BuildJob
+        pool:
+          vmImage: 'ubuntu-latest'
+
+        steps:
+          # Node / React build
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '20.x'
+            displayName: 'Install Node.js'
+
+          - script: |
+              cd SmartCV.Web
+              npm ci
+              npm run build
+            displayName: 'Build React App'
+
+          # .NET build
+          - task: UseDotNet@2
+            inputs:
+              packageType: 'sdk'
+              version: '10.x'
+            displayName: 'Install .NET 10'
+
+          - task: DotNetCoreCLI@2
+            inputs:
+              command: 'publish'
+              publishWebProjects: false
+              projects: 'SmartCV.API/SmartCV.API.csproj'
+              arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+            displayName: 'Publish .NET App'
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              pathToPublish: '$(Build.ArtifactStagingDirectory)'
+              artifactName: 'drop'
+
+  - stage: Deploy
+    displayName: Deploy to Azure
+    dependsOn: Build
+    jobs:
+      - deployment: DeployJob
+        environment: 'production'
+        pool:
+          vmImage: 'ubuntu-latest'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: AzureWebApp@1
+                  inputs:
+                    azureSubscription: '$(azureSubscription)'
+                    appType: 'webApp'
+                    appName: '$(appName)'
+                    package: '$(Pipeline.Workspace)/drop/*.zip'
+                    deploymentMethod: 'auto'
+                  displayName: 'Deploy to Azure App Service'
