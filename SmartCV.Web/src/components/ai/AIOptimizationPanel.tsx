@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Sparkles, AlertCircle, ChevronRight, Check, X, Lightbulb, Target, Search, Tag } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import type { Resume } from '../../types/resume';
 import type { OptimizationResult, OptimizationSession, OptimizationSuggestion } from '../../types/ai';
 import { useSettingsStore } from '../../store/settingsStore';
@@ -19,6 +20,7 @@ interface AIOptimizationPanelProps {
 
 export default function AIOptimizationPanel({ resume, onApplySuggestion, onSessionSaved }: AIOptimizationPanelProps) {
   const { getActiveConfig, aiSettings } = useSettingsStore();
+  const { t } = useTranslation();
   const [jobDescription, setJobDescription] = useState('');
   const [jobTitle, setJobTitle] = useState('');
   const [company, setCompany] = useState('');
@@ -31,11 +33,11 @@ export default function AIOptimizationPanel({ resume, onApplySuggestion, onSessi
 
   const handleOptimize = async () => {
     if (!config) {
-      setError(`No API key configured for ${activeProvider}. Go to Settings.`);
+      setError(t('aiPanel.noApiKey', { provider: activeProvider }));
       return;
     }
     if (!jobDescription.trim()) {
-      setError('Please enter a job description.');
+      setError(t('aiPanel.noJobDesc'));
       return;
     }
 
@@ -111,7 +113,7 @@ export default function AIOptimizationPanel({ resume, onApplySuggestion, onSessi
       <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30">
         <div className="flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-          <h2 className="font-semibold text-gray-900 dark:text-white text-sm">AI Optimization</h2>
+          <h2 className="font-semibold text-gray-900 dark:text-white text-sm">{t('aiPanel.title')}</h2>
           <Badge variant="purple" className="ml-auto">{activeProvider.toUpperCase()}</Badge>
         </div>
       </div>
@@ -121,18 +123,18 @@ export default function AIOptimizationPanel({ resume, onApplySuggestion, onSessi
         <div className="p-4 space-y-3 border-b border-gray-200 dark:border-gray-700">
           <div className="grid grid-cols-2 gap-2">
             <Input
-              placeholder="Job Title"
+              placeholder={t('aiPanel.jobTitle')}
               value={jobTitle}
               onChange={e => setJobTitle(e.target.value)}
             />
             <Input
-              placeholder="Company"
+              placeholder={t('aiPanel.company')}
               value={company}
               onChange={e => setCompany(e.target.value)}
             />
           </div>
           <Textarea
-            placeholder="Paste the full job description here..."
+            placeholder={t('aiPanel.jobDescriptionPlaceholder')}
             value={jobDescription}
             onChange={e => setJobDescription(e.target.value)}
             rows={6}
@@ -152,7 +154,7 @@ export default function AIOptimizationPanel({ resume, onApplySuggestion, onSessi
             disabled={!jobDescription.trim()}
           >
             <Sparkles className="w-4 h-4" />
-            {loading ? 'Analyzing...' : 'Optimize Resume'}
+            {loading ? t('aiPanel.analyzing') : t('aiPanel.optimize')}
           </Button>
         </div>
 
@@ -168,7 +170,7 @@ export default function AIOptimizationPanel({ resume, onApplySuggestion, onSessi
               <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
                 <ScoreRing score={result.matchScore} size={72} />
                 <div>
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white">Match Score</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">{t('aiPanel.matchScore')}</p>
                   <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{result.summary}</p>
                 </div>
               </div>
@@ -179,7 +181,7 @@ export default function AIOptimizationPanel({ resume, onApplySuggestion, onSessi
                   {result.keywordMatches.length > 0 && (
                     <div>
                       <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400 mb-1.5">
-                        ✓ Matched Keywords ({result.keywordMatches.length})
+                        {t('aiPanel.matchedKeywords', { count: result.keywordMatches.length })}
                       </p>
                       <div className="flex flex-wrap gap-1.5">
                         {result.keywordMatches.map(k => (
@@ -191,7 +193,7 @@ export default function AIOptimizationPanel({ resume, onApplySuggestion, onSessi
                   {result.missingKeywords.length > 0 && (
                     <div>
                       <p className="text-xs font-medium text-red-700 dark:text-red-400 mb-1.5">
-                        ✗ Missing Keywords ({result.missingKeywords.length})
+                        {t('aiPanel.missingKeywords', { count: result.missingKeywords.length })}
                       </p>
                       <div className="flex flex-wrap gap-1.5">
                         {result.missingKeywords.map(k => (
@@ -206,7 +208,7 @@ export default function AIOptimizationPanel({ resume, onApplySuggestion, onSessi
               {/* Suggestions */}
               <div>
                 <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">
-                  Suggestions ({result.suggestions.length})
+                  {t('aiPanel.suggestions', { count: result.suggestions.length })}
                 </p>
                 <div className="space-y-2">
                   {result.suggestions.map(suggestion => (
@@ -236,6 +238,7 @@ interface SuggestionCardProps {
 }
 
 function SuggestionCard({ suggestion, onApply, priorityBadge, typeIcon }: SuggestionCardProps) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -277,7 +280,7 @@ function SuggestionCard({ suggestion, onApply, priorityBadge, typeIcon }: Sugges
                 onClick={() => setExpanded(e => !e)}
                 className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
               >
-                {expanded ? 'Hide' : 'Show'} improvement
+                {expanded ? t('aiPanel.hideImprovement') : t('aiPanel.showImprovement')}
               </button>
             )}
             {/* {!suggestion.applied && suggestion.improvedText && (

@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { FileText, Trash2, Copy, Edit3, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import type { Resume } from '../../types/resume';
 import { formatDate } from '../../lib/utils';
 import Button from '../ui/Button';
@@ -13,6 +14,7 @@ interface ResumeCardProps {
 
 export default function ResumeCard({ resume, onDelete, onDuplicate }: ResumeCardProps) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const completionFields = [
     resume.personalInfo.fullName,
@@ -55,7 +57,7 @@ export default function ResumeCard({ resume, onDelete, onDuplicate }: ResumeCard
             variant="ghost"
             size="icon"
             className="h-8 w-8"
-            title="Edit"
+            title={t('resumeCard.edit')}
             onClick={() => navigate(`/editor/${resume.id}`)}
           >
             <Edit3 className="w-3.5 h-3.5" />
@@ -64,7 +66,7 @@ export default function ResumeCard({ resume, onDelete, onDuplicate }: ResumeCard
             variant="ghost"
             size="icon"
             className="h-8 w-8"
-            title="Duplicate"
+            title={t('resumeCard.duplicate')}
             onClick={() => onDuplicate(resume.id)}
           >
             <Copy className="w-3.5 h-3.5" />
@@ -73,7 +75,7 @@ export default function ResumeCard({ resume, onDelete, onDuplicate }: ResumeCard
             variant="ghost"
             size="icon"
             className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-            title="Delete"
+            title={t('resumeCard.delete')}
             onClick={() => onDelete(resume.id)}
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -100,7 +102,7 @@ export default function ResumeCard({ resume, onDelete, onDuplicate }: ResumeCard
       {/* Meta */}
       <div className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500">
         <Clock className="w-3 h-3" />
-        <span>Updated {formatDate(resume.updatedAt)}</span>
+        <span>{t('resumeCard.updated')} {formatDate(resume.updatedAt)}</span>
       </div>
     </motion.div>
   );

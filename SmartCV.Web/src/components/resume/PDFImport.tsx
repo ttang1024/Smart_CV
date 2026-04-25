@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { Upload, FileText, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { cn } from '../../lib/utils';
 import { parseResumeFromPdf } from '../../services/pdf/resumeParserApi';
 import { useResumeStore } from '../../store/resumeStore';
@@ -18,15 +19,17 @@ interface PDFImportProps {
 
 type Step = 'idle' | 'parsing' | 'saving' | 'done' | 'error';
 
-const STEP_LABELS: Record<Step, string> = {
-  idle:    '',
-  parsing: 'Parsing resume…',
-  saving:  'Saving resume…',
-  done:    'Import complete!',
-  error:   '',
-};
+export default function PDFImport({ onImported, onFill, label }: PDFImportProps) {
+  const { t } = useTranslation();
+  const defaultLabel = label ?? t('pdfImport.button');
 
-export default function PDFImport({ onImported, onFill, label = 'Import PDF' }: PDFImportProps) {
+  const STEP_LABELS: Record<Step, string> = {
+    idle:    '',
+    parsing: t('pdfImport.parsing'),
+    saving:  t('pdfImport.saving'),
+    done:    t('pdfImport.done'),
+    error:   '',
+  };
   const [open, setOpen]       = useState(false);
   const [dragging, setDragging] = useState(false);
   const [step, setStep]       = useState<Step>('idle');
@@ -40,7 +43,7 @@ export default function PDFImport({ onImported, onFill, label = 'Import PDF' }: 
 
   const processFile = useCallback(async (file: File) => {
     if (!file.name.toLowerCase().endsWith('.pdf')) {
-      setError('Only PDF files are supported.');
+      setError(t('pdfImport.pdfOnly'));
       setStep('error');
       return;
     }
@@ -62,7 +65,7 @@ export default function PDFImport({ onImported, onFill, label = 'Import PDF' }: 
         setTimeout(() => { setOpen(false); reset(); onImported?.(resume.id); }, 1200);
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Import failed');
+      setError(e instanceof Error ? e.message : t('pdfImport.failed'));
       setStep('error');
     }
   }, [saveResume, onImported, onFill]);
@@ -80,7 +83,7 @@ export default function PDFImport({ onImported, onFill, label = 'Import PDF' }: 
     e.target.value = '';
   };
 
-  const progressSteps = onFill ? ['Parse'] : ['Parse', 'Save'];
+  const progressSteps = onFill ? [t('pdfImport.stepParse')] : [t('pdfImport.stepParse'), t('pdfImport.stepSave')];
   const activeSteps   = onFill ? ['parsing'] : ['parsing', 'saving'];
   const isProcessing  = activeSteps.includes(step);
 
@@ -88,13 +91,13 @@ export default function PDFImport({ onImported, onFill, label = 'Import PDF' }: 
     <>
       <Button variant="outline" onClick={() => { reset(); setOpen(true); }}>
         <Upload className="w-4 h-4" />
-        {label}
+        {defaultLabel}
       </Button>
 
       <Modal
         open={open}
         onClose={() => { if (!isProcessing) { setOpen(false); reset(); } }}
-        title="Import Resume from PDF"
+        title={t('pdfImport.modalTitle')}
         size="md"
       >
         <div className="space-y-4">
@@ -120,12 +123,12 @@ export default function PDFImport({ onImported, onFill, label = 'Import PDF' }: 
                   <FileText className={cn('w-7 h-7', dragging ? 'text-indigo-600' : 'text-gray-400')} />
                 </div>
                 <div className="text-center">
-                  <p className="font-medium text-gray-900 dark:text-white">Drop your PDF here</p>
+                  <p className="font-medium text-gray-900 dark:text-white">{t('pdfImport.dropTitle')}</p>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                    or <span className="text-indigo-600 dark:text-indigo-400">browse files</span>
+                    {t('pdfImport.dropOr')} <span className="text-indigo-600 dark:text-indigo-400">{t('pdfImport.dropBrowse')}</span>
                   </p>
                 </div>
-                <p className="text-xs text-gray-400 dark:text-gray-500">Supports PDF files only</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500">{t('pdfImport.dropSupports')}</p>
               </div>
               <input
                 ref={fileInputRef}
@@ -139,7 +142,7 @@ export default function PDFImport({ onImported, onFill, label = 'Import PDF' }: 
                 <div className="flex items-start gap-2.5 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg text-red-700 dark:text-red-400 text-sm">
                   <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
                   <div>
-                    <p className="font-medium">Import failed</p>
+                    <p className="font-medium">{t('pdfImport.failed')}</p>
                     <p className="mt-0.5 text-red-600 dark:text-red-300">{error}</p>
                   </div>
                 </div>
@@ -206,7 +209,7 @@ export default function PDFImport({ onImported, onFill, label = 'Import PDF' }: 
           )}
 
           <p className="text-xs text-gray-400 dark:text-gray-500 text-center">
-            Text is extracted and parsed server-side. Works best with text-based PDFs (not scanned images).
+            {t('pdfImport.note')}
           </p>
         </div>
       </Modal>

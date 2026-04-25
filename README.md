@@ -89,7 +89,7 @@ The app runs as a Docker container on Azure App Service. The image is built remo
 az group create -n smart-cv-rg -l australiaeast
 ```
 
-**Deploy (build image + update App Service):**
+**Deploy infrastructure + app (first time or after infra changes):**
 
 ```bash
 ./deploy.sh          # deploys with tag "latest"
@@ -100,6 +100,15 @@ az group create -n smart-cv-rg -l australiaeast
 1. `az deployment group create` — provisions ACR, App Service Plan, and Web App from `azure/main.bicep`
 2. `az acr build` — builds the Docker image in Azure and pushes it to the registry
 3. `az webapp restart` — restarts the app to pull the new image
+
+**Deploy app only (after frontend/backend code changes):**
+
+```bash
+./deploy-app.sh          # builds and deploys with tag "latest"
+./deploy-app.sh v1.2.0   # builds and deploys with a specific tag
+```
+
+`deploy-app.sh` skips the Bicep infrastructure step and just runs `az acr build` + `az webapp restart`. Use this for faster iteration when only application code has changed.
 
 **Prerequisites:** [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) logged in (`az login`) with Contributor access to the resource group.
 

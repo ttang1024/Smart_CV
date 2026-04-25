@@ -1,11 +1,14 @@
 import type { CSSProperties } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { LayoutProps, CustomOptions, CustomSectionStyle } from '../resumeTypes';
 import { contactItems, ContactRow, dateRange, EduEntry, ExpEntry, CertList, LangList, HighlightList, AchievementRows, InterestsList, RefereesBlock } from '../resumeShared';
 import { DEFAULT_SECTION_ORDER } from '../../../types/resume';
 
 export function CustomLayout({ r, theme, options }: LayoutProps & { options: CustomOptions }) {
+  const { t } = useTranslation();
   const { personalInfo: p, summary, coreHighlights, experience, education, skills, projects, certifications, languages } = r;
   const accent = theme.main;
+  const presentLabel = t('resumeLayout.present');
   const sectionOrder = r.sectionOrder ?? DEFAULT_SECTION_ORDER;
 
   const Sec = ({ title, children }: { title: string; children: React.ReactNode }) => (
@@ -72,7 +75,7 @@ export function CustomLayout({ r, theme, options }: LayoutProps & { options: Cus
             <span style={{ fontWeight: 600 }}>{edu.degree}{edu.field ? ` in ${edu.field}` : ''}</span>
             {edu.institution && <span style={{ color: accent }}> · {edu.institution}</span>}
           </div>
-          <span style={{ fontSize: '9pt', color: '#9ca3af', whiteSpace: 'nowrap', marginLeft: '8px' }}>{dateRange(edu.startDate, edu.endDate, edu.current)}</span>
+          <span style={{ fontSize: '9pt', color: '#9ca3af', whiteSpace: 'nowrap', marginLeft: '8px' }}>{dateRange(edu.startDate, edu.endDate, edu.current, presentLabel)}</span>
         </div>
       ))}</>
       : <>{education.map(edu => <EduEntry key={edu.id} edu={edu} accentColor={accent} dateColor="#9ca3af" gpaColor="#6b7280" />)}</>;
@@ -83,7 +86,7 @@ export function CustomLayout({ r, theme, options }: LayoutProps & { options: Cus
       : <>{experience.map((exp, idx) => (
         <div key={exp.id} style={{ display: 'flex' }}>
           <div style={{ width: '108px', flexShrink: 0, paddingTop: '3px', fontSize: '8pt', fontWeight: 600, color: theme.dark, lineHeight: 1.4 }}>
-            {(() => { const range = dateRange(exp.startDate, exp.endDate, exp.current); const [a, b] = range.includes('–') ? range.split('–').map(s => s.trim()) : [range, '']; return <>{a}{b && <> - {b}</>}</>; })()}
+            {(() => { const range = dateRange(exp.startDate, exp.endDate, exp.current, presentLabel); const [a, b] = range.includes('–') ? range.split('–').map(s => s.trim()) : [range, '']; return <>{a}{b && <> - {b}</>}</>; })()}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '20px', flexShrink: 0 }}>
             <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: accent, border: '2px solid white', boxShadow: `0 0 0 2px ${accent}`, marginTop: '4px', flexShrink: 0 }} />
@@ -121,7 +124,7 @@ export function CustomLayout({ r, theme, options }: LayoutProps & { options: Cus
             {p.title && <p style={{ fontSize: '9pt', color: accent, fontWeight: 500 }}>{p.title}</p>}
           </div>
           <div style={{ marginBottom: '14px' }}>
-            <div style={{ fontSize: '8pt', fontWeight: 700, color: accent, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '5px' }}>Contact</div>
+            <div style={{ fontSize: '8pt', fontWeight: 700, color: accent, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '5px' }}>{t('resumeLayout.sections.contact')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', fontSize: '8.5pt', color: '#4b5563' }}>
               {contactItems(p).map((item, i) => (
                 <span key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -130,11 +133,11 @@ export function CustomLayout({ r, theme, options }: LayoutProps & { options: Cus
               ))}
             </div>
           </div>
-          {skills.length > 0 && <Sec title="Skills">{renderSkills(1)}</Sec>}
-          {education.length > 0 && <Sec title="Education">{renderEducation()}</Sec>}
-          {languages.length > 0 && <Sec title="Languages"><LangList items={languages} gap="4px 8px" profColor="#9ca3af" /></Sec>}
+          {skills.length > 0 && <Sec title={t('resumeLayout.sections.skillsShort')}>{renderSkills(1)}</Sec>}
+          {education.length > 0 && <Sec title={t('resumeLayout.sections.education')}>{renderEducation()}</Sec>}
+          {languages.length > 0 && <Sec title={t('resumeLayout.sections.languages')}><LangList items={languages} gap="4px 8px" profColor="#9ca3af" /></Sec>}
           {certifications.length > 0 && (
-            <Sec title="Certifications">
+            <Sec title={t('resumeLayout.sections.certifications')}>
               {certifications.map(c => (
                 <div key={c.id} style={{ marginBottom: '5px' }}>
                   <div style={{ fontWeight: 600, fontSize: '8.5pt' }}>{c.name}</div>
@@ -146,17 +149,17 @@ export function CustomLayout({ r, theme, options }: LayoutProps & { options: Cus
           )}
         </div>
         <div style={{ flex: 1, padding: '14mm 14mm 14mm 10mm' }}>
-          {summary && <Sec title="Summary">{renderSummary()}</Sec>}
+          {summary && <Sec title={t('resumeLayout.sections.summary')}>{renderSummary()}</Sec>}
           {(coreHighlights ?? []).filter(h => h.text).length > 0 && (
-            <Sec title="Core Highlights">
+            <Sec title={t('resumeLayout.sections.coreHighlights')}>
               <ul style={{ paddingLeft: '16px', margin: 0 }}>{coreHighlights.filter(h => h.text).map(h => <li key={h.id} style={{ marginBottom: '3px', color: '#374151' }}>{h.text}</li>)}</ul>
             </Sec>
           )}
-          {experience.length > 0 && <Sec title="Work Experience">{renderExperience()}</Sec>}
-          {projects.length > 0 && <Sec title="Projects">{renderProjects()}</Sec>}
-          {(r.achievements ?? []).filter(a => a.title).length > 0 && <Sec title="Achievements"><AchievementRows achievements={r.achievements} accent={accent} /></Sec>}
-          {(r.interests ?? []).filter(i => i.name).length > 0 && <Sec title="Interests"><p style={{ color: '#374151' }}><InterestsList r={r} /></p></Sec>}
-          {(r.referees?.length ?? 0) > 0 && <Sec title="Referees"><RefereesBlock r={r} /></Sec>}
+          {experience.length > 0 && <Sec title={t('resumeLayout.sections.experience')}>{renderExperience()}</Sec>}
+          {projects.length > 0 && <Sec title={t('resumeLayout.sections.projects')}>{renderProjects()}</Sec>}
+          {(r.achievements ?? []).filter(a => a.title).length > 0 && <Sec title={t('resumeLayout.sections.achievements')}><AchievementRows achievements={r.achievements} accent={accent} /></Sec>}
+          {(r.interests ?? []).filter(i => i.name).length > 0 && <Sec title={t('resumeLayout.sections.interests')}><p style={{ color: '#374151' }}><InterestsList r={r} /></p></Sec>}
+          {(r.referees?.length ?? 0) > 0 && <Sec title={t('resumeLayout.sections.referees')}><RefereesBlock r={r} /></Sec>}
         </div>
       </div>
     );
@@ -164,21 +167,21 @@ export function CustomLayout({ r, theme, options }: LayoutProps & { options: Cus
 
   const renderCustomSection = (key: string) => {
     switch (key) {
-      case 'summary': return summary ? <Sec key="summary" title="Summary">{renderSummary()}</Sec> : null;
+      case 'summary': return summary ? <Sec key="summary" title={t('resumeLayout.sections.summary')}>{renderSummary()}</Sec> : null;
       case 'coreHighlights': return (coreHighlights ?? []).filter(h => h.text).length > 0 ? (
-        <Sec key="coreHighlights" title="Core Highlights">
+        <Sec key="coreHighlights" title={t('resumeLayout.sections.coreHighlights')}>
           <ul style={{ paddingLeft: '16px', margin: 0 }}>{coreHighlights.filter(h => h.text).map(h => <li key={h.id} style={{ marginBottom: '3px', color: '#374151' }}>{h.text}</li>)}</ul>
         </Sec>
       ) : null;
-      case 'skills': return skills.length > 0 ? <Sec key="skills" title="Professional Skills">{renderSkills(options.skillsColumns)}</Sec> : null;
-      case 'experience': return experience.length > 0 ? <Sec key="experience" title="Work Experience">{renderExperience()}</Sec> : null;
-      case 'education': return education.length > 0 ? <Sec key="education" title="Education">{renderEducation()}</Sec> : null;
-      case 'projects': return projects.length > 0 ? <Sec key="projects" title="Projects">{renderProjects()}</Sec> : null;
-      case 'certifications': return certifications.length > 0 ? <Sec key="certifications" title="Certifications"><CertList items={certifications} dateColor="#9ca3af" /></Sec> : null;
-      case 'languages': return languages.length > 0 ? <Sec key="languages" title="Languages"><LangList items={languages} gap="8px 20px" profColor="#9ca3af" /></Sec> : null;
-      case 'achievements': return (r.achievements ?? []).filter(a => a.title).length > 0 ? <Sec key="achievements" title="Achievements"><AchievementRows achievements={r.achievements} accent={accent} /></Sec> : null;
-      case 'interests': return (r.interests ?? []).filter(i => i.name).length > 0 ? <Sec key="interests" title="Interests"><p style={{ color: '#374151' }}><InterestsList r={r} /></p></Sec> : null;
-      case 'referees': return (r.referees?.length ?? 0) > 0 ? <Sec key="referees" title="Referees"><RefereesBlock r={r} /></Sec> : null;
+      case 'skills': return skills.length > 0 ? <Sec key="skills" title={t('resumeLayout.sections.skills')}>{renderSkills(options.skillsColumns)}</Sec> : null;
+      case 'experience': return experience.length > 0 ? <Sec key="experience" title={t('resumeLayout.sections.experience')}>{renderExperience()}</Sec> : null;
+      case 'education': return education.length > 0 ? <Sec key="education" title={t('resumeLayout.sections.education')}>{renderEducation()}</Sec> : null;
+      case 'projects': return projects.length > 0 ? <Sec key="projects" title={t('resumeLayout.sections.projects')}>{renderProjects()}</Sec> : null;
+      case 'certifications': return certifications.length > 0 ? <Sec key="certifications" title={t('resumeLayout.sections.certifications')}><CertList items={certifications} dateColor="#9ca3af" /></Sec> : null;
+      case 'languages': return languages.length > 0 ? <Sec key="languages" title={t('resumeLayout.sections.languages')}><LangList items={languages} gap="8px 20px" profColor="#9ca3af" /></Sec> : null;
+      case 'achievements': return (r.achievements ?? []).filter(a => a.title).length > 0 ? <Sec key="achievements" title={t('resumeLayout.sections.achievements')}><AchievementRows achievements={r.achievements} accent={accent} /></Sec> : null;
+      case 'interests': return (r.interests ?? []).filter(i => i.name).length > 0 ? <Sec key="interests" title={t('resumeLayout.sections.interests')}><p style={{ color: '#374151' }}><InterestsList r={r} /></p></Sec> : null;
+      case 'referees': return (r.referees?.length ?? 0) > 0 ? <Sec key="referees" title={t('resumeLayout.sections.referees')}><RefereesBlock r={r} /></Sec> : null;
       default: return null;
     }
   };

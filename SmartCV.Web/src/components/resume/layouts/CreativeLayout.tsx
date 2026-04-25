@@ -1,10 +1,13 @@
+import { useTranslation } from 'react-i18next';
 import type { LayoutProps } from '../resumeTypes';
 import { contactItems, HighlightList, AchievementRows, InterestsList, RefereesBlock, dateRange } from '../resumeShared';
 
 export function CreativeLayout({ r, theme }: LayoutProps) {
+  const { t } = useTranslation();
   const { personalInfo: p, summary, coreHighlights, experience, education, skills, projects, certifications, languages } = r;
   const sidebarBg = theme.dark;
   const accent = theme.main;
+  const presentLabel = t('resumeLayout.present');
 
   return (
     <div style={{ display: 'flex', minHeight: '297mm', fontFamily: 'Calibri, Arial, Helvetica, "Times New Roman", sans-serif', fontSize: '10.5pt', lineHeight: '1.45' }}>
@@ -19,7 +22,7 @@ export function CreativeLayout({ r, theme }: LayoutProps) {
           )}
         </div>
 
-        <SidebarSection title="Contact" accent={accent}>
+        <SidebarSection title={t('resumeLayout.sections.contact')} accent={accent}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '8.5pt', color: '#94a3b8' }}>
             {contactItems(p).map((item, i) => (
               <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
@@ -30,7 +33,7 @@ export function CreativeLayout({ r, theme }: LayoutProps) {
         </SidebarSection>
 
         {skills.length > 0 && (
-          <SidebarSection title="Professional Skills" accent={accent}>
+          <SidebarSection title={t('resumeLayout.sections.skills')} accent={accent}>
             {skills.map(s => (
               <div key={s.id} style={{ marginBottom: '5px' }}>
                 <div style={{ fontSize: '8.5pt', fontWeight: 600, color: accent, marginBottom: '2px' }}>{s.category}</div>
@@ -41,13 +44,13 @@ export function CreativeLayout({ r, theme }: LayoutProps) {
         )}
 
         {education.length > 0 && (
-          <SidebarSection title="Education" accent={accent}>
+          <SidebarSection title={t('resumeLayout.sections.education')} accent={accent}>
             {education.map(edu => (
               <div key={edu.id} style={{ marginBottom: '8px', fontSize: '8.5pt' }}>
                 <div style={{ fontWeight: 600, color: '#e2e8f0' }}>{edu.degree}{edu.field ? ` in ${edu.field}` : ''}</div>
                 {edu.institution && <div style={{ color: '#94a3b8' }}>{edu.institution}</div>}
                 <div style={{ color: '#64748b', marginTop: '1px' }}>
-                  {dateRange(edu.startDate, edu.endDate, edu.current)}
+                  {dateRange(edu.startDate, edu.endDate, edu.current, presentLabel)}
                 </div>
               </div>
             ))}
@@ -55,7 +58,7 @@ export function CreativeLayout({ r, theme }: LayoutProps) {
         )}
 
         {languages.length > 0 && (
-          <SidebarSection title="Languages" accent={accent}>
+          <SidebarSection title={t('resumeLayout.sections.languages')} accent={accent}>
             {languages.map(l => (
               <div key={l.id} style={{ fontSize: '8.5pt', marginBottom: '3px' }}>
                 <span style={{ fontWeight: 600, color: '#e2e8f0' }}>{l.language}</span>
@@ -66,7 +69,7 @@ export function CreativeLayout({ r, theme }: LayoutProps) {
         )}
 
         {certifications.length > 0 && (
-          <SidebarSection title="Certifications" accent={accent}>
+          <SidebarSection title={t('resumeLayout.sections.certifications')} accent={accent}>
             {certifications.map(c => (
               <div key={c.id} style={{ marginBottom: '5px', fontSize: '8.5pt' }}>
                 <div style={{ fontWeight: 600, color: '#e2e8f0' }}>{c.name}</div>
@@ -81,13 +84,13 @@ export function CreativeLayout({ r, theme }: LayoutProps) {
       {/* Main content */}
       <div style={{ flex: 1, padding: '14mm 10mm', color: '#1e293b' }}>
         {summary && (
-          <CreativeSection title="Summary" accent={accent}>
+          <CreativeSection title={t('resumeLayout.sections.summary')} accent={accent}>
             <p style={{ color: '#475569', textAlign: 'justify', whiteSpace: 'pre-wrap' }}>{summary}</p>
           </CreativeSection>
         )}
 
         {coreHighlights?.length > 0 && (
-          <CreativeSection title="Core Highlights" accent={accent}>
+          <CreativeSection title={t('resumeLayout.sections.coreHighlights')} accent={accent}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               {coreHighlights.filter(h => h.text).map(h => (
                 <div key={h.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
@@ -100,7 +103,7 @@ export function CreativeLayout({ r, theme }: LayoutProps) {
         )}
 
         {experience.length > 0 && (
-          <CreativeSection title="Work Experience" accent={accent}>
+          <CreativeSection title={t('resumeLayout.sections.experience')} accent={accent}>
             {experience.map(exp => (
               <div key={exp.id} style={{ marginBottom: '12px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
@@ -109,7 +112,7 @@ export function CreativeLayout({ r, theme }: LayoutProps) {
                     {exp.company && <span style={{ color: '#64748b', fontWeight: 500 }}>{exp.position ? ' · ' : ''}{exp.company}</span>}
                   </div>
                   <span style={{ fontSize: '8.5pt', color: '#94a3b8', whiteSpace: 'nowrap' }}>
-                    {dateRange(exp.startDate, exp.endDate, exp.current)}
+                    {dateRange(exp.startDate, exp.endDate, exp.current, presentLabel)}
                   </span>
                 </div>
                 {exp.location && <div style={{ fontSize: '9pt', color: '#94a3b8', marginTop: '1px' }}>{exp.location}</div>}
@@ -121,7 +124,7 @@ export function CreativeLayout({ r, theme }: LayoutProps) {
         )}
 
         {projects.length > 0 && (
-          <CreativeSection title="Projects" accent={accent}>
+          <CreativeSection title={t('resumeLayout.sections.projects')} accent={accent}>
             {projects.map(p => (
               <div key={p.id} style={{ marginBottom: '9px' }}>
                 <span style={{ fontWeight: 700, color: '#0f172a' }}>{p.name}</span>
@@ -136,19 +139,19 @@ export function CreativeLayout({ r, theme }: LayoutProps) {
         )}
 
         {(r.achievements ?? []).filter(a => a.title).length > 0 && (
-          <CreativeSection title="Achievements" accent={accent}>
+          <CreativeSection title={t('resumeLayout.sections.achievements')} accent={accent}>
             <AchievementRows achievements={r.achievements} accent={accent} />
           </CreativeSection>
         )}
 
         {(r.interests ?? []).filter(i => i.name).length > 0 && (
-          <CreativeSection title="Interests" accent={accent}>
+          <CreativeSection title={t('resumeLayout.sections.interests')} accent={accent}>
             <p style={{ color: '#475569' }}><InterestsList r={r} /></p>
           </CreativeSection>
         )}
 
         {(r.referees?.length ?? 0) > 0 && (
-          <CreativeSection title="Referees" accent={accent}>
+          <CreativeSection title={t('resumeLayout.sections.referees')} accent={accent}>
             <RefereesBlock r={r} />
           </CreativeSection>
         )}

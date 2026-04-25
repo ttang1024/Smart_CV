@@ -1,9 +1,12 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Settings, Sparkles } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import Button from '../ui/Button';
+import LanguageSwitcher from '../ui/LanguageSwitcher';
 
 export default function Header() {
   const location = useLocation();
+  const { t } = useTranslation();
 
   return (
     <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-200">
@@ -18,13 +21,16 @@ export default function Header() {
 
         <div className="flex-1" />
 
-        {/* AI Settings — always top-right */}
-        <Link to="/settings">
-          <Button variant={location.pathname === '/settings' ? 'primary' : 'outline'} size="sm">
-            <Settings className="w-4 h-4" />
-            AI Settings
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <LanguageSwitcher />
+          {/* AI Settings — always top-right */}
+          <Link to="/settings">
+            <Button variant={location.pathname === '/settings' ? 'primary' : 'outline'} size="sm">
+              <Settings className="w-4 h-4" />
+              {t('header.aiSettings')}
+            </Button>
+          </Link>
+        </div>
       </div>
     </header>
   );

@@ -1,8 +1,10 @@
+import { useTranslation } from 'react-i18next';
 import type { LayoutProps, ThemeColors } from '../resumeTypes';
 import { ContactRow, contactItems, ExpEntry, EduEntry, CertList, LangList, HighlightList, AchievementRows, InterestsList, RefereesBlock } from '../resumeShared';
 import { DEFAULT_SECTION_ORDER } from '../../../types/resume';
 
 export function MinimalLayout({ r, theme }: LayoutProps) {
+  const { t } = useTranslation();
   const { personalInfo: p, summary, coreHighlights, experience, education, skills, projects, certifications, languages } = r;
   const sectionOrder = r.sectionOrder ?? DEFAULT_SECTION_ORDER;
 
@@ -10,13 +12,13 @@ export function MinimalLayout({ r, theme }: LayoutProps) {
     switch (key) {
       case 'summary':
         return summary ? (
-          <MinimalSection key="summary" title="Summary" theme={theme}>
+          <MinimalSection key="summary" title={t('resumeLayout.sections.summary')} theme={theme}>
             <p style={{ color: '#444444', textAlign: 'justify', whiteSpace: 'pre-wrap' }}>{summary}</p>
           </MinimalSection>
         ) : null;
       case 'coreHighlights':
         return coreHighlights?.length > 0 ? (
-          <MinimalSection key="coreHighlights" title="Highlights" theme={theme}>
+          <MinimalSection key="coreHighlights" title={t('resumeLayout.sections.highlightsMinimal')} theme={theme}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
               {coreHighlights.filter(h => h.text).map(h => (
                 <div key={h.id} style={{ color: '#444444', paddingLeft: '12px', position: 'relative' }}>
@@ -29,7 +31,7 @@ export function MinimalLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'skills':
         return skills.length > 0 ? (
-          <MinimalSection key="skills" title="Professional Skills" theme={theme}>
+          <MinimalSection key="skills" title={t('resumeLayout.sections.skills')} theme={theme}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
               {skills.map(s => (
                 <div key={s.id}>
@@ -42,7 +44,7 @@ export function MinimalLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'experience':
         return experience.length > 0 ? (
-          <MinimalSection key="experience" title="Work Experience" theme={theme}>
+          <MinimalSection key="experience" title={t('resumeLayout.sections.experience')} theme={theme}>
             {experience.map(exp => (
               <ExpEntry key={exp.id} exp={exp}
                 companyColor="#888888" locColor="#aaaaaa" locSep=", "
@@ -53,7 +55,7 @@ export function MinimalLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'education':
         return education.length > 0 ? (
-          <MinimalSection key="education" title="Education" theme={theme}>
+          <MinimalSection key="education" title={t('resumeLayout.sections.education')} theme={theme}>
             {education.map(edu => (
               <EduEntry key={edu.id} edu={edu}
                 accentColor="#888888" instSep=", "
@@ -63,7 +65,7 @@ export function MinimalLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'projects':
         return projects.length > 0 ? (
-          <MinimalSection key="projects" title="Projects" theme={theme}>
+          <MinimalSection key="projects" title={t('resumeLayout.sections.projects')} theme={theme}>
             {projects.map(p => (
               <div key={p.id} style={{ marginBottom: '8px' }}>
                 <span style={{ fontWeight: 600 }}>{p.name}</span>
@@ -78,31 +80,31 @@ export function MinimalLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'certifications':
         return certifications.length > 0 ? (
-          <MinimalSection key="certifications" title="Certifications" theme={theme}>
+          <MinimalSection key="certifications" title={t('resumeLayout.sections.certifications')} theme={theme}>
             <CertList items={certifications} dateColor="#aaaaaa" />
           </MinimalSection>
         ) : null;
       case 'languages':
         return languages.length > 0 ? (
-          <MinimalSection key="languages" title="Languages" theme={theme}>
+          <MinimalSection key="languages" title={t('resumeLayout.sections.languages')} theme={theme}>
             <LangList items={languages} gap="8px 20px" color="#555555" />
           </MinimalSection>
         ) : null;
       case 'achievements':
         return (r.achievements ?? []).filter(a => a.title).length > 0 ? (
-          <MinimalSection key="achievements" title="Achievements" theme={theme}>
+          <MinimalSection key="achievements" title={t('resumeLayout.sections.achievements')} theme={theme}>
             <AchievementRows achievements={r.achievements} accent={theme.main} />
           </MinimalSection>
         ) : null;
       case 'interests':
         return (r.interests ?? []).filter(i => i.name).length > 0 ? (
-          <MinimalSection key="interests" title="Interests" theme={theme}>
+          <MinimalSection key="interests" title={t('resumeLayout.sections.interests')} theme={theme}>
             <p style={{ color: '#555555' }}><InterestsList r={r} /></p>
           </MinimalSection>
         ) : null;
       case 'referees':
         return (r.referees?.length ?? 0) > 0 ? (
-          <MinimalSection key="referees" title="Referees" theme={theme}>
+          <MinimalSection key="referees" title={t('resumeLayout.sections.referees')} theme={theme}>
             <RefereesBlock r={r} />
           </MinimalSection>
         ) : null;

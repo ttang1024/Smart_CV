@@ -1,8 +1,10 @@
+import { useTranslation } from 'react-i18next';
 import type { LayoutProps, ThemeColors } from '../resumeTypes';
 import { ContactRow, contactItems, ExpEntry, EduEntry, CertList, LangList, HighlightList, AchievementRows, InterestsList, RefereesBlock } from '../resumeShared';
 import { DEFAULT_SECTION_ORDER } from '../../../types/resume';
 
 export function ClassicLayout({ r, theme }: LayoutProps) {
+  const { t } = useTranslation();
   const { personalInfo: p, summary, coreHighlights, experience, education, skills, projects, certifications, languages } = r;
   const sectionOrder = r.sectionOrder ?? DEFAULT_SECTION_ORDER;
 
@@ -10,13 +12,13 @@ export function ClassicLayout({ r, theme }: LayoutProps) {
     switch (key) {
       case 'summary':
         return summary ? (
-          <ClassicSection key="summary" title="Summary" theme={theme}>
+          <ClassicSection key="summary" title={t('resumeLayout.sections.summary')} theme={theme}>
             <p style={{ textAlign: 'justify', whiteSpace: 'pre-wrap' }}>{summary}</p>
           </ClassicSection>
         ) : null;
       case 'coreHighlights':
         return coreHighlights?.length > 0 ? (
-          <ClassicSection key="coreHighlights" title="Core Highlights" theme={theme}>
+          <ClassicSection key="coreHighlights" title={t('resumeLayout.sections.coreHighlights')} theme={theme}>
             <ul style={{ paddingLeft: '16px', margin: 0 }}>
               {coreHighlights.filter(h => h.text).map(h => (
                 <li key={h.id} style={{ marginBottom: '3px', color: '#374151' }}>{h.text}</li>
@@ -26,7 +28,7 @@ export function ClassicLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'skills':
         return skills.length > 0 ? (
-          <ClassicSection key="skills" title="Professional Skills" theme={theme}>
+          <ClassicSection key="skills" title={t('resumeLayout.sections.skills')} theme={theme}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
               {skills.map(s => (
                 <div key={s.id}>
@@ -39,7 +41,7 @@ export function ClassicLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'experience':
         return experience.length > 0 ? (
-          <ClassicSection key="experience" title="Work Experience" theme={theme}>
+          <ClassicSection key="experience" title={t('resumeLayout.sections.experience')} theme={theme}>
             {experience.map(exp => (
               <ExpEntry key={exp.id} exp={exp}
                 companyColor={theme.main} companySep=" · "
@@ -50,7 +52,7 @@ export function ClassicLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'education':
         return education.length > 0 ? (
-          <ClassicSection key="education" title="Education" theme={theme}>
+          <ClassicSection key="education" title={t('resumeLayout.sections.education')} theme={theme}>
             {education.map(edu => (
               <EduEntry key={edu.id} edu={edu}
                 accentColor={theme.main} dateColor="#6b7280" gpaColor="#4b5563" />
@@ -59,7 +61,7 @@ export function ClassicLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'projects':
         return projects.length > 0 ? (
-          <ClassicSection key="projects" title="Projects" theme={theme}>
+          <ClassicSection key="projects" title={t('resumeLayout.sections.projects')} theme={theme}>
             {projects.map(p => (
               <div key={p.id} style={{ marginBottom: '8px' }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
@@ -76,31 +78,31 @@ export function ClassicLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'certifications':
         return certifications.length > 0 ? (
-          <ClassicSection key="certifications" title="Certifications" theme={theme}>
+          <ClassicSection key="certifications" title={t('resumeLayout.sections.certifications')} theme={theme}>
             <CertList items={certifications} dateColor="#6b7280" />
           </ClassicSection>
         ) : null;
       case 'languages':
         return languages.length > 0 ? (
-          <ClassicSection key="languages" title="Languages" theme={theme}>
+          <ClassicSection key="languages" title={t('resumeLayout.sections.languages')} theme={theme}>
             <LangList items={languages} />
           </ClassicSection>
         ) : null;
       case 'achievements':
         return (r.achievements ?? []).filter(a => a.title).length > 0 ? (
-          <ClassicSection key="achievements" title="Achievements" theme={theme}>
+          <ClassicSection key="achievements" title={t('resumeLayout.sections.achievements')} theme={theme}>
             <AchievementRows achievements={r.achievements} accent={theme.main} />
           </ClassicSection>
         ) : null;
       case 'interests':
         return (r.interests ?? []).filter(i => i.name).length > 0 ? (
-          <ClassicSection key="interests" title="Interests" theme={theme}>
+          <ClassicSection key="interests" title={t('resumeLayout.sections.interests')} theme={theme}>
             <p style={{ color: '#374151' }}><InterestsList r={r} /></p>
           </ClassicSection>
         ) : null;
       case 'referees':
         return (r.referees?.length ?? 0) > 0 ? (
-          <ClassicSection key="referees" title="Referees" theme={theme}>
+          <ClassicSection key="referees" title={t('resumeLayout.sections.referees')} theme={theme}>
             <RefereesBlock r={r} />
           </ClassicSection>
         ) : null;

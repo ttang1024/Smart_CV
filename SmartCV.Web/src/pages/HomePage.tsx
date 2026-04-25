@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Sparkles, FileText } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { useResumeStore } from '../store/resumeStore';
 import ResumeCard from '../components/resume/ResumeCard';
 import PDFImport from '../components/resume/PDFImport';
@@ -11,6 +12,7 @@ import Modal from '../components/ui/Modal';
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { resumes, loading, loadResumes, createResume, deleteResume, duplicateResume } = useResumeStore();
   const [search, setSearch] = useState('');
   const [creating, setCreating] = useState(false);
@@ -25,7 +27,7 @@ export default function HomePage() {
   );
 
   const handleCreate = async () => {
-    const name = newResumeName.trim() || 'My Resume';
+    const name = newResumeName.trim() || t('home.createModal.placeholder');
     const resume = await createResume(name);
     setCreating(false);
     setNewResumeName('');
@@ -51,14 +53,14 @@ export default function HomePage() {
           <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Sparkles className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">AI-Powered Resume Builder</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{t('home.emptyTitle')}</h1>
           <p className="text-gray-500 dark:text-gray-400 text-lg mb-8 max-w-md mx-auto">
-            Create, optimize, and tailor your resume with AI. Get matched to any job description instantly.
+            {t('home.emptySubtitle')}
           </p>
           <div className="flex items-center justify-center gap-3 flex-wrap">
             <Button size="lg" onClick={() => setCreating(true)}>
               <Plus className="w-5 h-5" />
-              Create from Scratch
+              {t('home.createFromScratch')}
             </Button>
             <PDFImport onImported={id => navigate(`/editor/${id}`)} />
           </div>
@@ -71,7 +73,7 @@ export default function HomePage() {
           <div className="flex-1">
             <Input
               icon={<Search className="w-4 h-4" />}
-              placeholder="Search resumes..."
+              placeholder={t('home.searchPlaceholder')}
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="max-w-sm"
@@ -80,7 +82,7 @@ export default function HomePage() {
           <PDFImport onImported={id => navigate(`/editor/${id}`)} />
           <Button onClick={() => setCreating(true)}>
             <Plus className="w-4 h-4" />
-            New Resume
+            {t('home.newResume')}
           </Button>
         </div>
       )}
@@ -97,7 +99,7 @@ export default function HomePage() {
       {!loading && filtered.length === 0 && resumes.length > 0 && (
         <div className="text-center py-12 text-gray-500 dark:text-gray-400">
           <FileText className="w-10 h-10 mx-auto mb-3 opacity-30" />
-          <p>No resumes match your search.</p>
+          <p>{t('home.noResults')}</p>
         </div>
       )}
 
@@ -115,32 +117,32 @@ export default function HomePage() {
       </AnimatePresence>
 
       {/* Create modal */}
-      <Modal open={creating} onClose={() => setCreating(false)} title="Create New Resume">
+      <Modal open={creating} onClose={() => setCreating(false)} title={t('home.createModal.title')}>
         <div className="space-y-4">
           <Input
-            label="Resume Name"
+            label={t('home.createModal.label')}
             value={newResumeName}
             onChange={e => setNewResumeName(e.target.value)}
-            placeholder="e.g. Software Engineer Resume"
+            placeholder={t('home.createModal.placeholder')}
             onKeyDown={e => e.key === 'Enter' && handleCreate()}
             autoFocus
           />
           <div className="flex gap-2 justify-end">
-            <Button variant="ghost" onClick={() => setCreating(false)}>Cancel</Button>
-            <Button onClick={handleCreate}>Create Resume</Button>
+            <Button variant="ghost" onClick={() => setCreating(false)}>{t('home.createModal.cancel')}</Button>
+            <Button onClick={handleCreate}>{t('home.createModal.create')}</Button>
           </div>
         </div>
       </Modal>
 
       {/* Delete confirm modal */}
-      <Modal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Delete Resume" size="sm">
+      <Modal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} title={t('home.deleteModal.title')} size="sm">
         <div className="space-y-4">
           <p className="text-gray-600 dark:text-gray-400">
-            Are you sure you want to delete this resume? This cannot be undone.
+            {t('home.deleteModal.confirm')}
           </p>
           <div className="flex gap-2 justify-end">
-            <Button variant="ghost" onClick={() => setDeleteTarget(null)}>Cancel</Button>
-            <Button variant="danger" onClick={handleDelete}>Delete</Button>
+            <Button variant="ghost" onClick={() => setDeleteTarget(null)}>{t('home.deleteModal.cancel')}</Button>
+            <Button variant="danger" onClick={handleDelete}>{t('home.deleteModal.delete')}</Button>
           </div>
         </div>
       </Modal>

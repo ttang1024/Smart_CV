@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { TemplatePreview, deriveTheme } from '../components/resume/ResumePreview';
 import { DEMO_RESUME } from '../data/demoResume';
 import {
@@ -11,8 +12,8 @@ import {
   ArrowRight, Check, Star, ExternalLink, Brain, Lock,
   ChevronDown, Upload, Wand2, LayoutTemplate, Plus, Minus,
 } from 'lucide-react';
-
 import { GithubFilled } from '@ant-design/icons';
+import LanguageSwitcher from '../components/ui/LanguageSwitcher';
 
 
 // ─── constants ────────────────────────────────────────────────────────────────
@@ -72,36 +73,14 @@ function TiltCard({ children, className = '' }: { children: React.ReactNode; cla
 
 const HERO_SCALE = 0.54;
 
-const STEPS = [
-  {
-    icon: Upload,
-    n: '1',
-    title: 'Create or import your resume',
-    desc: 'Start from scratch with guided sections, or upload your existing PDF. SmartCV reads it instantly and fills every field.',
-    color: 'from-indigo-500 to-violet-500',
-  },
-  {
-    icon: Wand2,
-    n: '2',
-    title: 'Let AI tailor it to the job',
-    desc: 'Paste any job description. The AI rewrites your bullets and summary with targeted keywords to pass ATS screening.',
-    color: 'from-violet-500 to-purple-500',
-  },
-  {
-    icon: LayoutTemplate,
-    n: '3',
-    title: 'Choose your style',
-    desc: 'Pick from 10 professionally designed themes — Classic, Modern, Executive, Creative, and more — or mix and match with the fully customisable Custom style.',
-    color: 'from-purple-500 to-fuchsia-500',
-  },
-  {
-    icon: Download,
-    n: '4',
-    title: 'Download and apply',
-    desc: 'Export a pixel-perfect, ATS-friendly PDF with one click. Your resume is saved locally, ready whenever you need it.',
-    color: 'from-fuchsia-500 to-pink-500',
-  },
-];
+const STEP_COLORS = [
+  'from-indigo-500 to-violet-500',
+  'from-violet-500 to-purple-500',
+  'from-purple-500 to-fuchsia-500',
+  'from-fuchsia-500 to-pink-500',
+] as const;
+
+const STEP_ICONS = [Upload, Wand2, LayoutTemplate, Download] as const;
 
 const RESUME_STYLES = [
   { id: 'classic', name: 'Classic', accent: '#4338ca' },
@@ -118,9 +97,26 @@ const RESUME_STYLES = [
 
 // ─── page ─────────────────────────────────────────────────────────────────────
 export default function LandingPage() {
+  const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [heroStyleIdx, setHeroStyleIdx] = useState(0);
   const [heroAccent, setHeroAccent] = useState('#6366f1');
+
+  const STEPS = [
+    { icon: STEP_ICONS[0], n: '1', title: t('landing.howItWorks.steps.step1.title'), desc: t('landing.howItWorks.steps.step1.desc'), color: STEP_COLORS[0] },
+    { icon: STEP_ICONS[1], n: '2', title: t('landing.howItWorks.steps.step2.title'), desc: t('landing.howItWorks.steps.step2.desc'), color: STEP_COLORS[1] },
+    { icon: STEP_ICONS[2], n: '3', title: t('landing.howItWorks.steps.step3.title'), desc: t('landing.howItWorks.steps.step3.desc'), color: STEP_COLORS[2] },
+    { icon: STEP_ICONS[3], n: '4', title: t('landing.howItWorks.steps.step4.title'), desc: t('landing.howItWorks.steps.step4.desc'), color: STEP_COLORS[3] },
+  ];
+
+  const HERO_FEATURES = [
+    { icon: Palette, text: t('landing.hero.features.styles') },
+    { icon: Brain, text: t('landing.hero.features.aiProviders') },
+    { icon: Lock, text: t('landing.hero.features.private') },
+    { icon: Shield, text: t('landing.hero.features.noSignup') },
+    { icon: Download, text: t('landing.hero.features.downloads') },
+    { icon: FileText, text: t('landing.hero.features.ats') },
+  ];
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -155,15 +151,16 @@ export default function LandingPage() {
           </Link>
 
           <div className="flex items-center gap-2">
+            <LanguageSwitcher />
             <motion.a href={GITHUB_URL} target="_blank" rel="noopener noreferrer"
               whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}
               className="hidden sm:inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 border border-gray-200 hover:border-gray-300 bg-white px-3 py-1.5 rounded-lg transition-all">
               <GithubFilled />
-              <span className="font-medium">GitHub</span>
+              <span className="font-medium">{t('landing.nav.github')}</span>
             </motion.a>
             <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
               <Link to="/app" className="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-md shadow-indigo-200 transition-colors">
-                Get started free <ArrowRight className="w-4 h-4" />
+                {t('landing.nav.getStarted')} <ArrowRight className="w-4 h-4" />
               </Link>
             </motion.div>
             <button className="md:hidden p-2 rounded-lg hover:bg-gray-100" onClick={() => setMenuOpen(v => !v)} aria-label="Toggle menu">
@@ -177,11 +174,16 @@ export default function LandingPage() {
         <motion.div initial={false} animate={menuOpen ? { height: 'auto', opacity: 1 } : { height: 0, opacity: 0 }}
           transition={{ duration: 0.25 }} className="overflow-hidden md:hidden border-t border-gray-100">
           <div className="px-6 py-4 space-y-1 bg-white">
-            {[['#how-it-works', 'How it works'], ['#styles', 'Styles'], ['#testimonials', 'Reviews'], ['#faq', 'FAQ']].map(([href, label]) => (
+            {([
+              ['#how-it-works', t('landing.nav.howItWorks')],
+              ['#styles', t('landing.nav.styles')],
+              ['#testimonials', t('landing.nav.reviews')],
+              ['#faq', t('landing.nav.faq')],
+            ] as [string, string][]).map(([href, label]) => (
               <a key={href} href={href} onClick={() => setMenuOpen(false)} className="block py-2 text-sm text-gray-600 hover:text-gray-900">{label}</a>
             ))}
             <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 py-2 text-sm text-gray-600">
-              <GithubFilled className="font-medium" /> GitHub
+              <GithubFilled className="font-medium" /> {t('landing.nav.github')}
             </a>
           </div>
         </motion.div>
@@ -203,25 +205,25 @@ export default function LandingPage() {
               className="inline-flex items-center gap-2 mb-8">
               <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 bg-white border border-gray-200 shadow-sm text-gray-700 text-xs font-semibold px-3 py-1.5 rounded-full hover:border-indigo-300 transition-all">
-                <GithubFilled /> Open Source on GitHub <ExternalLink className="w-3 h-3 text-gray-400" />
+                <GithubFilled /> {t('landing.hero.openSource')} <ExternalLink className="w-3 h-3 text-gray-400" />
               </a>
               <span className="inline-flex items-center gap-1.5 bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-semibold px-3 py-1.5 rounded-full">
-                <Sparkles className="w-3 h-3" /> 100% free forever
+                <Sparkles className="w-3 h-3" /> {t('landing.hero.freeBadge')}
               </span>
             </motion.div>
 
             {/* Headline */}
             <motion.h1 variants={stagger(0.09)} initial="hidden" animate="show"
               className="text-5xl sm:text-6xl font-extrabold tracking-tight leading-[1.08] mb-6">
-              <motion.span variants={fadeUp} className="block text-gray-900">AI Resume Builder</motion.span>
+              <motion.span variants={fadeUp} className="block text-gray-900">{t('landing.hero.headline1')}</motion.span>
               <motion.span variants={fadeUp} className="block bg-gradient-to-r from-indigo-600 via-purple-500 to-pink-500 bg-clip-text text-transparent pb-1">
-                built for every job.
+                {t('landing.hero.headline2')}
               </motion.span>
             </motion.h1>
 
             <Reveal delay={0.28}>
               <p className="text-lg text-gray-500 mb-8 leading-relaxed max-w-lg">
-                Build a job-winning resume for free. No sign-up, no watermarks, no data leaving your device.
+                {t('landing.hero.subheadline')}
               </p>
             </Reveal>
 
@@ -229,13 +231,13 @@ export default function LandingPage() {
             <Reveal delay={0.38} className="flex flex-col sm:flex-row items-start gap-3 mb-10">
               <motion.div whileHover={{ scale: 1.04, y: -2 }} whileTap={{ scale: 0.97 }} transition={spring}>
                 <Link to="/app" className="inline-flex items-center gap-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8 py-4 rounded-xl shadow-xl shadow-indigo-300/40 transition-colors text-base">
-                  Get started for free ✨
+                  {t('landing.hero.ctaFree')}
                 </Link>
               </motion.div>
               <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }} transition={spring}>
                 <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer"
                   className="inline-flex items-center gap-2.5 bg-white border border-gray-200 hover:border-gray-300 text-gray-700 font-bold px-8 py-4 rounded-xl shadow-sm hover:shadow-md transition-all text-base">
-                  <GithubFilled /> View on GitHub
+                  <GithubFilled /> {t('landing.hero.ctaGithub')}
                 </a>
               </motion.div>
             </Reveal>
@@ -243,14 +245,7 @@ export default function LandingPage() {
             {/* Feature highlights */}
             <Reveal delay={0.48}>
               <div className="grid grid-cols-2 gap-x-6 gap-y-2.5">
-                {[
-                  { icon: Palette, text: '10 resume styles' },
-                  { icon: Brain, text: 'Configure AI providers by yourself' },
-                  { icon: Lock, text: '100% local & private' },
-                  { icon: Shield, text: 'No sign-up required' },
-                  { icon: Download, text: 'Unlimited downloads' },
-                  { icon: FileText, text: 'ATS-friendly PDF' },
-                ].map(({ icon: Icon, text }) => (
+                {HERO_FEATURES.map(({ icon: Icon, text }) => (
                   <div key={text} className="flex items-center gap-2 text-sm text-gray-600">
                     <span className="flex items-center justify-center w-5 h-5 rounded-full bg-indigo-50 shrink-0">
                       <Icon className="w-3 h-3 text-indigo-500" />
@@ -348,9 +343,9 @@ export default function LandingPage() {
       <section id="how-it-works" className="py-24 px-6 bg-gradient-to-b from-white to-slate-50 overflow-x-clip">
         <div className="max-w-5xl mx-auto">
           <Reveal className="text-center mb-20">
-            <span className="inline-block text-xs font-bold text-indigo-600 tracking-[0.2em] uppercase mb-3 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">How it works</span>
-            <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight mt-2 mb-4">From blank page to offer letter</h2>
-            <p className="text-gray-500 text-lg max-w-xl mx-auto">Four simple steps to a job-winning resume, powered by AI.</p>
+            <span className="inline-block text-xs font-bold text-indigo-600 tracking-[0.2em] uppercase mb-3 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">{t('landing.howItWorks.label')}</span>
+            <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight mt-2 mb-4">{t('landing.howItWorks.title')}</h2>
+            <p className="text-gray-500 text-lg max-w-xl mx-auto">{t('landing.howItWorks.subtitle')}</p>
           </Reveal>
 
           <div className="relative">
@@ -401,10 +396,10 @@ export default function LandingPage() {
       {/* ── Footer ───────────────────────────────────────────────────────────── */}
       <footer className="border-t border-white/5 bg-[#0f0c29] px-26 py-8">
         <div className="border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white">
-          <p>© {new Date().getFullYear()} SmartCV · Open Source · MIT License</p>
-          <p>AI Optimize · Runs locally · No sign-up required</p>
+          <p>{t('landing.footer.copy', { year: new Date().getFullYear() })}</p>
+          <p>{t('landing.footer.tagline')}</p>
           <Link to="/app" className="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
-            Open App <ArrowRight className="w-3 h-3" />
+            {t('landing.footer.openApp')} <ArrowRight className="w-3 h-3" />
           </Link>
         </div>
       </footer>

@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const PAPER_W_PX = 210 * (96 / 25.4); // A4 width in CSS px at 96 dpi ≈ 793.7
 import { DownloadOutlined } from '@ant-design/icons';
@@ -23,27 +24,13 @@ import { SplitLayout } from './layouts/SplitLayout';
 import { TimelineLayout } from './layouts/TimelineLayout';
 import { CustomLayout } from './layouts/CustomLayout';
 
-const SECTION_LABELS: Record<ResumeSection, string> = {
-  personalInfo: 'Personal Info',
-  summary: 'Summary',
-  coreHighlights: 'Highlights',
-  experience: 'Experience',
-  education: 'Education',
-  skills: 'Skills',
-  projects: 'Projects',
-  certifications: 'Certs',
-  languages: 'Languages',
-  achievements: 'Achievements',
-  interests: 'Interests',
-  referees: 'Referees',
-};
-
 interface ResumePreviewProps {
   resume: Resume;
   onChange?: (resume: Resume) => void;
 }
 
 export default function ResumePreview({ resume: r, onChange }: ResumePreviewProps) {
+  const { t } = useTranslation();
   const printRef = useRef<HTMLDivElement>(null);
   const scaleWrapRef = useRef<HTMLDivElement>(null);
   const [styleId, setStyleId] = useState<StyleId>('classic');
@@ -160,13 +147,13 @@ h2{break-after:avoid;page-break-after:avoid;}
           </div>
           <Button size="sm" variant="secondary" onClick={handleDownloadPDF} loading={downloading} className="shrink-0">
             {!downloading && <DownloadOutlined style={{ fontSize: '16px' }} />}
-            {downloading ? 'Generating…' : 'Download PDF'}
+            {downloading ? t('resumeLayout.preview.generating') : t('resumeLayout.preview.downloadPdf')}
           </Button>
         </div>
 
         {/* Theme colour picker */}
         <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0">Theme colour:</span>
+          <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0">{t('resumeLayout.preview.themeColour')}</span>
           <input
             type="color"
             value={mainColor}
@@ -182,14 +169,14 @@ h2{break-after:avoid;page-break-after:avoid;}
           <div className="flex flex-wrap gap-x-4 gap-y-1.5 pt-1 border-t border-gray-200 dark:border-gray-700">
             {(
               [
-                { label: 'Layout', options: [['single', 'Single'], ['two-column', '2 Col']], value: customOptions.layoutMode, set: (v: string) => setCustomOptions(o => ({ ...o, layoutMode: v as CustomLayoutMode })) },
-                { label: 'Header', options: [['classic', 'Classic'], ['split', 'Split']], value: customOptions.header, set: (v: string) => setCustomOptions(o => ({ ...o, header: v as CustomHeader })) },
-                { label: 'Section', options: [['bar', 'Bar'], ['underline', 'Underline'], ['plain', 'Plain']], value: customOptions.sectionStyle, set: (v: string) => setCustomOptions(o => ({ ...o, sectionStyle: v as CustomSectionStyle })) },
-                { label: 'Experience', options: [['list', 'List'], ['timeline', 'Timeline']], value: customOptions.experience, set: (v: string) => setCustomOptions(o => ({ ...o, experience: v as CustomExp })) },
-                { label: 'Skills', options: [['list', 'List'], ['tags', 'Tags']], value: customOptions.skillsStyle, set: (v: string) => setCustomOptions(o => ({ ...o, skillsStyle: v as CustomSkillsStyle })) },
-                { label: 'Cols', options: [['1', '1'], ['2', '2']], value: String(customOptions.skillsColumns), set: (v: string) => setCustomOptions(o => ({ ...o, skillsColumns: Number(v) as 1 | 2 })) },
-                { label: 'Education', options: [['standard', 'Standard'], ['compact', 'Compact']], value: customOptions.education, set: (v: string) => setCustomOptions(o => ({ ...o, education: v as CustomEduStyle })) },
-                { label: 'Summary', options: [['paragraph', 'Para'], ['callout', 'Callout']], value: customOptions.summary, set: (v: string) => setCustomOptions(o => ({ ...o, summary: v as CustomSummaryStyle })) },
+                { label: t('resumeLayout.preview.layout'), options: [['single', t('resumeLayout.preview.single')], ['two-column', t('resumeLayout.preview.twoCol')]], value: customOptions.layoutMode, set: (v: string) => setCustomOptions(o => ({ ...o, layoutMode: v as CustomLayoutMode })) },
+                { label: t('resumeLayout.preview.header'), options: [['classic', t('resumeLayout.preview.classic')], ['split', t('resumeLayout.preview.split')]], value: customOptions.header, set: (v: string) => setCustomOptions(o => ({ ...o, header: v as CustomHeader })) },
+                { label: t('resumeLayout.preview.section'), options: [['bar', t('resumeLayout.preview.bar')], ['underline', t('resumeLayout.preview.underline')], ['plain', t('resumeLayout.preview.plain')]], value: customOptions.sectionStyle, set: (v: string) => setCustomOptions(o => ({ ...o, sectionStyle: v as CustomSectionStyle })) },
+                { label: t('resumeLayout.preview.experience'), options: [['list', t('resumeLayout.preview.list')], ['timeline', t('resumeLayout.preview.timeline')]], value: customOptions.experience, set: (v: string) => setCustomOptions(o => ({ ...o, experience: v as CustomExp })) },
+                { label: t('resumeLayout.preview.skills'), options: [['list', t('resumeLayout.preview.list')], ['tags', t('resumeLayout.preview.tags')]], value: customOptions.skillsStyle, set: (v: string) => setCustomOptions(o => ({ ...o, skillsStyle: v as CustomSkillsStyle })) },
+                { label: t('resumeLayout.preview.cols'), options: [['1', '1'], ['2', '2']], value: String(customOptions.skillsColumns), set: (v: string) => setCustomOptions(o => ({ ...o, skillsColumns: Number(v) as 1 | 2 })) },
+                { label: t('resumeLayout.preview.education'), options: [['standard', t('resumeLayout.preview.standard')], ['compact', t('resumeLayout.preview.compact')]], value: customOptions.education, set: (v: string) => setCustomOptions(o => ({ ...o, education: v as CustomEduStyle })) },
+                { label: t('resumeLayout.preview.summary'), options: [['paragraph', t('resumeLayout.preview.para')], ['callout', t('resumeLayout.preview.callout')]], value: customOptions.summary, set: (v: string) => setCustomOptions(o => ({ ...o, summary: v as CustomSummaryStyle })) },
               ] as { label: string; options: [string, string][]; value: string; set: (v: string) => void }[]
             ).map(group => (
               <div key={group.label} className="flex items-center gap-1.5">
@@ -250,6 +237,21 @@ h2{break-after:avoid;page-break-after:avoid;}
                 onDragOver={setDragOverKey}
                 onDrop={handleSectionDrop}
                 onDragEnd={() => { setDragKey(null); setDragOverKey(null); }}
+                panelTitle={t('resumeLayout.preview.sections')}
+                sectionLabels={{
+                  personalInfo: t('resumeLayout.sectionLabels.personalInfo'),
+                  summary: t('resumeLayout.sectionLabels.summary'),
+                  coreHighlights: t('resumeLayout.sectionLabels.coreHighlights'),
+                  experience: t('resumeLayout.sectionLabels.experience'),
+                  education: t('resumeLayout.sectionLabels.education'),
+                  skills: t('resumeLayout.sectionLabels.skills'),
+                  projects: t('resumeLayout.sectionLabels.projects'),
+                  certifications: t('resumeLayout.sectionLabels.certifications'),
+                  languages: t('resumeLayout.sectionLabels.languages'),
+                  achievements: t('resumeLayout.sectionLabels.achievements'),
+                  interests: t('resumeLayout.sectionLabels.interests'),
+                  referees: t('resumeLayout.sectionLabels.referees'),
+                }}
               />
             </div>
           )}
@@ -261,7 +263,7 @@ h2{break-after:avoid;page-break-after:avoid;}
 
 // ─── Mini module list for drag-reorder in preview ────────────────────────────
 
-function MiniModuleList({ sectionOrder, dragKey, dragOverKey, onDragStart, onDragOver, onDrop, onDragEnd }: {
+function MiniModuleList({ sectionOrder, dragKey, dragOverKey, onDragStart, onDragOver, onDrop, onDragEnd, panelTitle, sectionLabels }: {
   sectionOrder: ResumeSection[];
   dragKey: ResumeSection | null;
   dragOverKey: ResumeSection | null;
@@ -269,10 +271,12 @@ function MiniModuleList({ sectionOrder, dragKey, dragOverKey, onDragStart, onDra
   onDragOver: (key: ResumeSection) => void;
   onDrop: (key: ResumeSection) => void;
   onDragEnd: () => void;
+  panelTitle: string;
+  sectionLabels: Record<ResumeSection, string>;
 }) {
   return (
     <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm w-[120px] p-2">
-      <div className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5 px-0.5">Sections</div>
+      <div className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5 px-0.5">{panelTitle}</div>
       {sectionOrder.map(key => (
         <div
           key={key}
@@ -289,7 +293,7 @@ function MiniModuleList({ sectionOrder, dragKey, dragOverKey, onDragStart, onDra
           >
             <GripVertical className="w-3 h-3" />
           </span>
-          <span className="text-[11px] text-gray-600 dark:text-gray-300 truncate leading-5">{SECTION_LABELS[key]}</span>
+          <span className="text-[11px] text-gray-600 dark:text-gray-300 truncate leading-5">{sectionLabels[key]}</span>
         </div>
       ))}
     </div>

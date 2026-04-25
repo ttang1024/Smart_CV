@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Eye, EyeOff, Check } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { AIProviderType } from '../../types/ai';
 import { AI_PROVIDER_CONFIGS } from '../../types/ai';
 import { useSettingsStore } from '../../store/settingsStore';
@@ -31,6 +32,7 @@ const PROVIDER_LOGOS: Record<AIProviderType, React.ComponentType<{ className?: s
 
 export default function AIProviderSettings() {
   const { aiSettings, setActiveProvider, setAPIKey, setModel } = useSettingsStore();
+  const { t } = useTranslation();
   const [showKeys, setShowKeys] = useState<Record<AIProviderType, boolean>>({
     openai: false, gemini: false, claude: false, grok: false,
     qianwen: false, kimi: false, doubao: false, wenyanyixin: false
@@ -43,9 +45,9 @@ export default function AIProviderSettings() {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-semibold text-gray-900">AI Provider Settings</h2>
+        <h2 className="text-lg font-semibold text-gray-900">{t('aiSettings.title')}</h2>
         <p className="text-sm text-gray-500 mt-1">
-          API keys are stored securely in your browser's localStorage and never sent to our servers.
+          {t('aiSettings.subtitle')}
         </p>
       </div>
 
@@ -77,8 +79,8 @@ export default function AIProviderSettings() {
                     <h3 className="font-semibold text-gray-900 text-sm">{meta.name}</h3>
                     <span className="text-xs flex items-center gap-1">
                       {hasKey
-                        ? <span className="text-emerald-600 flex items-center gap-1"><Check className="w-3 h-3" />Key configured</span>
-                        : <span className="text-gray-400">No key</span>
+                        ? <span className="text-emerald-600 flex items-center gap-1"><Check className="w-3 h-3" />{t('aiSettings.keyConfigured')}</span>
+                        : <span className="text-gray-400">{t('aiSettings.noKey')}</span>
                       }
                     </span>
                   </div>
@@ -89,18 +91,18 @@ export default function AIProviderSettings() {
                   onClick={() => setActiveProvider(provider)}
                   disabled={isActive}
                 >
-                  {isActive ? 'Active' : 'Select'}
+                  {isActive ? t('aiSettings.active') : t('aiSettings.select')}
                 </Button>
               </div>
 
               {/* API Key */}
               <div className="relative">
                 <Input
-                  label="API Key"
+                  label={t('aiSettings.apiKeyLabel')}
                   type={showKeys[provider] ? 'text' : 'password'}
                   value={config.apiKey}
                   onChange={e => setAPIKey(provider, e.target.value.trim())}
-                  placeholder={`Enter your ${meta.name} API key`}
+                  placeholder={t('aiSettings.apiKeyPlaceholder', { name: meta.name })}
                   className="pr-10"
                 />
                 <button
@@ -115,7 +117,7 @@ export default function AIProviderSettings() {
               {/* Model input */}
               <div className="mt-3">
                 <Input
-                  label="Model"
+                  label={t('aiSettings.modelLabel')}
                   value={config.model}
                   onChange={e => setModel(provider, e.target.value)}
                   placeholder={meta.defaultModel}
@@ -128,8 +130,7 @@ export default function AIProviderSettings() {
       </div>
 
       <div className="p-3 bg-amber-50 rounded-lg text-sm text-amber-800">
-        <strong>Privacy:</strong> API keys are stored only in your browser's localStorage.
-        They are sent directly to the AI provider via our backend proxy (no key storage server-side).
+        <strong>{t('aiSettings.privacyLabel')}</strong> {t('aiSettings.privacy')}
       </div>
     </div>
   );

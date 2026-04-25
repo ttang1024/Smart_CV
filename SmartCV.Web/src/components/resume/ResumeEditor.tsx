@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Plus, Trash2, ChevronDown, ChevronUp, GripVertical } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { Resume, Experience, Education, Skill, Project, Certification, Language, Interest, Achievement, Referee, ResumeSection } from '../../types/resume';
 import { DEFAULT_SECTION_ORDER } from '../../types/resume';
 import Input from '../ui/Input';
@@ -15,24 +16,25 @@ interface ResumeEditorProps {
 
 type SectionKey = ResumeSection;
 
-const SECTION_TITLES: Record<string, string> = {
-  summary: 'Professional Summary',
-  coreHighlights: 'Core Highlights',
-  experience: 'Work Experience',
-  education: 'Education',
-  skills: 'Skills',
-  projects: 'Projects',
-  certifications: 'Certifications',
-  languages: 'Languages',
-  interests: 'Interests',
-  achievements: 'Achievements',
-  referees: 'Referees',
-};
-
 export default function ResumeEditor({ resume, onChange }: ResumeEditorProps) {
+  const { t } = useTranslation();
   const [openSections, setOpenSections] = useState<Set<SectionKey>>(new Set(['personalInfo', 'summary']));
   const [dragKey, setDragKey] = useState<SectionKey | null>(null);
   const [dragOverKey, setDragOverKey] = useState<SectionKey | null>(null);
+
+  const SECTION_TITLES: Record<string, string> = {
+    summary: t('resumeEditor.sections.summary'),
+    coreHighlights: t('resumeEditor.sections.coreHighlights'),
+    experience: t('resumeEditor.sections.experience'),
+    education: t('resumeEditor.sections.education'),
+    skills: t('resumeEditor.sections.skills'),
+    projects: t('resumeEditor.sections.projects'),
+    certifications: t('resumeEditor.sections.certifications'),
+    languages: t('resumeEditor.sections.languages'),
+    interests: t('resumeEditor.sections.interests'),
+    achievements: t('resumeEditor.sections.achievements'),
+    referees: t('resumeEditor.sections.referees'),
+  };
 
   const sectionOrder = (resume.sectionOrder ?? DEFAULT_SECTION_ORDER) as SectionKey[];
 
@@ -105,7 +107,7 @@ export default function ResumeEditor({ resume, onChange }: ResumeEditorProps) {
             <Textarea
               value={resume.summary}
               onChange={e => update('summary', e.target.value)}
-              placeholder="Write a concise professional summary highlighting your key skills, experience, and career goals..."
+              placeholder={t('resumeEditor.summary.placeholder')}
               rows={5}
             />
           </div>
@@ -114,7 +116,7 @@ export default function ResumeEditor({ resume, onChange }: ResumeEditorProps) {
         return (
           <div className="pb-4 space-y-2">
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              Short, metrics-driven achievements shown prominently at the top of your resume — e.g. "Grew ARR from $2M → $12M in 2 years".
+              {t('resumeEditor.coreHighlights.hint')}
             </p>
             {(resume.coreHighlights ?? []).map((hl, i) => (
               <div key={hl.id} className="flex gap-2 items-center">
@@ -125,7 +127,7 @@ export default function ResumeEditor({ resume, onChange }: ResumeEditorProps) {
                     const next = (resume.coreHighlights ?? []).map(h => h.id === hl.id ? { ...h, text: e.target.value } : h);
                     update('coreHighlights', next);
                   }}
-                  placeholder="Led a team of 12 engineers to ship 0→1 product in 6 months"
+                  placeholder={t('resumeEditor.coreHighlights.placeholder')}
                   className="flex-1"
                 />
                 <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 text-red-400"
@@ -136,7 +138,7 @@ export default function ResumeEditor({ resume, onChange }: ResumeEditorProps) {
             ))}
             <Button variant="outline" size="sm"
               onClick={() => update('coreHighlights', [...(resume.coreHighlights ?? []), { id: generateId(), text: '' }])}>
-              <Plus className="w-4 h-4" /> Add Highlight
+              <Plus className="w-4 h-4" /> {t('resumeEditor.coreHighlights.add')}
             </Button>
           </div>
         );
@@ -150,7 +152,7 @@ export default function ResumeEditor({ resume, onChange }: ResumeEditorProps) {
             ))}
             <Button variant="outline" size="sm"
               onClick={() => update('experience', [...resume.experience, createEmptyExperience()])}>
-              <Plus className="w-4 h-4" /> Add Experience
+              <Plus className="w-4 h-4" /> {t('resumeEditor.experience.add')}
             </Button>
           </div>
         );
@@ -164,7 +166,7 @@ export default function ResumeEditor({ resume, onChange }: ResumeEditorProps) {
             ))}
             <Button variant="outline" size="sm"
               onClick={() => update('education', [...resume.education, createEmptyEducation()])}>
-              <Plus className="w-4 h-4" /> Add Education
+              <Plus className="w-4 h-4" /> {t('resumeEditor.education.add')}
             </Button>
           </div>
         );
@@ -178,7 +180,7 @@ export default function ResumeEditor({ resume, onChange }: ResumeEditorProps) {
             ))}
             <Button variant="outline" size="sm"
               onClick={() => update('skills', [...resume.skills, { id: generateId(), category: '', items: [] }])}>
-              <Plus className="w-4 h-4" /> Add Skill Category
+              <Plus className="w-4 h-4" /> {t('resumeEditor.skills.add')}
             </Button>
           </div>
         );
@@ -192,7 +194,7 @@ export default function ResumeEditor({ resume, onChange }: ResumeEditorProps) {
             ))}
             <Button variant="outline" size="sm"
               onClick={() => update('projects', [...resume.projects, createEmptyProject()])}>
-              <Plus className="w-4 h-4" /> Add Project
+              <Plus className="w-4 h-4" /> {t('resumeEditor.projects.add')}
             </Button>
           </div>
         );
@@ -206,7 +208,7 @@ export default function ResumeEditor({ resume, onChange }: ResumeEditorProps) {
             ))}
             <Button variant="outline" size="sm"
               onClick={() => update('certifications', [...resume.certifications, createEmptyCertification()])}>
-              <Plus className="w-4 h-4" /> Add Certification
+              <Plus className="w-4 h-4" /> {t('resumeEditor.certifications.add')}
             </Button>
           </div>
         );
@@ -220,7 +222,7 @@ export default function ResumeEditor({ resume, onChange }: ResumeEditorProps) {
             ))}
             <Button variant="outline" size="sm"
               onClick={() => update('languages', [...resume.languages, { id: generateId(), language: '', proficiency: 'Intermediate' as const }])}>
-              <Plus className="w-4 h-4" /> Add Language
+              <Plus className="w-4 h-4" /> {t('resumeEditor.languages.add')}
             </Button>
           </div>
         );
@@ -235,7 +237,7 @@ export default function ResumeEditor({ resume, onChange }: ResumeEditorProps) {
                     const next = (resume.interests ?? []).map(it => it.id === interest.id ? { ...it, name: e.target.value } : it);
                     update('interests', next);
                   }}
-                  placeholder="e.g. Photography, Hiking, Open Source" className="flex-1" />
+                  placeholder={t('resumeEditor.interests.placeholder')} className="flex-1" />
                 <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 text-red-400"
                   onClick={() => update('interests', (resume.interests ?? []).filter(it => it.id !== interest.id))}>
                   <Trash2 className="w-3.5 h-3.5" />
@@ -244,7 +246,7 @@ export default function ResumeEditor({ resume, onChange }: ResumeEditorProps) {
             ))}
             <Button variant="outline" size="sm"
               onClick={() => update('interests', [...(resume.interests ?? []), { id: generateId(), name: '' }])}>
-              <Plus className="w-4 h-4" /> Add Interest
+              <Plus className="w-4 h-4" /> {t('resumeEditor.interests.add')}
             </Button>
           </div>
         );
@@ -258,7 +260,7 @@ export default function ResumeEditor({ resume, onChange }: ResumeEditorProps) {
             ))}
             <Button variant="outline" size="sm"
               onClick={() => update('achievements', [...(resume.achievements ?? []), createEmptyAchievement()])}>
-              <Plus className="w-4 h-4" /> Add Achievement
+              <Plus className="w-4 h-4" /> {t('resumeEditor.achievements.add')}
             </Button>
           </div>
         );
@@ -272,7 +274,7 @@ export default function ResumeEditor({ resume, onChange }: ResumeEditorProps) {
             ))}
             <Button variant="outline" size="sm"
               onClick={() => update('referees', [...(resume.referees ?? []), { id: generateId(), name: '' }])}>
-              <Plus className="w-4 h-4" /> Add Referee
+              <Plus className="w-4 h-4" /> {t('resumeEditor.referees.add')}
             </Button>
           </div>
         );
@@ -285,40 +287,40 @@ export default function ResumeEditor({ resume, onChange }: ResumeEditorProps) {
     <div className="space-y-0 divide-y divide-gray-200 dark:divide-gray-700">
       {/* Personal Info — fixed, not draggable */}
       <div className="py-1">
-        <SectionHeader id="personalInfo" title="Personal Information" />
+        <SectionHeader id="personalInfo" title={t('resumeEditor.sections.personalInfo')} />
         {openSections.has('personalInfo') && (
           <div className="pb-4 grid grid-cols-2 gap-3">
             <div className="col-span-2">
-              <Input label="Full Name *" value={resume.personalInfo.fullName}
+              <Input label={t('resumeEditor.personalInfo.fullName')} value={resume.personalInfo.fullName}
                 onChange={e => update('personalInfo', { ...resume.personalInfo, fullName: e.target.value })}
-                placeholder="John Doe" />
+                placeholder={t('resumeEditor.personalInfo.fullNamePlaceholder')} />
             </div>
             <div className="col-span-2">
-              <Input label="Professional Title" value={resume.personalInfo.title ?? ''}
+              <Input label={t('resumeEditor.personalInfo.title')} value={resume.personalInfo.title ?? ''}
                 onChange={e => update('personalInfo', { ...resume.personalInfo, title: e.target.value })}
-                placeholder="Senior Software Engineer" />
+                placeholder={t('resumeEditor.personalInfo.titlePlaceholder')} />
             </div>
-            <Input label="Email *" type="email" value={resume.personalInfo.email}
+            <Input label={t('resumeEditor.personalInfo.email')} type="email" value={resume.personalInfo.email}
               onChange={e => update('personalInfo', { ...resume.personalInfo, email: e.target.value })}
-              placeholder="john@example.com" />
-            <Input label="Phone" value={resume.personalInfo.phone}
+              placeholder={t('resumeEditor.personalInfo.emailPlaceholder')} />
+            <Input label={t('resumeEditor.personalInfo.phone')} value={resume.personalInfo.phone}
               onChange={e => update('personalInfo', { ...resume.personalInfo, phone: e.target.value })}
-              placeholder="+1 (555) 000-0000" />
+              placeholder={t('resumeEditor.personalInfo.phonePlaceholder')} />
             <div className="col-span-2">
-              <Input label="Location" value={resume.personalInfo.location}
+              <Input label={t('resumeEditor.personalInfo.location')} value={resume.personalInfo.location}
                 onChange={e => update('personalInfo', { ...resume.personalInfo, location: e.target.value })}
-                placeholder="San Francisco, CA" />
+                placeholder={t('resumeEditor.personalInfo.locationPlaceholder')} />
             </div>
-            <Input label="LinkedIn" value={resume.personalInfo.linkedin ?? ''}
+            <Input label={t('resumeEditor.personalInfo.linkedin')} value={resume.personalInfo.linkedin ?? ''}
               onChange={e => update('personalInfo', { ...resume.personalInfo, linkedin: e.target.value })}
-              placeholder="linkedin.com/in/johndoe" />
-            <Input label="GitHub" value={resume.personalInfo.github ?? ''}
+              placeholder={t('resumeEditor.personalInfo.linkedinPlaceholder')} />
+            <Input label={t('resumeEditor.personalInfo.github')} value={resume.personalInfo.github ?? ''}
               onChange={e => update('personalInfo', { ...resume.personalInfo, github: e.target.value })}
-              placeholder="github.com/johndoe" />
+              placeholder={t('resumeEditor.personalInfo.githubPlaceholder')} />
             <div className="col-span-2">
-              <Input label="Website" value={resume.personalInfo.website ?? ''}
+              <Input label={t('resumeEditor.personalInfo.website')} value={resume.personalInfo.website ?? ''}
                 onChange={e => update('personalInfo', { ...resume.personalInfo, website: e.target.value })}
-                placeholder="johndoe.dev" />
+                placeholder={t('resumeEditor.personalInfo.websitePlaceholder')} />
             </div>
           </div>
         )}
@@ -339,7 +341,7 @@ export default function ResumeEditor({ resume, onChange }: ResumeEditorProps) {
               onDragStart={e => { e.dataTransfer.effectAllowed = 'move'; setDragKey(key); }}
               onDragEnd={() => { setDragKey(null); setDragOverKey(null); }}
               className="cursor-grab text-gray-300 dark:text-gray-600 hover:text-gray-400 dark:hover:text-gray-400 shrink-0 py-3 px-0.5"
-              title="Drag to reorder"
+              title={t('resumeEditor.dragToReorder')}
             >
               <GripVertical className="w-4 h-4" />
             </span>
@@ -360,13 +362,14 @@ function ExperienceItem({ experience, onChange, onDelete }: {
   onChange: (e: Experience) => void;
   onDelete: () => void;
 }) {
+  const { t } = useTranslation();
   const up = (key: keyof Experience, value: unknown) => onChange({ ...experience, [key]: value });
 
   return (
     <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 space-y-3 bg-gray-50/50 dark:bg-gray-800/30">
       <div className="flex justify-between items-center">
         <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-          {experience.position || 'New Position'}
+          {experience.position || t('resumeEditor.experience.newPosition')}
         </span>
         <Button variant="ghost" size="icon" className="h-7 w-7 text-red-500" onClick={onDelete}>
           <Trash2 className="w-3.5 h-3.5" />
@@ -374,18 +377,18 @@ function ExperienceItem({ experience, onChange, onDelete }: {
       </div>
       <div className="grid grid-cols-2 gap-2">
         <Input
-          label="Position *"
+          label={t('resumeEditor.experience.position')}
           value={experience.position}
           onChange={e => up('position', e.target.value)}
-          placeholder="Senior Engineer"
+          placeholder={t('resumeEditor.experience.positionPlaceholder')}
           className="col-span-2"
         />
-        <Input label="Company *" value={experience.company} onChange={e => up('company', e.target.value)} placeholder="Acme Inc." />
-        <Input label="Location" value={experience.location ?? ''} onChange={e => up('location', e.target.value)} placeholder="Remote" />
-        <Input label="Start Date" type="month" value={experience.startDate} onChange={e => up('startDate', e.target.value)} />
+        <Input label={t('resumeEditor.experience.company')} value={experience.company} onChange={e => up('company', e.target.value)} placeholder={t('resumeEditor.experience.companyPlaceholder')} />
+        <Input label={t('resumeEditor.experience.location')} value={experience.location ?? ''} onChange={e => up('location', e.target.value)} placeholder={t('resumeEditor.experience.locationPlaceholder')} />
+        <Input label={t('resumeEditor.experience.startDate')} type="month" value={experience.startDate} onChange={e => up('startDate', e.target.value)} />
         <div>
           <Input
-            label="End Date"
+            label={t('resumeEditor.experience.endDate')}
             type="month"
             value={experience.endDate ?? ''}
             onChange={e => up('endDate', e.target.value)}
@@ -398,19 +401,19 @@ function ExperienceItem({ experience, onChange, onDelete }: {
               onChange={e => up('current', e.target.checked)}
               className="rounded"
             />
-            <span className="text-xs text-gray-600 dark:text-gray-400">Currently working here</span>
+            <span className="text-xs text-gray-600 dark:text-gray-400">{t('resumeEditor.experience.currentlyWorking')}</span>
           </label>
         </div>
       </div>
       <Textarea
-        label="Description"
+        label={t('resumeEditor.experience.description')}
         value={experience.description}
         onChange={e => up('description', e.target.value)}
-        placeholder="Brief overview of your role..."
+        placeholder={t('resumeEditor.experience.descriptionPlaceholder')}
         rows={2}
       />
       <div>
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1.5">Key Achievements</label>
+        <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1.5">{t('resumeEditor.experience.keyAchievements')}</label>
         {experience.highlights.map((h, i) => (
           <div key={i} className="flex mb-1.5">
             <textarea
@@ -420,7 +423,7 @@ function ExperienceItem({ experience, onChange, onDelete }: {
                 next[i] = e.target.value;
                 up('highlights', next);
               }}
-              placeholder="Achieved X by doing Y, resulting in Z"
+              placeholder={t('resumeEditor.experience.achievementPlaceholder')}
               className="flex-1 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               rows={2}
             />
@@ -440,7 +443,7 @@ function ExperienceItem({ experience, onChange, onDelete }: {
           onClick={() => up('highlights', [...experience.highlights, ''])}
           className="mt-1 text-xs"
         >
-          <Plus className="w-3 h-3" /> Add Achievement
+          <Plus className="w-3 h-3" /> {t('resumeEditor.experience.addAchievement')}
         </Button>
       </div>
     </div>
@@ -452,13 +455,14 @@ function EducationItem({ education, onChange, onDelete }: {
   onChange: (e: Education) => void;
   onDelete: () => void;
 }) {
+  const { t } = useTranslation();
   const up = (key: keyof Education, value: unknown) => onChange({ ...education, [key]: value });
 
   return (
     <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 space-y-3 bg-gray-50/50 dark:bg-gray-800/30">
       <div className="flex justify-between items-center">
         <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-          {education.institution || 'New Institution'}
+          {education.institution || t('resumeEditor.education.newInstitution')}
         </span>
         <Button variant="ghost" size="icon" className="h-7 w-7 text-red-500" onClick={onDelete}>
           <Trash2 className="w-3.5 h-3.5" />
@@ -466,14 +470,14 @@ function EducationItem({ education, onChange, onDelete }: {
       </div>
       <div className="grid grid-cols-2 gap-2">
         <div className="col-span-2">
-          <Input label="Institution *" value={education.institution} onChange={e => up('institution', e.target.value)} placeholder="MIT" />
+          <Input label={t('resumeEditor.education.institution')} value={education.institution} onChange={e => up('institution', e.target.value)} placeholder={t('resumeEditor.education.institutionPlaceholder')} />
         </div>
-        <Input label="Degree *" value={education.degree} onChange={e => up('degree', e.target.value)} placeholder="Bachelor's" />
-        <Input label="Field of Study *" value={education.field} onChange={e => up('field', e.target.value)} placeholder="Computer Science" />
-        <Input label="Start Date" type="month" value={education.startDate} onChange={e => up('startDate', e.target.value)} />
+        <Input label={t('resumeEditor.education.degree')} value={education.degree} onChange={e => up('degree', e.target.value)} placeholder={t('resumeEditor.education.degreePlaceholder')} />
+        <Input label={t('resumeEditor.education.field')} value={education.field} onChange={e => up('field', e.target.value)} placeholder={t('resumeEditor.education.fieldPlaceholder')} />
+        <Input label={t('resumeEditor.education.startDate')} type="month" value={education.startDate} onChange={e => up('startDate', e.target.value)} />
         <div>
           <Input
-            label="End Date"
+            label={t('resumeEditor.education.endDate')}
             type="month"
             value={education.endDate ?? ''}
             onChange={e => up('endDate', e.target.value)}
@@ -481,11 +485,11 @@ function EducationItem({ education, onChange, onDelete }: {
           />
           <label className="flex items-center gap-2 mt-1.5 cursor-pointer">
             <input type="checkbox" checked={education.current} onChange={e => up('current', e.target.checked)} className="rounded" />
-            <span className="text-xs text-gray-600 dark:text-gray-400">Currently enrolled</span>
+            <span className="text-xs text-gray-600 dark:text-gray-400">{t('resumeEditor.education.currentlyEnrolled')}</span>
           </label>
         </div>
-        <Input label="GPA" value={education.gpa ?? ''} onChange={e => up('gpa', e.target.value)} placeholder="3.9/4.0" />
-        <Input label="Honors" value={education.honors ?? ''} onChange={e => up('honors', e.target.value)} placeholder="Magna Cum Laude" />
+        <Input label={t('resumeEditor.education.gpa')} value={education.gpa ?? ''} onChange={e => up('gpa', e.target.value)} placeholder={t('resumeEditor.education.gpaPlaceholder')} />
+        <Input label={t('resumeEditor.education.honors')} value={education.honors ?? ''} onChange={e => up('honors', e.target.value)} placeholder={t('resumeEditor.education.honorsPlaceholder')} />
       </div>
     </div>
   );
@@ -496,16 +500,17 @@ function SkillItem({ skill, onChange, onDelete }: {
   onChange: (s: Skill) => void;
   onDelete: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="flex gap-2 items-start">
       <div className="grid grid-cols-2 gap-2 flex-1">
         <Input
-          placeholder="Category (e.g. Languages)"
+          placeholder={t('resumeEditor.skills.categoryPlaceholder')}
           value={skill.category}
           onChange={e => onChange({ ...skill, category: e.target.value })}
         />
         <Input
-          placeholder="Skills (comma-separated)"
+          placeholder={t('resumeEditor.skills.itemsPlaceholder')}
           value={skill.items.join(', ')}
           onChange={e => onChange({ ...skill, items: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
         />
@@ -522,30 +527,31 @@ function ProjectItem({ project, onChange, onDelete }: {
   onChange: (p: Project) => void;
   onDelete: () => void;
 }) {
+  const { t } = useTranslation();
   const up = (key: keyof Project, value: unknown) => onChange({ ...project, [key]: value });
 
   return (
     <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 space-y-2 bg-gray-50/50 dark:bg-gray-800/30">
       <div className="flex justify-between">
-        <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{project.name || 'New Project'}</span>
+        <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{project.name || t('resumeEditor.projects.newProject')}</span>
         <Button variant="ghost" size="icon" className="h-7 w-7 text-red-500" onClick={onDelete}>
           <Trash2 className="w-3.5 h-3.5" />
         </Button>
       </div>
-      <Input label="Project Name *" value={project.name} onChange={e => up('name', e.target.value)} placeholder="My App" />
-      <Textarea label="Description *" value={project.description} onChange={e => up('description', e.target.value)} rows={2} placeholder="What it does..." />
+      <Input label={t('resumeEditor.projects.name')} value={project.name} onChange={e => up('name', e.target.value)} placeholder={t('resumeEditor.projects.namePlaceholder')} />
+      <Textarea label={t('resumeEditor.projects.description')} value={project.description} onChange={e => up('description', e.target.value)} rows={2} placeholder={t('resumeEditor.projects.descriptionPlaceholder')} />
       <Input
-        label="Technologies"
+        label={t('resumeEditor.projects.technologies')}
         value={project.technologies.join(', ')}
-        onChange={e => up('technologies', e.target.value.split(',').map(t => t.trim()).filter(Boolean))}
-        placeholder="React, TypeScript, Node.js"
+        onChange={e => up('technologies', e.target.value.split(',').map(tech => tech.trim()).filter(Boolean))}
+        placeholder={t('resumeEditor.projects.technologiesPlaceholder')}
       />
       <div className="grid grid-cols-2 gap-2">
-        <Input label="GitHub URL" value={project.github ?? ''} onChange={e => up('github', e.target.value)} placeholder="github.com/..." />
-        <Input label="Live URL" value={project.url ?? ''} onChange={e => up('url', e.target.value)} placeholder="myapp.com" />
+        <Input label={t('resumeEditor.projects.github')} value={project.github ?? ''} onChange={e => up('github', e.target.value)} placeholder={t('resumeEditor.projects.githubPlaceholder')} />
+        <Input label={t('resumeEditor.projects.url')} value={project.url ?? ''} onChange={e => up('url', e.target.value)} placeholder={t('resumeEditor.projects.urlPlaceholder')} />
       </div>
       <div>
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1.5">Key Achievements</label>
+        <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1.5">{t('resumeEditor.projects.keyAchievements')}</label>
         {(project.highlights ?? []).map((h, i) => (
           <div key={i} className="flex mb-1.5">
             <textarea
@@ -555,7 +561,7 @@ function ProjectItem({ project, onChange, onDelete }: {
                 next[i] = e.target.value;
                 up('highlights', next);
               }}
-              placeholder="Achieved X by doing Y, resulting in Z"
+              placeholder={t('resumeEditor.projects.achievementPlaceholder')}
               className="flex-1 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               rows={2}
             />
@@ -575,7 +581,7 @@ function ProjectItem({ project, onChange, onDelete }: {
           onClick={() => up('highlights', [...(project.highlights ?? []), ''])}
           className="mt-1 text-xs"
         >
-          <Plus className="w-3 h-3" /> Add Achievement
+          <Plus className="w-3 h-3" /> {t('resumeEditor.projects.addAchievement')}
         </Button>
       </div>
     </div>
@@ -587,15 +593,16 @@ function CertificationItem({ certification, onChange, onDelete }: {
   onChange: (c: Certification) => void;
   onDelete: () => void;
 }) {
+  const { t } = useTranslation();
   const up = (key: keyof Certification, value: unknown) => onChange({ ...certification, [key]: value });
 
   return (
     <div className="flex gap-2 items-start">
       <div className="grid grid-cols-2 gap-2 flex-1">
-        <Input placeholder="Certification Name" value={certification.name} onChange={e => up('name', e.target.value)} />
-        <Input placeholder="Issuer" value={certification.issuer} onChange={e => up('issuer', e.target.value)} />
-        <Input label="Issue Date" type="month" value={certification.date} onChange={e => up('date', e.target.value)} />
-        <Input label="Expiry Date" type="month" value={certification.expiryDate ?? ''} onChange={e => up('expiryDate', e.target.value)} />
+        <Input placeholder={t('resumeEditor.certifications.name')} value={certification.name} onChange={e => up('name', e.target.value)} />
+        <Input placeholder={t('resumeEditor.certifications.issuer')} value={certification.issuer} onChange={e => up('issuer', e.target.value)} />
+        <Input label={t('resumeEditor.certifications.issueDate')} type="month" value={certification.date} onChange={e => up('date', e.target.value)} />
+        <Input label={t('resumeEditor.certifications.expiryDate')} type="month" value={certification.expiryDate ?? ''} onChange={e => up('expiryDate', e.target.value)} />
       </div>
       <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-red-400" onClick={onDelete}>
         <Trash2 className="w-3.5 h-3.5" />
@@ -609,10 +616,20 @@ function LanguageItem({ language, onChange, onDelete }: {
   onChange: (l: Language) => void;
   onDelete: () => void;
 }) {
+  const { t } = useTranslation();
+
+  const PROFICIENCY_OPTIONS: { value: Language['proficiency']; label: string }[] = [
+    { value: 'Native',       label: t('resumeEditor.languages.proficiency.native') },
+    { value: 'Fluent',       label: t('resumeEditor.languages.proficiency.fluent') },
+    { value: 'Advanced',     label: t('resumeEditor.languages.proficiency.advanced') },
+    { value: 'Intermediate', label: t('resumeEditor.languages.proficiency.intermediate') },
+    { value: 'Basic',        label: t('resumeEditor.languages.proficiency.basic') },
+  ];
+
   return (
     <div className="flex gap-2 items-center">
       <Input
-        placeholder="Language"
+        placeholder={t('resumeEditor.languages.language')}
         value={language.language}
         onChange={e => onChange({ ...language, language: e.target.value })}
         className="flex-1"
@@ -622,8 +639,8 @@ function LanguageItem({ language, onChange, onDelete }: {
         onChange={e => onChange({ ...language, proficiency: e.target.value as Language['proficiency'] })}
         className="h-10 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-2 text-sm text-gray-900 dark:text-gray-100 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
       >
-        {(['Native', 'Fluent', 'Advanced', 'Intermediate', 'Basic'] as Language['proficiency'][]).map(p => (
-          <option key={p} value={p}>{p}</option>
+        {PROFICIENCY_OPTIONS.map(({ value, label }) => (
+          <option key={value} value={value}>{label}</option>
         ))}
       </select>
       <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-red-400" onClick={onDelete}>
@@ -638,27 +655,28 @@ function AchievementItem({ achievement, onChange, onDelete }: {
   onChange: (a: Achievement) => void;
   onDelete: () => void;
 }) {
+  const { t } = useTranslation();
   const up = (key: keyof Achievement, value: unknown) => onChange({ ...achievement, [key]: value });
 
   return (
     <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 space-y-2 bg-gray-50/50 dark:bg-gray-800/30">
       <div className="flex justify-between items-center">
-        <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{achievement.title || 'New Achievement'}</span>
+        <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{achievement.title || t('resumeEditor.achievements.newAchievement')}</span>
         <Button variant="ghost" size="icon" className="h-7 w-7 text-red-500" onClick={onDelete}>
           <Trash2 className="w-3.5 h-3.5" />
         </Button>
       </div>
       <div className="space-y-2">
-        <Input label="Title *" value={achievement.title} onChange={e => up('title', e.target.value)} placeholder="Employee of the Year" />
-        <Input label="Issuer / Organisation" value={achievement.issuer ?? ''} onChange={e => up('issuer', e.target.value)} placeholder="Acme Inc." />
-        <Input label="Date" type="month" value={achievement.date ?? ''} onChange={e => up('date', e.target.value)} />
+        <Input label={t('resumeEditor.achievements.title')} value={achievement.title} onChange={e => up('title', e.target.value)} placeholder={t('resumeEditor.achievements.titlePlaceholder')} />
+        <Input label={t('resumeEditor.achievements.issuer')} value={achievement.issuer ?? ''} onChange={e => up('issuer', e.target.value)} placeholder={t('resumeEditor.achievements.issuerPlaceholder')} />
+        <Input label={t('resumeEditor.achievements.date')} type="month" value={achievement.date ?? ''} onChange={e => up('date', e.target.value)} />
       </div>
       <Textarea
-        label="Description"
+        label={t('resumeEditor.achievements.description')}
         value={achievement.description ?? ''}
         onChange={e => up('description', e.target.value)}
         rows={2}
-        placeholder="Brief details about this achievement..."
+        placeholder={t('resumeEditor.achievements.descriptionPlaceholder')}
       />
     </div>
   );
@@ -669,24 +687,25 @@ function RefereeItem({ referee, onChange, onDelete }: {
   onChange: (r: Referee) => void;
   onDelete: () => void;
 }) {
+  const { t } = useTranslation();
   const up = (key: keyof Referee, value: unknown) => onChange({ ...referee, [key]: value });
 
   return (
     <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 space-y-2 bg-gray-50/50 dark:bg-gray-800/30">
       <div className="flex justify-between items-center">
-        <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{referee.name || 'New Referee'}</span>
+        <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{referee.name || t('resumeEditor.referees.newReferee')}</span>
         <Button variant="ghost" size="icon" className="h-7 w-7 text-red-500" onClick={onDelete}>
           <Trash2 className="w-3.5 h-3.5" />
         </Button>
       </div>
       <div className="grid grid-cols-2 gap-2">
         <div className="col-span-2">
-          <Input label="Full Name *" value={referee.name} onChange={e => up('name', e.target.value)} placeholder="Jane Smith" />
+          <Input label={t('resumeEditor.referees.fullName')} value={referee.name} onChange={e => up('name', e.target.value)} placeholder={t('resumeEditor.referees.fullNamePlaceholder')} />
         </div>
-        <Input label="Job Title" value={referee.title ?? ''} onChange={e => up('title', e.target.value)} placeholder="Engineering Manager" />
-        <Input label="Company" value={referee.company ?? ''} onChange={e => up('company', e.target.value)} placeholder="Acme Inc." />
-        <Input label="Email" value={referee.email ?? ''} onChange={e => up('email', e.target.value)} placeholder="jane@acme.com" />
-        <Input label="Phone" value={referee.phone ?? ''} onChange={e => up('phone', e.target.value)} placeholder="+1 (555) 000-0000" />
+        <Input label={t('resumeEditor.referees.jobTitle')} value={referee.title ?? ''} onChange={e => up('title', e.target.value)} placeholder={t('resumeEditor.referees.jobTitlePlaceholder')} />
+        <Input label={t('resumeEditor.referees.company')} value={referee.company ?? ''} onChange={e => up('company', e.target.value)} placeholder={t('resumeEditor.referees.companyPlaceholder')} />
+        <Input label={t('resumeEditor.referees.email')} value={referee.email ?? ''} onChange={e => up('email', e.target.value)} placeholder={t('resumeEditor.referees.emailPlaceholder')} />
+        <Input label={t('resumeEditor.referees.phone')} value={referee.phone ?? ''} onChange={e => up('phone', e.target.value)} placeholder={t('resumeEditor.referees.phonePlaceholder')} />
       </div>
     </div>
   );

@@ -1,8 +1,10 @@
+import { useTranslation } from 'react-i18next';
 import type { LayoutProps, ThemeColors } from '../resumeTypes';
 import { ContactRow, contactItems, dateRange, EduEntry, CertList, LangList, HighlightList, AchievementRows, InterestsList, RefereesBlock } from '../resumeShared';
 import { DEFAULT_SECTION_ORDER } from '../../../types/resume';
 
 export function TimelineLayout({ r, theme }: LayoutProps) {
+  const { t } = useTranslation();
   const { personalInfo: p, summary, coreHighlights, experience, education, skills, projects, certifications, languages } = r;
   const sectionOrder = r.sectionOrder ?? DEFAULT_SECTION_ORDER;
 
@@ -10,13 +12,13 @@ export function TimelineLayout({ r, theme }: LayoutProps) {
     switch (key) {
       case 'summary':
         return summary ? (
-          <TimelineSection key="summary" title="Summary" theme={theme}>
+          <TimelineSection key="summary" title={t('resumeLayout.sections.summary')} theme={theme}>
             <p style={{ textAlign: 'justify', color: '#374151', whiteSpace: 'pre-wrap' }}>{summary}</p>
           </TimelineSection>
         ) : null;
       case 'coreHighlights':
         return coreHighlights?.length > 0 ? (
-          <TimelineSection key="coreHighlights" title="Core Highlights" theme={theme}>
+          <TimelineSection key="coreHighlights" title={t('resumeLayout.sections.coreHighlights')} theme={theme}>
             <ul style={{ paddingLeft: '16px', margin: 0 }}>
               {coreHighlights.filter(h => h.text).map(h => (
                 <li key={h.id} style={{ marginBottom: '3px', color: '#374151' }}>{h.text}</li>
@@ -26,7 +28,7 @@ export function TimelineLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'skills':
         return skills.length > 0 ? (
-          <TimelineSection key="skills" title="Professional Skills" theme={theme}>
+          <TimelineSection key="skills" title={t('resumeLayout.sections.skills')} theme={theme}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
               {skills.map(s => (
                 <div key={s.id}>
@@ -39,12 +41,12 @@ export function TimelineLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'experience':
         return experience.length > 0 ? (
-          <TimelineSection key="experience" title="Work Experience" theme={theme}>
+          <TimelineSection key="experience" title={t('resumeLayout.sections.experience')} theme={theme}>
             {experience.map((exp, idx) => (
               <div key={exp.id} style={{ display: 'flex', gap: '0' }}>
                 <div style={{ width: '112px', flexShrink: 0, paddingTop: '3px' }}>
                   {(() => {
-                    const range = dateRange(exp.startDate, exp.endDate, exp.current);
+                    const range = dateRange(exp.startDate, exp.endDate, exp.current, t('resumeLayout.present'));
                     const [start, end] = range.includes('–') ? range.split('–').map(s => s.trim()) : [range, ''];
                     return (
                       <div style={{ fontSize: '8pt', fontWeight: 600, color: theme.dark, lineHeight: 1.3 }}>{start} - {end}</div>
@@ -74,7 +76,7 @@ export function TimelineLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'education':
         return education.length > 0 ? (
-          <TimelineSection key="education" title="Education" theme={theme}>
+          <TimelineSection key="education" title={t('resumeLayout.sections.education')} theme={theme}>
             {education.map(edu => (
               <EduEntry key={edu.id} edu={edu}
                 accentColor={theme.main} dateColor="#6b7280" gpaColor="#4b5563" />
@@ -83,7 +85,7 @@ export function TimelineLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'projects':
         return projects.length > 0 ? (
-          <TimelineSection key="projects" title="Projects" theme={theme}>
+          <TimelineSection key="projects" title={t('resumeLayout.sections.projects')} theme={theme}>
             {projects.map(p => (
               <div key={p.id} style={{ marginBottom: '8px' }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
@@ -100,31 +102,31 @@ export function TimelineLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'certifications':
         return certifications.length > 0 ? (
-          <TimelineSection key="certifications" title="Certifications" theme={theme}>
+          <TimelineSection key="certifications" title={t('resumeLayout.sections.certifications')} theme={theme}>
             <CertList items={certifications} dateColor="#6b7280" />
           </TimelineSection>
         ) : null;
       case 'languages':
         return languages.length > 0 ? (
-          <TimelineSection key="languages" title="Languages" theme={theme}>
+          <TimelineSection key="languages" title={t('resumeLayout.sections.languages')} theme={theme}>
             <LangList items={languages} />
           </TimelineSection>
         ) : null;
       case 'achievements':
         return (r.achievements ?? []).filter(a => a.title).length > 0 ? (
-          <TimelineSection key="achievements" title="Achievements" theme={theme}>
+          <TimelineSection key="achievements" title={t('resumeLayout.sections.achievements')} theme={theme}>
             <AchievementRows achievements={r.achievements} accent={theme.main} />
           </TimelineSection>
         ) : null;
       case 'interests':
         return (r.interests ?? []).filter(i => i.name).length > 0 ? (
-          <TimelineSection key="interests" title="Interests" theme={theme}>
+          <TimelineSection key="interests" title={t('resumeLayout.sections.interests')} theme={theme}>
             <p style={{ color: '#374151' }}><InterestsList r={r} /></p>
           </TimelineSection>
         ) : null;
       case 'referees':
         return (r.referees?.length ?? 0) > 0 ? (
-          <TimelineSection key="referees" title="Referees" theme={theme}>
+          <TimelineSection key="referees" title={t('resumeLayout.sections.referees')} theme={theme}>
             <RefereesBlock r={r} />
           </TimelineSection>
         ) : null;

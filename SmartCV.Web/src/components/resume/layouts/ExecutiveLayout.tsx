@@ -1,8 +1,10 @@
+import { useTranslation } from 'react-i18next';
 import type { LayoutProps, ThemeColors } from '../resumeTypes';
 import { ContactRow, contactItems, ExpEntry, EduEntry, CertList, LangList, HighlightList, AchievementRows, InterestsList, RefereesBlock } from '../resumeShared';
 import { DEFAULT_SECTION_ORDER } from '../../../types/resume';
 
 export function ExecutiveLayout({ r, theme }: LayoutProps) {
+  const { t } = useTranslation();
   const { personalInfo: p, summary, coreHighlights, experience, education, skills, projects, certifications, languages } = r;
   const sectionOrder = r.sectionOrder ?? DEFAULT_SECTION_ORDER;
 
@@ -10,13 +12,13 @@ export function ExecutiveLayout({ r, theme }: LayoutProps) {
     switch (key) {
       case 'summary':
         return summary ? (
-          <ExecSection key="summary" title="Summary" theme={theme}>
+          <ExecSection key="summary" title={t('resumeLayout.sections.summary')} theme={theme}>
             <p style={{ textAlign: 'justify', color: '#374151', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>{summary}</p>
           </ExecSection>
         ) : null;
       case 'coreHighlights':
         return coreHighlights?.length > 0 ? (
-          <ExecSection key="coreHighlights" title="Core Highlights" theme={theme}>
+          <ExecSection key="coreHighlights" title={t('resumeLayout.sections.coreHighlights')} theme={theme}>
             <div style={{ columns: 2, columnGap: '20px' }}>
               {coreHighlights.filter(h => h.text).map(h => (
                 <div key={h.id} style={{ breakInside: 'avoid', marginBottom: '4px', paddingLeft: '12px', position: 'relative', color: '#374151' }}>
@@ -29,7 +31,7 @@ export function ExecutiveLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'skills':
         return skills.length > 0 ? (
-          <ExecSection key="skills" title="Professional Skills" theme={theme}>
+          <ExecSection key="skills" title={t('resumeLayout.sections.skills')} theme={theme}>
             <div style={{ columns: 2, columnGap: '20px' }}>
               {skills.map(s => (
                 <div key={s.id} style={{ breakInside: 'avoid', marginBottom: '4px' }}>
@@ -42,7 +44,7 @@ export function ExecutiveLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'experience':
         return experience.length > 0 ? (
-          <ExecSection key="experience" title="Work Experience" theme={theme}>
+          <ExecSection key="experience" title={t('resumeLayout.sections.experience')} theme={theme}>
             {experience.map(exp => (
               <ExpEntry key={exp.id} exp={exp}
                 companyColor={theme.main} companyFontSize="11pt"
@@ -55,7 +57,7 @@ export function ExecutiveLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'education':
         return education.length > 0 ? (
-          <ExecSection key="education" title="Education" theme={theme}>
+          <ExecSection key="education" title={t('resumeLayout.sections.education')} theme={theme}>
             {education.map(edu => (
               <EduEntry key={edu.id} edu={edu}
                 accentColor={theme.main} instSep=" — "
@@ -65,7 +67,7 @@ export function ExecutiveLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'projects':
         return projects.length > 0 ? (
-          <ExecSection key="projects" title="Notable Projects" theme={theme}>
+          <ExecSection key="projects" title={t('resumeLayout.sections.projectsExecutive')} theme={theme}>
             {projects.map(p => (
               <div key={p.id} style={{ marginBottom: '8px' }}>
                 <span style={{ fontWeight: 700 }}>{p.name}</span>
@@ -80,31 +82,31 @@ export function ExecutiveLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'certifications':
         return certifications.length > 0 ? (
-          <ExecSection key="certifications" title="Certifications" theme={theme}>
+          <ExecSection key="certifications" title={t('resumeLayout.sections.certifications')} theme={theme}>
             <CertList items={certifications} dateColor="#6b7280" dateFontSize="9.5pt" dateItalic />
           </ExecSection>
         ) : null;
       case 'languages':
         return languages.length > 0 ? (
-          <ExecSection key="languages" title="Languages" theme={theme}>
+          <ExecSection key="languages" title={t('resumeLayout.sections.languages')} theme={theme}>
             <LangList items={languages} />
           </ExecSection>
         ) : null;
       case 'achievements':
         return (r.achievements ?? []).filter(a => a.title).length > 0 ? (
-          <ExecSection key="achievements" title="Achievements" theme={theme}>
+          <ExecSection key="achievements" title={t('resumeLayout.sections.achievements')} theme={theme}>
             <AchievementRows achievements={r.achievements} accent={theme.main} />
           </ExecSection>
         ) : null;
       case 'interests':
         return (r.interests ?? []).filter(i => i.name).length > 0 ? (
-          <ExecSection key="interests" title="Interests" theme={theme}>
+          <ExecSection key="interests" title={t('resumeLayout.sections.interests')} theme={theme}>
             <p style={{ color: '#374151' }}><InterestsList r={r} /></p>
           </ExecSection>
         ) : null;
       case 'referees':
         return (r.referees?.length ?? 0) > 0 ? (
-          <ExecSection key="referees" title="Referees" theme={theme}>
+          <ExecSection key="referees" title={t('resumeLayout.sections.referees')} theme={theme}>
             <RefereesBlock r={r} />
           </ExecSection>
         ) : null;

@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save, Sparkles } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useResumeStore } from '../store/resumeStore';
 import type { Resume } from '../types/resume';
 import type { OptimizationSession, OptimizationSuggestion } from '../types/ai';
@@ -15,6 +16,7 @@ import toast from 'react-hot-toast';
 export default function EditorPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { currentResume, loadResume, saveResume, saveOptimization } = useResumeStore();
   const [localResume, setLocalResume] = useState<Resume | null>(null);
   const [showAI, setShowAI] = useState(false);
@@ -53,9 +55,9 @@ export default function EditorPage() {
     try {
       await saveResume(localResume);
       setHasUnsaved(false);
-      toast.success('Resume saved!');
+      toast.success(t('editor.toast.saved'));
     } catch (e) {
-      toast.error('Save failed');
+      toast.error(t('editor.toast.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -138,7 +140,7 @@ export default function EditorPage() {
 
     if (applied) {
       handleResumeChange(updated);
-      toast.success('Suggestion applied!');
+      toast.success(t('editor.toast.suggestionApplied'));
     }
   }, [localResume, handleResumeChange]);
 
@@ -154,7 +156,7 @@ export default function EditorPage() {
       name: localResume.name,
       createdAt: localResume.createdAt,
     });
-    toast.success('Resume filled from PDF!');
+    toast.success(t('editor.toast.filledFromPdf'));
   }, [localResume, handleResumeChange]);
 
   if (!localResume) {
@@ -162,7 +164,7 @@ export default function EditorPage() {
       <div className="flex items-center justify-center h-64">
         <div className="flex flex-col items-center gap-3 text-gray-400">
           <div className="animate-spin rounded-full h-8 w-8 border-2 border-indigo-500 border-t-transparent" />
-          <p className="text-sm">Loading resume...</p>
+          <p className="text-sm">{t('editor.loading')}</p>
         </div>
       </div>
     );
@@ -198,12 +200,12 @@ export default function EditorPage() {
         {hasUnsaved && (
           <span className="text-xs text-amber-500 dark:text-amber-400 flex items-center gap-1 ml-1">
             <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
-            Unsaved
+            {t('editor.unsaved')}
           </span>
         )}
 
         <div className="ml-auto flex items-center gap-2">
-          <PDFImport onFill={handleFillFromPDF} label="Fill from PDF" />
+          <PDFImport onFill={handleFillFromPDF} label={t('editor.fillFromPdf')} />
           <Button
             variant="ghost"
             size="sm"
@@ -211,7 +213,7 @@ export default function EditorPage() {
             className="gap-1.5"
           >
             <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
-            {showAI ? 'Hide AI' : 'AI Optimize'}
+            {showAI ? t('editor.hideAI') : t('editor.aiOptimize')}
           </Button>
           <Button
             size="sm"
@@ -220,7 +222,7 @@ export default function EditorPage() {
             variant={hasUnsaved ? 'primary' : 'secondary'}
           >
             <Save className="w-3.5 h-3.5" />
-            Save
+            {t('editor.save')}
           </Button>
         </div>
       </div>

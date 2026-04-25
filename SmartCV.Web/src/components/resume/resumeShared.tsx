@@ -1,4 +1,5 @@
 import { MailOutlined, PhoneOutlined, EnvironmentOutlined, LinkedinOutlined, GithubOutlined, GlobalOutlined } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 import type { Resume, Experience, Education, Certification, Language } from '../../types/resume';
 
 export interface ContactItem { icon: React.ReactNode; text: string }
@@ -31,8 +32,8 @@ export function ContactRow({ items, style }: { items: ContactItem[]; style?: Rea
   );
 }
 
-export function dateRange(start?: string, end?: string, current?: boolean): string {
-  const endLabel = current ? 'Present' : end;
+export function dateRange(start?: string, end?: string, current?: boolean, presentLabel = 'Present'): string {
+  const endLabel = current ? presentLabel : end;
   if (start && endLabel) return `${start} – ${endLabel}`;
   return start ?? endLabel ?? '';
 }
@@ -133,6 +134,8 @@ export function ExpEntry({ exp, companyColor, locColor, dateColor, descColor,
   highlightFontSize?: string;
   mb?: string;
 }) {
+  const { t } = useTranslation();
+  const presentLabel = t('resumeLayout.present');
   return (
     <div style={{ marginBottom: mb }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
@@ -149,11 +152,11 @@ export function ExpEntry({ exp, companyColor, locColor, dateColor, descColor,
         </div>
         {dateBadge ? (
           <span style={{ fontSize: dateFontSize, color: dateColor, whiteSpace: 'nowrap', background: '#f3f4f6', padding: '1px 6px', borderRadius: '4px' }}>
-            {dateRange(exp.startDate, exp.endDate, exp.current)}
+            {dateRange(exp.startDate, exp.endDate, exp.current, presentLabel)}
           </span>
         ) : (
           <span style={{ fontSize: dateFontSize, color: dateColor, whiteSpace: 'nowrap' }}>
-            {dateRange(exp.startDate, exp.endDate, exp.current)}
+            {dateRange(exp.startDate, exp.endDate, exp.current, presentLabel)}
           </span>
         )}
       </div>
@@ -175,6 +178,9 @@ export function EduEntry({ edu, accentColor, instSep = ' · ', instItalic, dateC
   mb?: string;
   degreeWeight?: number;
 }) {
+  const { t } = useTranslation();
+  const presentLabel = t('resumeLayout.present');
+  const gpaLabel = t('resumeLayout.gpa');
   return (
     <div style={{ marginBottom: mb }}>
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -185,12 +191,12 @@ export function EduEntry({ edu, accentColor, instSep = ' · ', instItalic, dateC
           )}
         </div>
         <span style={{ fontSize: dateFontSize, color: dateColor }}>
-          {dateRange(edu.startDate, edu.endDate, edu.current)}
+          {dateRange(edu.startDate, edu.endDate, edu.current, presentLabel)}
         </span>
       </div>
       {(edu.gpa || edu.honors) && (
         <p style={{ fontSize: '9.5pt', color: gpaColor, marginTop: '2px' }}>
-          {edu.gpa && `GPA: ${edu.gpa}`}{edu.gpa && edu.honors && ' · '}{edu.honors}
+          {edu.gpa && `${gpaLabel}: ${edu.gpa}`}{edu.gpa && edu.honors && ' · '}{edu.honors}
         </p>
       )}
     </div>
