@@ -34,8 +34,8 @@ export const useSettingsStore = create<SettingsState>()(
           providers: {
             ...state.aiSettings.providers,
             [provider]: {
-              model: AI_PROVIDER_CONFIGS[provider].defaultModel,
               ...existing,
+              model: existing?.model ?? AI_PROVIDER_CONFIGS[provider].defaultModel,
               apiKey: key
             }
           }

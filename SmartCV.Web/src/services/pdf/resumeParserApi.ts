@@ -51,7 +51,7 @@ async function ocrPdf(arrayBuffer: ArrayBuffer): Promise<string> {
       canvas.width  = viewport.width;
       canvas.height = viewport.height;
       const ctx = canvas.getContext('2d')!;
-      await page.render({ canvasContext: ctx, viewport }).promise;
+      await page.render({ canvas, canvasContext: ctx, viewport }).promise;
       const { data: { text } } = await worker.recognize(canvas);
       allText.push(text);
     }
@@ -127,6 +127,7 @@ function mapServerData(data: Record<string, unknown>, fileName: string): Resume 
       name:         String(p.name        ?? ''),
       description:  String(p.description ?? ''),
       technologies: Array.isArray(p.technologies) ? p.technologies.map(String) : [],
+      highlights:   Array.isArray(p.highlights)   ? p.highlights.map(String)   : [],
       url:          p.url    ? String(p.url)    : undefined,
       github:       p.gitHub ? String(p.gitHub) : (p.github ? String(p.github) : undefined),
     })),
@@ -145,6 +146,13 @@ function mapServerData(data: Record<string, unknown>, fileName: string): Resume 
         .includes(String(l.proficiency))
           ? l.proficiency
           : 'Intermediate') as 'Native' | 'Fluent' | 'Advanced' | 'Intermediate' | 'Basic',
+    })),
+    achievements: ((data.achievements ?? []) as Record<string, unknown>[]).map((a) => ({
+      id:          generateId(),
+      title:       String(a.title       ?? ''),
+      issuer:      a.issuer      ? String(a.issuer)      : undefined,
+      date:        a.date        ? String(a.date)        : undefined,
+      description: a.description ? String(a.description) : undefined,
     })),
     interests: ((data.interests ?? []) as unknown[]).map((name) => ({
       id:   generateId(),

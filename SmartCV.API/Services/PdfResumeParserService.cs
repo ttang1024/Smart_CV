@@ -107,7 +107,7 @@ public partial class PdfResumeParserService
         foreach (var page in document.GetPages())
         {
             // Group words by rounded Y coordinate (bottom of bounding box)
-            var byY = new SortedDictionary<int, List<(double X, string Text)>>(
+            var byY = new SortedDictionary<int, List<(double X, double Right, string Text)>>(
                 Comparer<int>.Create((a, b) => b.CompareTo(a))); // descending = top first
 
             foreach (var word in page.GetWords())
@@ -118,12 +118,28 @@ public partial class PdfResumeParserService
                     bucket = [];
                     byY[y] = bucket;
                 }
-                bucket.Add((word.BoundingBox.Left, word.Text));
+                bucket.Add((word.BoundingBox.Left, word.BoundingBox.Right, word.Text));
             }
 
             foreach (var (_, words) in byY)
             {
-                var line = string.Join(" ", words.OrderBy(w => w.X).Select(w => w.Text)).Trim();
+                var ordered = words.OrderBy(w => w.X).ToList();
+                var sb = new System.Text.StringBuilder();
+                double prevRight = double.MinValue;
+
+                foreach (var (x, right, text) in ordered)
+                {
+                    if (prevRight > double.MinValue)
+                    {
+                        // A gap > 8pt between word bounding boxes indicates a column separator
+                        // (CSS 16px column-gap ≈ 12pt; normal inter-word spacing ≈ 2–3pt)
+                        sb.Append(x - prevRight > 8.0 ? '\t' : ' ');
+                    }
+                    sb.Append(text);
+                    prevRight = right;
+                }
+
+                var line = sb.ToString().Trim();
                 if (!string.IsNullOrWhiteSpace(line))
                     allLines.Add(line);
             }
@@ -237,8 +253,11 @@ public partial class PdfResumeParserService
             }
 
             // Generic URL → website
+            // Keep !liMatch.Success so a duplicate LinkedIn URL isn't captured as website.
+            // Allow GitHub-matching URLs through: if the GitHub profile was already set and this
+            // is a different URL (e.g. a repo link), it should be captured as the website.
             var urlMatch = UrlRx().Match(line);
-            if (urlMatch.Success && info.Website is null && !liMatch.Success && !ghMatch.Success)
+            if (urlMatch.Success && info.Website is null && !liMatch.Success)
             {
                 info.Website = urlMatch.Value;
                 continue;
@@ -756,6 +775,15 @@ public partial class PdfResumeParserService
 
     // ── Projects ──────────────────────────────────────────────────────────────
 
+    // Returns true when a line looks like a project name header rather than description text:
+    // short, starts with a capital, and does not end with a sentence-terminator.
+    private static bool LooksLikeProjectName(string text) =>
+        text.Length > 0
+        && text.Length <= 80
+        && char.IsUpper(text[0])
+        && !text.EndsWith('.')
+        && !text.EndsWith(',');
+
     private static List<ProjectModel> ParseProjectsSection(List<string> lines)
     {
         var results = new List<ProjectModel>();
@@ -793,11 +821,25 @@ public partial class PdfResumeParserService
                     continue;
                 }
 
-                // First non-bullet, non-url, non-tech line = name
                 if (string.IsNullOrEmpty(project.Name) && !BulletRx().IsMatch(line))
+                {
+                    // First non-bullet, non-url, non-tech line = project name
                     project.Name = clean;
+                }
+                else if (!string.IsNullOrEmpty(project.Name) && !BulletRx().IsMatch(line) && LooksLikeProjectName(clean))
+                {
+                    // Another heading-like line while the current project already has a name:
+                    // blank lines were lost during PDF extraction — save the current project and start a new one.
+                    project.Description = string.Join(" ", descParts).Trim();
+                    if (!string.IsNullOrWhiteSpace(project.Name))
+                        results.Add(project);
+                    project = new ProjectModel { Name = clean };
+                    descParts = [];
+                }
                 else
+                {
                     descParts.Add(clean);
+                }
             }
 
             project.Description = string.Join(" ", descParts).Trim();
@@ -956,53 +998,96 @@ public partial class PdfResumeParserService
         foreach (var block in blocks)
         {
             if (block.Count == 0) continue;
-            var referee = new RefereeModel();
 
-            foreach (var line in block)
+            // A tab character in any line signals a two-column layout (ExtractLines inserts \t
+            // when the gap between consecutive words exceeds 8pt, indicating a column separator).
+            bool isTwoColumn = block.Any(l => l.Contains('\t'));
+
+            if (isTwoColumn)
             {
-                var clean = BulletRx().Replace(line, "").Trim();
+                var leftLines  = new List<string>();
+                var rightLines = new List<string>();
 
-                if (string.IsNullOrEmpty(referee.Name))
+                foreach (var line in block)
                 {
-                    referee.Name = clean;
-                    continue;
-                }
-
-                var emailMatch = EmailRx().Match(clean);
-                if (emailMatch.Success && referee.Email is null)
-                {
-                    referee.Email = emailMatch.Value;
-                    continue;
-                }
-
-                var phoneMatch = PhoneRx().Match(clean);
-                if (phoneMatch.Success && referee.Phone is null && phoneMatch.Value.Count(char.IsDigit) >= 7)
-                {
-                    referee.Phone = phoneMatch.Value.Trim();
-                    continue;
+                    var tabIdx = line.IndexOf('\t');
+                    if (tabIdx >= 0)
+                    {
+                        var left  = line[..tabIdx].Trim();
+                        var right = line[(tabIdx + 1)..].Trim();
+                        if (!string.IsNullOrWhiteSpace(left))  leftLines.Add(left);
+                        if (!string.IsNullOrWhiteSpace(right)) rightLines.Add(right);
+                    }
+                    else
+                    {
+                        // Single-column line — belongs to the left referee (most common case)
+                        leftLines.Add(line);
+                    }
                 }
 
-                // "Title, Company" or "Title | Company" or just title/company
-                var sepMatch = Regex.Match(clean, @"^(.+?)\s*[,|–\-]\s*(.+)$");
-                if (sepMatch.Success && referee.Title is null)
-                {
-                    referee.Title   = sepMatch.Groups[1].Value.Trim();
-                    referee.Company = sepMatch.Groups[2].Value.Trim();
-                }
-                else if (referee.Title is null)
-                {
-                    referee.Title = clean;
-                }
-                else if (referee.Company is null)
-                {
-                    referee.Company = clean;
-                }
+                var leftRef = ParseRefereeBlock(leftLines);
+                if (leftRef != null) results.Add(leftRef);
+
+                var rightRef = ParseRefereeBlock(rightLines);
+                if (rightRef != null) results.Add(rightRef);
             }
-
-            if (!string.IsNullOrWhiteSpace(referee.Name))
-                results.Add(referee);
+            else
+            {
+                var referee = ParseRefereeBlock(block);
+                if (referee != null) results.Add(referee);
+            }
         }
 
         return results;
+    }
+
+    private static RefereeModel? ParseRefereeBlock(List<string> lines)
+    {
+        if (lines.Count == 0) return null;
+        var referee = new RefereeModel();
+
+        foreach (var line in lines)
+        {
+            var clean = BulletRx().Replace(line.Replace('\t', ' '), "").Trim();
+            if (string.IsNullOrEmpty(clean)) continue;
+
+            if (string.IsNullOrEmpty(referee.Name))
+            {
+                referee.Name = clean;
+                continue;
+            }
+
+            var emailMatch = EmailRx().Match(clean);
+            if (emailMatch.Success && referee.Email is null)
+            {
+                referee.Email = emailMatch.Value;
+                continue;
+            }
+
+            var phoneMatch = PhoneRx().Match(clean);
+            if (phoneMatch.Success && referee.Phone is null && phoneMatch.Value.Count(char.IsDigit) >= 7)
+            {
+                referee.Phone = phoneMatch.Value.Trim();
+                continue;
+            }
+
+            // "Title, Company" or "Title | Company" or just title/company
+            var sepMatch = Regex.Match(clean, @"^(.+?)\s*[,|–\-]\s*(.+)$");
+            if (sepMatch.Success && referee.Title is null)
+            {
+                referee.Title   = sepMatch.Groups[1].Value.Trim();
+                referee.Company = sepMatch.Groups[2].Value.Trim();
+            }
+            else if (referee.Title is null)
+            {
+                referee.Title = clean;
+            }
+            else if (referee.Company is null)
+            {
+                referee.Company = clean;
+            }
+        }
+
+        return string.IsNullOrWhiteSpace(referee.Name) ? null : referee;
     }
 }

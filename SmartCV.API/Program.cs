@@ -7,6 +7,7 @@ builder.Services.AddHttpClient();
 builder.Services.AddScoped<AIProxyService>();
 builder.Services.AddScoped<PdfResumeParserService>();
 builder.Services.AddSingleton<PdfGenerationService>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<PdfGenerationService>());
 
 builder.Services.AddCors(options =>
 {

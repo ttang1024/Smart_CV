@@ -24,6 +24,7 @@ import { TimelineLayout } from './layouts/TimelineLayout';
 import { CustomLayout } from './layouts/CustomLayout';
 
 const SECTION_LABELS: Record<ResumeSection, string> = {
+  personalInfo: 'Personal Info',
   summary: 'Summary',
   coreHighlights: 'Highlights',
   experience: 'Experience',
@@ -73,7 +74,7 @@ export default function ResumePreview({ resume: r, onChange }: ResumePreviewProp
   const [customOptions, setCustomOptions] = useState<CustomOptions>({
     header: 'split',
     experience: 'timeline',
-    skillsColumns: 2,
+    skillsColumns: 1,
     sectionStyle: 'bar',
     layoutMode: 'single',
     skillsStyle: 'list',
@@ -275,9 +276,8 @@ function MiniModuleList({ sectionOrder, dragKey, dragOverKey, onDragStart, onDra
       {sectionOrder.map(key => (
         <div
           key={key}
-          className={`flex items-center gap-1 py-0.5 px-0.5 rounded transition-colors ${
-            dragOverKey === key && dragKey !== key ? 'bg-indigo-50 dark:bg-indigo-950/40' : ''
-          } ${dragKey === key ? 'opacity-40' : ''}`}
+          className={`flex items-center gap-1 py-0.5 px-0.5 rounded transition-colors ${dragOverKey === key && dragKey !== key ? 'bg-indigo-50 dark:bg-indigo-950/40' : ''
+            } ${dragKey === key ? 'opacity-40' : ''}`}
           onDragOver={e => { e.preventDefault(); onDragOver(key); }}
           onDrop={() => onDrop(key)}
         >

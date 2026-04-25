@@ -3,36 +3,52 @@ using PuppeteerSharp.Media;
 
 namespace SmartCV.API.Services;
 
-public class PdfGenerationService
+public class PdfGenerationService : IHostedService
 {
-    private static bool _chromiumReady = false;
     private static readonly SemaphoreSlim _initLock = new(1, 1);
+    private static Task? _warmupTask;
+    private static string? _executablePath;
 
-    private static async Task EnsureChromiumAsync()
+    // Store Chromium outside wwwroot so it survives zip deployments on Azure App Service Linux.
+    // /home is on Azure Files and persists across container restarts and redeployments.
+    private static readonly string ChromiumCacheDir =
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".puppeteer-cache");
+
+    public Task StartAsync(CancellationToken cancellationToken)
     {
-        if (_chromiumReady) return;
-        await _initLock.WaitAsync();
-        try
+        // In Docker the system Chromium is pre-installed; skip the network download.
+        var envPath = Environment.GetEnvironmentVariable("PUPPETEER_EXECUTABLE_PATH");
+        if (!string.IsNullOrEmpty(envPath))
         {
-            if (!_chromiumReady)
+            _executablePath = envPath;
+            _warmupTask = Task.CompletedTask;
+            return Task.CompletedTask;
+        }
+
+        _warmupTask = Task.Run(async () =>
+        {
+            await _initLock.WaitAsync(cancellationToken);
+            try
             {
-                await new BrowserFetcher().DownloadAsync();
-                _chromiumReady = true;
+                var fetcher = new BrowserFetcher(new BrowserFetcherOptions { Path = ChromiumCacheDir });
+                var installed = await fetcher.DownloadAsync();
+                _executablePath = installed.GetExecutablePath();
             }
-        }
-        finally
-        {
-            _initLock.Release();
-        }
+            finally { _initLock.Release(); }
+        }, cancellationToken);
+        return Task.CompletedTask;
     }
+
+    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
     public async Task<byte[]> GenerateAsync(string html)
     {
-        await EnsureChromiumAsync();
+        if (_warmupTask is not null) await _warmupTask;
 
         using var browser = await Puppeteer.LaunchAsync(new LaunchOptions
         {
             Headless = true,
+            ExecutablePath = _executablePath,
             Args = ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
         });
 

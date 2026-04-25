@@ -29,7 +29,7 @@ AI-powered resume builder. Runs entirely in your browser — no account, no clou
 # 1. Clone
 git clone https://github.com/ttang1024/Smart_CV.git && cd Smart_CV
 
-# 2. Start backend (http://localhost:5000)
+# 2. Start backend (http://localhost:5173)
 cd SmartCV.API && dotnet run
 
 # 3. Start frontend (http://localhost:5173) — in a second terminal
@@ -37,8 +37,6 @@ cd SmartCV.Web && npm install && npm run dev
 ```
 
 Then go to **Settings** to add an API key for your preferred AI provider.
-
-> Vite proxies all `/api` requests to `:5000` so no CORS configuration is needed.
 
 ---
 
@@ -63,7 +61,7 @@ cd ../SmartCV.API && dotnet publish -c Release -o ./publish
 | PDF export | PuppeteerSharp (Chromium)                     |
 | PDF import | pdfjs-dist                                    |
 | Backend    | .NET 10 Minimal API                           |
-| Deployment | Azure App Service (Bicep + Azure Pipelines)   |
+| Deployment | Docker → Azure Container Registry → Azure App Service |
 
 ---
 
@@ -83,15 +81,27 @@ Browser (React SPA)
 
 ## Deployment
 
-The `azure/` directory contains Bicep IaC and an Azure Pipelines definition for one-command provisioning:
+The app runs as a Docker container on Azure App Service. The image is built remotely via ACR Tasks (no local Docker required) and served by a Linux App Service that pulls from the private registry.
+
+**One-time infrastructure setup:**
 
 ```bash
-az group create --name smart-cv-rg --location eastus
-az deployment group create --resource-group smart-cv-rg \
-  --template-file azure/main.bicep --parameters appName=smart-cv-app sku=B1
+az group create -n smart-cv-rg -l australiaeast
 ```
 
-SmartCV is a standard .NET 10 app with no external database, so it also runs on Docker, Fly.io, Railway, or any Linux host.
+**Deploy (build image + update App Service):**
+
+```bash
+./deploy.sh          # deploys with tag "latest"
+./deploy.sh v1.2.0   # deploys with a specific tag
+```
+
+`deploy.sh` does three things in order:
+1. `az deployment group create` — provisions ACR, App Service Plan, and Web App from `azure/main.bicep`
+2. `az acr build` — builds the Docker image in Azure and pushes it to the registry
+3. `az webapp restart` — restarts the app to pull the new image
+
+**Prerequisites:** [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) logged in (`az login`) with Contributor access to the resource group.
 
 ---
 

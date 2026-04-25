@@ -12,5 +12,3 @@ npm run dev      # dev server at http://localhost:5173
 npm run build    # production build → ../SmartCV.API/wwwroot
 npm run lint     # ESLint
 ```
-
-The dev server proxies `/api` requests to `http://localhost:5000` (the .NET backend).
