@@ -13,6 +13,24 @@ import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import toast from 'react-hot-toast';
 
+function DragDivider({ onMouseDown, active }: { onMouseDown: (e: React.MouseEvent) => void; active: boolean }) {
+  return (
+    <div
+      onMouseDown={onMouseDown}
+      className={`relative w-1 shrink-0 cursor-col-resize group select-none transition-colors
+        ${active ? 'bg-indigo-500' : 'bg-gray-200 dark:bg-gray-800 hover:bg-indigo-400 dark:hover:bg-indigo-600'}`}
+    >
+      <div className="absolute inset-y-0 -left-1 -right-1" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col gap-0.5">
+        {[0, 1, 2].map(i => (
+          <div key={i} className={`w-1 h-1 rounded-full transition-colors
+            ${active ? 'bg-white' : 'bg-gray-400 dark:bg-gray-600 group-hover:bg-indigo-300'}`} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function EditorPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -24,6 +42,47 @@ export default function EditorPage() {
   const [hasUnsaved, setHasUnsaved] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
+
+  // Panel resize state
+  const [leftWidthPct, setLeftWidthPct] = useState(40);
+  const [aiWidthPx, setAiWidthPx] = useState(384);
+  const [draggingPanel, setDraggingPanel] = useState<'left' | 'ai' | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const dragging = useRef<'left' | 'ai' | null>(null);
+  const dragStartX = useRef(0);
+  const dragStartValue = useRef(0);
+
+  const startDrag = useCallback((panel: 'left' | 'ai') => (e: React.MouseEvent) => {
+    e.preventDefault();
+    dragging.current = panel;
+    setDraggingPanel(panel);
+    dragStartX.current = e.clientX;
+    dragStartValue.current = panel === 'left' ? leftWidthPct : aiWidthPx;
+  }, [leftWidthPct, aiWidthPx]);
+
+  useEffect(() => {
+    const onMouseMove = (e: MouseEvent) => {
+      if (!dragging.current || !containerRef.current) return;
+      const containerWidth = containerRef.current.getBoundingClientRect().width;
+      const delta = e.clientX - dragStartX.current;
+      if (dragging.current === 'left') {
+        const deltaPct = (delta / containerWidth) * 100;
+        setLeftWidthPct(Math.max(20, Math.min(60, dragStartValue.current + deltaPct)));
+      } else {
+        setAiWidthPx(Math.max(280, Math.min(640, dragStartValue.current - delta)));
+      }
+    };
+    const onMouseUp = () => {
+      dragging.current = null;
+      setDraggingPanel(null);
+    };
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    };
+  }, []);
 
   useEffect(() => {
     if (id) loadResume(id);
@@ -228,28 +287,33 @@ export default function EditorPage() {
       </div>
 
       {/* Main layout */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left: Editor (40%) */}
-        <div className="w-[40%] overflow-y-auto border-r border-gray-200 dark:border-gray-800 shrink-0">
+      <div ref={containerRef} className={`flex flex-1 overflow-hidden${draggingPanel ? ' select-none cursor-col-resize' : ''}`}>
+        {/* Left: Editor */}
+        <div style={{ width: `${leftWidthPct}%` }} className="overflow-y-auto shrink-0">
           <div className="mx-auto px-4 py-6">
             <ResumeEditor resume={localResume} onChange={handleResumeChange} />
           </div>
         </div>
 
-        {/* Right: Preview (60%) */}
+        <DragDivider onMouseDown={startDrag('left')} active={draggingPanel === 'left'} />
+
+        {/* Center: Preview */}
         <div className="flex-1 overflow-y-auto min-w-0 bg-gray-50 dark:bg-gray-900">
           <ResumePreview resume={localResume} onChange={handleResumeChange} />
         </div>
 
         {/* AI Panel */}
         {showAI && (
-          <div className="w-96 border-l border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 flex flex-col overflow-hidden shrink-0">
-            <AIOptimizationPanel
-              resume={localResume}
-              onApplySuggestion={handleApplySuggestion}
-              onSessionSaved={handleSessionSaved}
-            />
-          </div>
+          <>
+            <DragDivider onMouseDown={startDrag('ai')} active={draggingPanel === 'ai'} />
+            <div style={{ width: `${aiWidthPx}px` }} className="bg-white dark:bg-gray-950 flex flex-col overflow-hidden shrink-0">
+              <AIOptimizationPanel
+                resume={localResume}
+                onApplySuggestion={handleApplySuggestion}
+                onSessionSaved={handleSessionSaved}
+              />
+            </div>
+          </>
         )}
       </div>
     </div>
