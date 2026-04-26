@@ -19,7 +19,7 @@ AI-powered resume builder. Runs entirely in your browser — no account, no clou
 - **AI optimization** — paste a job description and the AI rewrites your bullets and summary with targeted keywords to pass ATS screening
 - **10 resume styles** — Classic, Modern, Executive, Minimal, Creative, Elegant, Academic, Split, Timeline, and a fully configurable **Custom** style with swappable layouts, section styles, and more
 - **Live theme colour** — change the accent colour and the preview updates instantly
-- **PDF import** — upload an existing resume and every section is extracted automatically
+- **PDF import** — upload an existing resume and every section is extracted automatically; enable AI-powered parsing in Settings for significantly more accurate section detection and content extraction
 - **One-click PDF export** — pixel-perfect A4 PDF powered by Puppeteer
 - **Autosave** — changes are debounced and persisted to IndexedDB
 - **Fully private** — all data stays in the browser; the only outbound traffic is your own AI API calls
@@ -65,7 +65,7 @@ cd ../SmartCV.API && dotnet publish -c Release -o ./publish
 | Frontend   | React 19, TypeScript, Tailwind CSS v4, Vite 8         |
 | State      | Zustand, IndexedDB (`idb`), localStorage              |
 | PDF export | PuppeteerSharp (Chromium)                             |
-| PDF import | pdfjs-dist                                            |
+| PDF import | pdfjs-dist + AI provider (optional, for higher accuracy) |
 | Backend    | .NET 10 Minimal API                                   |
 | Deployment | Docker → Azure Container Registry → Azure App Service |
 
