@@ -62,7 +62,7 @@ public class PdfGenerationService : IHostedService
         {
             Format = PaperFormat.A4,
             PrintBackground = true,
-            MarginOptions = new MarginOptions { Top = "14mm", Bottom = "14mm", Left = "0", Right = "0" },
+            MarginOptions = new MarginOptions { Top = "0", Bottom = "0", Left = "0", Right = "0" },
         });
     }
 }

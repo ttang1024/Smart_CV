@@ -22,7 +22,7 @@ export default function Header() {
         <div className="flex-1" />
 
         <div className="flex items-center gap-2">
-          <LanguageSwitcher />
+          {/* <LanguageSwitcher /> */}
           {/* AI Settings — always top-right */}
           <Link to="/settings">
             <Button variant={location.pathname === '/settings' ? 'primary' : 'outline'} size="sm">

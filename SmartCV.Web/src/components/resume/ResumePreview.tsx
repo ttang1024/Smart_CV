@@ -90,17 +90,31 @@ export default function ResumePreview({ resume: r, onChange }: ResumePreviewProp
 
     setDownloading(true);
     try {
+      // Clone and strip minHeight from the wrapper and the layout root so that a
+      // 297mm minimum doesn't overflow the 14mm-margined content area and create
+      // a spurious blank trailing page.
+      const clone = element.cloneNode(true) as HTMLElement;
+      clone.style.minHeight = '';
+      const layoutRoot = clone.firstElementChild as HTMLElement | null;
+      if (layoutRoot) layoutRoot.style.minHeight = '';
       const html = `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:#fff;}
+body{background:#fff;font-family:'Noto Sans SC','Noto Sans TC','PingFang SC','Microsoft YaHei','SimHei',sans-serif;}
 h2{break-after:avoid;page-break-after:avoid;}
+/* 14mm breathing room at every page boundary; flush at top of first page
+   so full-bleed coloured headers reach the paper edge */
+@page{margin:14mm 0;}
+@page :first{margin-top:0;}
 </style>
 </head>
-<body>${element.outerHTML}</body>
+<body>${clone.outerHTML}</body>
 </html>`;
 
       const filename = `${r.personalInfo.fullName || 'resume'}.pdf`;

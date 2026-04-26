@@ -72,7 +72,7 @@ export function CustomLayout({ r, theme, options }: LayoutProps & { options: Cus
       ? <>{education.map(edu => (
         <div key={edu.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '6px' }}>
           <div>
-            <span style={{ fontWeight: 600 }}>{edu.degree}{edu.field ? ` in ${edu.field}` : ''}</span>
+            <span style={{ fontWeight: 600 }}>{edu.degree}{edu.field ? ` - ${edu.field}` : ''}</span>
             {edu.institution && <span style={{ color: accent }}> · {edu.institution}</span>}
           </div>
           <span style={{ fontSize: '9pt', color: '#9ca3af', whiteSpace: 'nowrap', marginLeft: '8px' }}>{dateRange(edu.startDate, edu.endDate, edu.current, presentLabel)}</span>

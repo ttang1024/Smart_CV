@@ -185,7 +185,7 @@ export function EduEntry({ edu, accentColor, instSep = ' · ', instItalic, dateC
     <div style={{ marginBottom: mb }}>
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
         <div>
-          <span style={{ fontWeight: degreeWeight }}>{edu.degree}{edu.field ? ` in ${edu.field}` : ''}</span>
+          <span style={{ fontWeight: degreeWeight }}>{edu.degree}{edu.field ? ` - ${edu.field}` : ''}</span>
           {edu.institution && (
             <span style={{ color: accentColor }}>{instSep}{edu.institution}</span>
           )}

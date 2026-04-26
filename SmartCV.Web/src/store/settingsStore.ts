@@ -10,6 +10,7 @@ interface SettingsState {
   setActiveProvider: (provider: AIProviderType) => void;
   setAPIKey: (provider: AIProviderType, key: string) => void;
   setModel: (provider: AIProviderType, model: string) => void;
+  setUseAI: (useAI: boolean) => void;
 
   getActiveConfig: () => { provider: AIProviderType; apiKey: string; model: string } | null;
 }
@@ -54,6 +55,14 @@ export const useSettingsStore = create<SettingsState>()(
             [provider]: { ...state.aiSettings.providers[provider], model }
           }
         };
+        settingsStorage.saveAISettings(updated);
+        return { aiSettings: updated };
+      });
+    },
+
+    setUseAI: (useAI) => {
+      set(state => {
+        const updated = { ...state.aiSettings, useAI };
         settingsStorage.saveAISettings(updated);
         return { aiSettings: updated };
       });

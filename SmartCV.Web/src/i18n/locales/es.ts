@@ -278,6 +278,8 @@ const es = {
     apiKeyLabel: 'Clave API',
     apiKeyPlaceholder: 'Introduce tu clave API de {{name}}',
     modelLabel: 'Modelo',
+    useAILabel: 'Habilitar análisis con IA',
+    useAIDesc: 'Usa IA para extraer datos del currículum desde PDFs. Requiere una clave API.',
     privacy: 'Las claves API se almacenan solo en el localStorage de tu navegador. Se envían directamente al proveedor de IA a través de nuestro proxy backend (sin almacenamiento de claves en el servidor).',
     privacyLabel: 'Privacidad:',
   },
@@ -304,6 +306,7 @@ const es = {
     duplicate: 'Duplicar',
     delete: 'Eliminar',
     updated: 'Actualizado',
+    completion: 'Completado',
   },
 
   resumeLayout: {

@@ -47,7 +47,7 @@ export function CreativeLayout({ r, theme }: LayoutProps) {
           <SidebarSection title={t('resumeLayout.sections.education')} accent={accent}>
             {education.map(edu => (
               <div key={edu.id} style={{ marginBottom: '8px', fontSize: '8.5pt' }}>
-                <div style={{ fontWeight: 600, color: '#e2e8f0' }}>{edu.degree}{edu.field ? ` in ${edu.field}` : ''}</div>
+                <div style={{ fontWeight: 600, color: '#e2e8f0' }}>{edu.degree}{edu.field ? ` - ${edu.field}` : ''}</div>
                 {edu.institution && <div style={{ color: '#94a3b8' }}>{edu.institution}</div>}
                 <div style={{ color: '#64748b', marginTop: '1px' }}>
                   {dateRange(edu.startDate, edu.endDate, edu.current, presentLabel)}

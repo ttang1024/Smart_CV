@@ -1,6 +1,7 @@
 import * as pdfjsLib from 'pdfjs-dist';
 import type { Resume } from '../../types/resume';
 import { generateId } from '../../lib/utils';
+import { useSettingsStore } from '../../store/settingsStore';
 
 // Configure pdf.js worker (already configured in pdfParser.ts but needed here too)
 if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
@@ -60,6 +61,33 @@ async function ocrPdf(arrayBuffer: ArrayBuffer): Promise<string> {
   }
 
   return allText.join('\n\n');
+}
+
+/** Extract plain text from a PDF using pdf.js (client-side). */
+async function extractClientText(arrayBuffer: ArrayBuffer): Promise<string> {
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer.slice(0) }).promise;
+  const pages: string[] = [];
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    const lines = new Map<number, { x: number; text: string }[]>();
+    for (const item of content.items) {
+      if (!('str' in item)) continue;
+      const y = Math.round((item as { transform: number[] }).transform[5]);
+      if (!lines.has(y)) lines.set(y, []);
+      lines.get(y)!.push({
+        x: (item as { transform: number[] }).transform[4],
+        text: (item as { str: string }).str,
+      });
+    }
+    const text = [...lines.entries()]
+      .sort(([ya], [yb]) => yb - ya)
+      .map(([, items]) => items.sort((a, b) => a.x - b.x).map(i => i.text).join(' ').trim())
+      .filter(Boolean)
+      .join('\n');
+    pages.push(text);
+  }
+  return pages.join('\n\n');
 }
 
 function isResultEmpty(data: Record<string, unknown>): boolean {
@@ -172,13 +200,22 @@ function mapServerData(data: Record<string, unknown>, fileName: string): Resume 
 }
 
 /**
- * Upload a PDF to the .NET backend for parsing.
+ * Parse a PDF resume into a Resume object.
+ *
+ * @param options.useAI  When true, attempt AI-powered parsing first.
+ *                       Requires an AI provider to be configured in settings.
+ *                       Falls back to the server-side pipeline on any error.
+ *
  * Pipeline:
  *  1. Check for embedded SmartCV JSON metadata (lossless re-import of SmartCV exports)
- *  2. Server-side PdfPig text extraction (works for text-based PDFs)
- *  3. Client-side Tesseract OCR fallback (handles image-only PDFs, e.g. html2canvas exports)
+ *  2. AI parsing (only when options.useAI is true and a provider is configured)
+ *  3. Server-side PdfPig text extraction + regex parser
+ *  4. Client-side Tesseract OCR fallback (image-only PDFs)
  */
-export async function parseResumeFromPdf(file: File): Promise<Resume> {
+export async function parseResumeFromPdf(
+  file: File,
+  options?: { useAI?: boolean },
+): Promise<Resume> {
   const arrayBuffer = await file.arrayBuffer();
 
   // ── Step 1: embedded SmartCV metadata ────────────────────────────────────────
@@ -192,7 +229,29 @@ export async function parseResumeFromPdf(file: File): Promise<Resume> {
     };
   }
 
-  // ── Step 2: server-side text extraction ──────────────────────────────────────
+  // ── Step 2: AI parsing (caller-controlled) ────────────────────────────────────
+  if (options?.useAI) {
+    const aiConfig = useSettingsStore.getState().getActiveConfig();
+    if (aiConfig) {
+      try {
+        const clientText = await extractClientText(arrayBuffer);
+        if (clientText.trim()) {
+          const { parseResumeFromText } = await import('../ai/resumeParser');
+          return await parseResumeFromText(
+            aiConfig.provider,
+            aiConfig.apiKey,
+            aiConfig.model,
+            clientText,
+            file.name,
+          );
+        }
+      } catch {
+        // AI parsing failed — fall through to the server-side pipeline.
+      }
+    }
+  }
+
+  // ── Step 3: server-side text extraction ──────────────────────────────────────
   const form = new FormData();
   form.append('file', file);
 
@@ -216,7 +275,7 @@ export async function parseResumeFromPdf(file: File): Promise<Resume> {
     return mapServerData(data, file.name);
   }
 
-  // ── Step 3: Tesseract OCR fallback for image-only PDFs ───────────────────────
+  // ── Step 4: Tesseract OCR fallback for image-only PDFs ───────────────────────
   let ocrText: string;
   try {
     ocrText = await ocrPdf(arrayBuffer);

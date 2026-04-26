@@ -86,7 +86,7 @@ export default function ResumeCard({ resume, onDelete, onDuplicate }: ResumeCard
       {/* Progress bar */}
       <div>
         <div className="flex justify-between items-center mb-1.5">
-          <span className="text-xs text-gray-500 dark:text-gray-400">Completion</span>
+          <span className="text-xs text-gray-500 dark:text-gray-400">{t('resumeCard.completion')}</span>
           <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{completion}%</span>
         </div>
         <div className="h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">

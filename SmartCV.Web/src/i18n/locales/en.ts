@@ -286,6 +286,8 @@ const en = {
     apiKeyLabel: 'API Key',
     apiKeyPlaceholder: 'Enter your {{name}} API key',
     modelLabel: 'Model',
+    useAILabel: 'Enable AI parsing',
+    useAIDesc: 'Use AI to extract resume data from PDFs. Requires an API key.',
     privacy: 'API keys are stored only in your browser\'s localStorage. They are sent directly to the AI provider via our backend proxy (no key storage server-side).',
     privacyLabel: 'Privacy:',
   },
@@ -314,6 +316,7 @@ const en = {
     duplicate: 'Duplicate',
     delete: 'Delete',
     updated: 'Updated',
+    completion: 'Completion',
   },
 
   // ── Resume layout (section titles rendered inside the PDF) ───────────────────

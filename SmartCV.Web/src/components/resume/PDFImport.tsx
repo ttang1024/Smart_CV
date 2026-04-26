@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '../../lib/utils';
 import { parseResumeFromPdf } from '../../services/pdf/resumeParserApi';
 import { useResumeStore } from '../../store/resumeStore';
+import { useSettingsStore } from '../../store/settingsStore';
 import type { Resume } from '../../types/resume';
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
@@ -24,20 +25,21 @@ export default function PDFImport({ onImported, onFill, label }: PDFImportProps)
   const defaultLabel = label ?? t('pdfImport.button');
 
   const STEP_LABELS: Record<Step, string> = {
-    idle:    '',
+    idle: '',
     parsing: t('pdfImport.parsing'),
-    saving:  t('pdfImport.saving'),
-    done:    t('pdfImport.done'),
-    error:   '',
+    saving: t('pdfImport.saving'),
+    done: t('pdfImport.done'),
+    error: '',
   };
-  const [open, setOpen]       = useState(false);
+  const [open, setOpen] = useState(false);
   const [dragging, setDragging] = useState(false);
-  const [step, setStep]       = useState<Step>('idle');
-  const [error, setError]     = useState<string | null>(null);
+  const [step, setStep] = useState<Step>('idle');
+  const [error, setError] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
-  const fileInputRef          = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { saveResume } = useResumeStore();
+  const useAI = useSettingsStore(state => state.aiSettings.useAI);
 
   const reset = () => { setStep('idle'); setError(null); setFileName(null); };
 
@@ -53,7 +55,7 @@ export default function PDFImport({ onImported, onFill, label }: PDFImportProps)
 
     try {
       setStep('parsing');
-      const resume = await parseResumeFromPdf(file);
+      const resume = await parseResumeFromPdf(file, { useAI });
 
       if (onFill) {
         setStep('done');
@@ -68,7 +70,7 @@ export default function PDFImport({ onImported, onFill, label }: PDFImportProps)
       setError(e instanceof Error ? e.message : t('pdfImport.failed'));
       setStep('error');
     }
-  }, [saveResume, onImported, onFill]);
+  }, [saveResume, onImported, onFill, useAI]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -84,8 +86,8 @@ export default function PDFImport({ onImported, onFill, label }: PDFImportProps)
   };
 
   const progressSteps = onFill ? [t('pdfImport.stepParse')] : [t('pdfImport.stepParse'), t('pdfImport.stepSave')];
-  const activeSteps   = onFill ? ['parsing'] : ['parsing', 'saving'];
-  const isProcessing  = activeSteps.includes(step);
+  const activeSteps = onFill ? ['parsing'] : ['parsing', 'saving'];
+  const isProcessing = activeSteps.includes(step);
 
   return (
     <>
@@ -187,7 +189,7 @@ export default function PDFImport({ onImported, onFill, label }: PDFImportProps)
               <div className="flex items-center gap-2 w-full max-w-xs">
                 {progressSteps.map((label, i) => {
                   const stepIdx = activeSteps.indexOf(step);
-                  const isDone  = step === 'done' || i < stepIdx;
+                  const isDone = step === 'done' || i < stepIdx;
                   const isActive = activeSteps[i] === step;
                   return (
                     <div key={label} className="flex-1 flex flex-col items-center gap-1">

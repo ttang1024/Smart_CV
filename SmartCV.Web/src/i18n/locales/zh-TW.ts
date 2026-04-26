@@ -278,6 +278,8 @@ const zhTW = {
     apiKeyLabel: 'API 金鑰',
     apiKeyPlaceholder: '輸入您的 {{name}} API 金鑰',
     modelLabel: '模型',
+    useAILabel: '啟用 AI 解析',
+    useAIDesc: '使用 AI 從 PDF 中擷取履歷資料，需要設定 API 金鑰。',
     privacy: 'API 金鑰僅儲存在您瀏覽器的 localStorage 中，透過後端代理直接傳送給 AI 服務商（伺服器端不儲存金鑰）。',
     privacyLabel: '隱私說明：',
   },
@@ -304,6 +306,7 @@ const zhTW = {
     duplicate: '複製',
     delete: '刪除',
     updated: '更新於',
+    completion: '完成度',
   },
 
   resumeLayout: {

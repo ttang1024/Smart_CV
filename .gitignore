@@ -21,6 +21,12 @@ dist/
 # OS
 .DS_Store
 Thumbs.db
-demos
 publish
 deploy.zip
+
+demos/1.png
+demos/2.jpg
+demos/3.jpg
+demos/4.jpg
+demos/5.jpg
+demos/6.jpg

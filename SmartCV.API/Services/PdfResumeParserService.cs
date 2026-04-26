@@ -23,28 +23,29 @@ public partial class PdfResumeParserService
     [GeneratedRegex(@"https?://[\w\-./~?=%&#@+]+|www\.[\w\-./~?=%&#@+]+", RegexOptions.IgnoreCase)]
     private static partial Regex UrlRx();
 
-    // Matches "Jan 2020", "January 2020", "01/2020", "2020-01", "2020"
+    // Matches dates in English, Spanish, and Chinese formats
+    // e.g. "Jan 2020", "enero 2020", "01/2020", "2020-01", "2020年3月", "2020年", "2020"
     [GeneratedRegex(
-        @"(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\.?\s+\d{4}|\d{1,2}/\d{4}|\d{4}-\d{2}|\d{4}",
+        @"(?:Jan(?:uary)?|Ene(?:ro)?|Feb(?:ruary|rero)?|Mar(?:ch|zo)?|Apr(?:il)?|Abr(?:il)?|May(?:o)?|Jun(?:e|io)?|Jul(?:y|io)?|Aug(?:ust)?|Ago(?:sto)?|Sep(?:t(?:ember|iembre)?)?|Oct(?:ober|ubre)?|Nov(?:ember|iembre)?|Dec(?:ember)?|Dic(?:iembre)?)\.?\s+\d{4}|\d{1,2}/\d{4}|\d{4}-\d{2}|\d{4}年(?:\d{1,2}月)?|\d{4}",
         RegexOptions.IgnoreCase)]
     private static partial Regex DateRx();
 
-    // Matches a date range: <date> – <date|Present>
+    // Matches a date range: <date> – <date|Present> (English, Spanish, Chinese)
     [GeneratedRegex(
-        @"((?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\.?\s+\d{4}|\d{1,2}/\d{4}|\d{4}-\d{2}|\d{4})\s*[-–—]\s*((?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\.?\s+\d{4}|\d{1,2}/\d{4}|\d{4}-\d{2}|\d{4}|Present|Current|Now)",
+        @"((?:Jan(?:uary)?|Ene(?:ro)?|Feb(?:ruary|rero)?|Mar(?:ch|zo)?|Apr(?:il)?|Abr(?:il)?|May(?:o)?|Jun(?:e|io)?|Jul(?:y|io)?|Aug(?:ust)?|Ago(?:sto)?|Sep(?:t(?:ember|iembre)?)?|Oct(?:ober|ubre)?|Nov(?:ember|iembre)?|Dec(?:ember)?|Dic(?:iembre)?)\.?\s+\d{4}|\d{1,2}/\d{4}|\d{4}-\d{2}|\d{4}年(?:\d{1,2}月)?|\d{4})\s*[-–—至]\s*((?:Jan(?:uary)?|Ene(?:ro)?|Feb(?:ruary|rero)?|Mar(?:ch|zo)?|Apr(?:il)?|Abr(?:il)?|May(?:o)?|Jun(?:e|io)?|Jul(?:y|io)?|Aug(?:ust)?|Ago(?:sto)?|Sep(?:t(?:ember|iembre)?)?|Oct(?:ober|ubre)?|Nov(?:ember|iembre)?|Dec(?:ember)?|Dic(?:iembre)?)\.?\s+\d{4}|\d{1,2}/\d{4}|\d{4}-\d{2}|\d{4}年(?:\d{1,2}月)?|\d{4}|Present|Current|Now|Actualidad|Actual|Presente|至今|现在|現在|目前)",
         RegexOptions.IgnoreCase)]
     private static partial Regex DateRangeRx();
 
     [GeneratedRegex(@"([\d.]+)\s*/\s*([\d.]+)", RegexOptions.IgnoreCase)]
     private static partial Regex GpaRx();
 
-    [GeneratedRegex(@"\b(Bachelor|Master|PhD|Doctor|Associate|B\.?S\.?|M\.?S\.?|B\.?A\.?|M\.?A\.?|M\.?B\.?A\.?|B\.?Eng\.?|M\.?Eng\.?|B\.?Tech\.?|M\.?Tech\.?|Ph\.?D\.?|D\.?Phil\.?)\b", RegexOptions.IgnoreCase)]
+    [GeneratedRegex(@"\b(Bachelor|Master|PhD|Doctor|Associate|B\.?S\.?|M\.?S\.?|B\.?A\.?|M\.?A\.?|M\.?B\.?A\.?|B\.?Eng\.?|M\.?Eng\.?|B\.?Tech\.?|M\.?Tech\.?|Ph\.?D\.?|D\.?Phil\.?|Licenciatura|Licenciado|Ingenier[oía]|M[aá]ster|Maestr[ií]a|Doctorado|Grado|Bachillerato|Diplomado)\b|(?:学士|硕士|博士|大专|本科|學士|碩士|大專)(?:学位|學位|研究生)?", RegexOptions.IgnoreCase)]
     private static partial Regex DegreeRx();
 
     [GeneratedRegex(@"\b(magna cum laude|summa cum laude|cum laude|with honors|with distinction|honor roll|dean[''`]?s list)\b", RegexOptions.IgnoreCase)]
     private static partial Regex HonorsRx();
 
-    [GeneratedRegex(@"\b(University|College|Institute|School|Academy|Polytechnic)\b", RegexOptions.IgnoreCase)]
+    [GeneratedRegex(@"\b(University|College|Institute|School|Academy|Polytechnic|Universidad|Facultad|Instituto)\b|(?:大学|学院|学校|大學|學院|學校)", RegexOptions.IgnoreCase)]
     private static partial Regex InstitutionKeywordRx();
 
     // Common academic field/subject words that should NOT be treated as institution-name prefixes
@@ -66,15 +67,69 @@ public partial class PdfResumeParserService
 
     private static readonly Dictionary<SectionType, string[]> SectionKeywords = new()
     {
-        [SectionType.Summary]        = ["summary", "objective", "profile", "about me", "about", "overview", "professional summary", "career summary", "career objective", "professional profile"],
-        [SectionType.Experience]     = ["experience", "work experience", "professional experience", "employment", "work history", "career history", "employment history", "professional background", "work"],
-        [SectionType.Education]      = ["education", "academic background", "academic history", "qualifications", "academic qualifications", "educational background", "academic"],
-        [SectionType.Skills]         = ["skills", "technical skills", "core competencies", "competencies", "technologies", "tech stack", "tools", "expertise", "key skills", "technical expertise", "programming skills", "professional skills"],
-        [SectionType.Projects]       = ["projects", "project", "personal projects", "personal project", "side projects", "side project", "portfolio", "project experience", "key projects", "open source", "it project", "it projects"],
-        [SectionType.Certifications] = ["certifications", "certificates", "licenses", "awards", "achievements", "professional development", "accreditations"],
-        [SectionType.Languages]      = ["languages", "language skills", "spoken languages"],
-        [SectionType.Interests]      = ["interests", "hobbies", "activities", "personal interests", "extracurricular", "extracurricular activities", "volunteer", "volunteering"],
-        [SectionType.Referees]       = ["referees", "references", "professional references", "referee"]
+        [SectionType.Summary]        = ["summary", "objective", "profile", "about me", "about", "overview", "professional summary", "career summary", "career objective", "professional profile",
+                                        // Spanish
+                                        "resumen", "perfil", "objetivo", "sobre mí", "sobre mi", "presentación", "presentacion", "perfil profesional", "acerca de mí", "acerca de mi",
+                                        // Simplified Chinese
+                                        "个人简介", "自我介绍", "个人概述", "职业概述", "职业目标", "求职意向", "个人陈述", "简介",
+                                        // Traditional Chinese
+                                        "個人簡介", "自我介紹", "個人概述", "職業概述", "職業目標", "求職意向", "個人陳述", "簡介"],
+        [SectionType.Experience]     = ["experience", "work experience", "professional experience", "employment", "work history", "career history", "employment history", "professional background", "work",
+                                        // Spanish
+                                        "experiencia", "experiencia laboral", "experiencia profesional", "historial laboral", "trayectoria profesional", "experiencia de trabajo",
+                                        // Simplified Chinese
+                                        "工作经历", "工作经验", "职业经历", "职业经验", "工作背景", "职业背景", "实习经历", "实习经验", "社会实践",
+                                        // Traditional Chinese
+                                        "工作經歷", "工作經驗", "職業經歷", "職業經驗", "職業背景", "實習經歷", "實習經驗"],
+        [SectionType.Education]      = ["education", "academic background", "academic history", "qualifications", "academic qualifications", "educational background", "academic",
+                                        // Spanish
+                                        "educación", "educacion", "formación académica", "formacion academica", "estudios", "formación", "formacion", "titulación", "titulacion",
+                                        // Simplified Chinese
+                                        "教育背景", "教育经历", "学历", "教育", "学习经历", "学术背景",
+                                        // Traditional Chinese
+                                        "教育經歷", "學歷", "學習經歷", "學術背景"],
+        [SectionType.Skills]         = ["skills", "technical skills", "core competencies", "competencies", "technologies", "tech stack", "tools", "expertise", "key skills", "technical expertise", "programming skills", "professional skills",
+                                        // Spanish
+                                        "habilidades", "competencias", "conocimientos", "aptitudes", "destrezas técnicas", "destrezas tecnicas", "habilidades técnicas", "habilidades tecnicas",
+                                        // Simplified Chinese
+                                        "技能", "专业技能", "技术技能", "核心技能", "技术栈", "专业能力", "技能特长", "技术能力",
+                                        // Traditional Chinese
+                                        "專業技能", "技術技能", "技術棧", "專業能力", "技能特長", "技術能力"],
+        [SectionType.Projects]       = ["projects", "project", "personal projects", "personal project", "side projects", "side project", "portfolio", "project experience", "key projects", "open source", "it project", "it projects",
+                                        // Spanish
+                                        "proyectos", "proyecto", "proyectos personales", "portafolio",
+                                        // Simplified Chinese
+                                        "项目经历", "项目经验", "项目", "个人项目",
+                                        // Traditional Chinese
+                                        "項目經歷", "項目經驗", "項目", "個人項目"],
+        [SectionType.Certifications] = ["certifications", "certificates", "licenses", "awards", "achievements", "professional development", "accreditations",
+                                        // Spanish
+                                        "certificaciones", "certificados", "licencias", "premios", "logros", "acreditaciones",
+                                        // Simplified Chinese
+                                        "资格证书", "证书", "认证", "荣誉奖励", "奖励", "荣誉",
+                                        // Traditional Chinese
+                                        "資格證書", "證書", "認證", "榮譽獎勵", "獎勵", "榮譽"],
+        [SectionType.Languages]      = ["languages", "language skills", "spoken languages",
+                                        // Spanish
+                                        "idiomas", "lenguas", "habilidades lingüísticas", "habilidades linguisticas",
+                                        // Simplified Chinese
+                                        "语言", "语言能力", "语言技能",
+                                        // Traditional Chinese
+                                        "語言", "語言能力", "語言技能"],
+        [SectionType.Interests]      = ["interests", "hobbies", "activities", "personal interests", "extracurricular", "extracurricular activities", "volunteer", "volunteering",
+                                        // Spanish
+                                        "intereses", "aficiones", "actividades", "pasatiempos", "voluntariado",
+                                        // Simplified Chinese
+                                        "兴趣爱好", "爱好", "兴趣", "课外活动", "志愿服务",
+                                        // Traditional Chinese
+                                        "興趣愛好", "愛好", "興趣", "課外活動", "志願服務"],
+        [SectionType.Referees]       = ["referees", "references", "professional references", "referee",
+                                        // Spanish
+                                        "referencias", "referentes",
+                                        // Simplified Chinese
+                                        "推荐人", "参考人",
+                                        // Traditional Chinese
+                                        "推薦人", "參考人"]
     };
 
     // ── Public entry points ───────────────────────────────────────────────────
@@ -177,10 +232,12 @@ public partial class PdfResumeParserService
 
     private static SectionType? DetectSectionHeader(string line)
     {
-        var trimmed = line.Trim().TrimEnd(':').Trim();
+        var trimmed = line.Trim().TrimEnd(':', '：').Trim();
+        // Strip common CJK decoration brackets (e.g. 【工作经历】, 《技能》)
+        trimmed = trimmed.Trim('【', '】', '《', '》', '〈', '〉', '「', '」', '〔', '〕').Trim();
 
-        // Section headers are short and don't look like regular sentences
-        if (trimmed.Length > 60 || trimmed.Length < 3) return null;
+        // Section headers are short; allow 2 chars minimum for CJK (e.g. 技能, 语言)
+        if (trimmed.Length > 60 || trimmed.Length < 2) return null;
         // Skip separator / decorative lines
         if (trimmed.All(c => c is '-' or '=' or '_' or '*' or '─' or '━' or '▬')) return null;
         // Skip lines that look like bullet points
@@ -192,8 +249,18 @@ public partial class PdfResumeParserService
         {
             foreach (var kw in keywords)
             {
-                if (lower == kw || lower == kw + "s" || lower.StartsWith(kw + " ") || lower.StartsWith(kw + "/"))
-                    return sectionType;
+                // CJK keywords: match if line equals or starts with the keyword
+                // (Chinese section headers have no spaces so StartsWith covers decorated variants)
+                if (kw.Any(c => c >= '一'))
+                {
+                    if (lower == kw || lower.StartsWith(kw))
+                        return sectionType;
+                }
+                else
+                {
+                    if (lower == kw || lower == kw + "s" || lower.StartsWith(kw + " ") || lower.StartsWith(kw + "/"))
+                        return sectionType;
+                }
             }
         }
 
@@ -284,8 +351,8 @@ public partial class PdfResumeParserService
         if (candidates.Count > 1)
         {
             var second = candidates[1].Trim();
-            // Looks like a location if it has a comma and is short
-            if (second.Contains(',') && second.Length < 50 && !second.Any(char.IsDigit))
+            // Looks like a location if it has a comma (including Chinese full-width ，) and is short
+            if ((second.Contains(',') || second.Contains('，')) && second.Length < 50 && !second.Any(char.IsDigit))
                 info.Location = second;
             else
                 info.Title = second;
@@ -294,7 +361,7 @@ public partial class PdfResumeParserService
         if (candidates.Count > 2)
         {
             var third = candidates[2].Trim();
-            if (string.IsNullOrEmpty(info.Location) && third.Contains(',') && third.Length < 50)
+            if (string.IsNullOrEmpty(info.Location) && (third.Contains(',') || third.Contains('，')) && third.Length < 50)
                 info.Location = third;
             else if (string.IsNullOrEmpty(info.Title))
                 info.Title = third;
@@ -383,6 +450,7 @@ public partial class PdfResumeParserService
 
     private static readonly Dictionary<string, string> MonthMap = new(StringComparer.OrdinalIgnoreCase)
     {
+        // English
         ["jan"] = "01", ["january"] = "01",
         ["feb"] = "02", ["february"] = "02",
         ["mar"] = "03", ["march"] = "03",
@@ -394,7 +462,20 @@ public partial class PdfResumeParserService
         ["sep"] = "09", ["sept"] = "09", ["september"] = "09",
         ["oct"] = "10", ["october"] = "10",
         ["nov"] = "11", ["november"] = "11",
-        ["dec"] = "12", ["december"] = "12"
+        ["dec"] = "12", ["december"] = "12",
+        // Spanish
+        ["ene"] = "01", ["enero"] = "01",
+        ["febrero"] = "02",
+        ["marzo"] = "03",
+        ["abr"] = "04", ["abril"] = "04",
+        ["mayo"] = "05",
+        ["junio"] = "06",
+        ["julio"] = "07",
+        ["ago"] = "08", ["agosto"] = "08",
+        ["septiembre"] = "09",
+        ["octubre"] = "10",
+        ["noviembre"] = "11",
+        ["dic"] = "12", ["diciembre"] = "12",
     };
 
     private static string NormalizeDate(string raw)
@@ -413,15 +494,35 @@ public partial class PdfResumeParserService
             var mm = MonthMap.GetValueOrDefault(monthKey, "01");
             return $"{moy.Groups[2].Value}-{mm}";
         }
+        // Chinese "YYYY年MM月" or "YYYY年"
+        var zhDate = Regex.Match(raw, @"^(\d{4})年(?:(\d{1,2})月)?$");
+        if (zhDate.Success)
+        {
+            var year = zhDate.Groups[1].Value;
+            var month = zhDate.Groups[2].Success ? zhDate.Groups[2].Value.PadLeft(2, '0') : "01";
+            return $"{year}-{month}";
+        }
         // Plain year
         if (Regex.IsMatch(raw, @"^\d{4}$")) return $"{raw}-01";
         return raw;
     }
 
-    private static bool IsPresent(string raw) =>
-        raw.Trim().Equals("present", StringComparison.OrdinalIgnoreCase)
-        || raw.Trim().Equals("current", StringComparison.OrdinalIgnoreCase)
-        || raw.Trim().Equals("now", StringComparison.OrdinalIgnoreCase);
+    private static bool IsPresent(string raw)
+    {
+        var t = raw.Trim();
+        return t.Equals("present", StringComparison.OrdinalIgnoreCase)
+            || t.Equals("current", StringComparison.OrdinalIgnoreCase)
+            || t.Equals("now", StringComparison.OrdinalIgnoreCase)
+            // Spanish
+            || t.Equals("actualidad", StringComparison.OrdinalIgnoreCase)
+            || t.Equals("actual", StringComparison.OrdinalIgnoreCase)
+            || t.Equals("presente", StringComparison.OrdinalIgnoreCase)
+            || t.Equals("actualmente", StringComparison.OrdinalIgnoreCase)
+            // Simplified Chinese
+            || t == "至今" || t == "现在" || t == "目前"
+            // Traditional Chinese
+            || t == "現在";
+    }
 
     // ── Experience ────────────────────────────────────────────────────────────
 
@@ -893,7 +994,13 @@ public partial class PdfResumeParserService
     // ── Languages ─────────────────────────────────────────────────────────────
 
     private static readonly string[] ProficiencyLevels =
-        ["native", "fluent", "advanced", "intermediate", "basic", "beginner", "elementary", "proficient", "working"];
+        ["native", "fluent", "advanced", "intermediate", "basic", "beginner", "elementary", "proficient", "working",
+         // Spanish
+         "nativo", "nativa", "fluido", "fluida", "bilingüe", "bilingue", "avanzado", "avanzada", "intermedio", "intermedia", "básico", "basico", "principiante",
+         // Simplified Chinese
+         "母语", "流利", "熟练", "良好", "精通", "日常交流", "初级", "入门",
+         // Traditional Chinese
+         "母語", "熟練", "初級", "入門"];
 
     private static List<LanguageModel> ParseLanguagesSection(List<string> lines)
     {
@@ -940,15 +1047,37 @@ public partial class PdfResumeParserService
         return results;
     }
 
-    private static string MapProficiency(string raw) => raw.ToLowerInvariant() switch
+    private static string MapProficiency(string raw)
     {
-        "native" or "mother tongue" or "first language" => "Native",
-        "fluent" or "bilingual" or "full professional" => "Fluent",
-        "advanced" or "proficient" or "professional" or "upper-intermediate" => "Advanced",
-        "intermediate" or "working" or "conversational" or "limited working" => "Intermediate",
-        "basic" or "beginner" or "elementary" or "novice" or "a1" or "a2" => "Basic",
-        _ => "Intermediate"
-    };
+        var t = raw.Trim();
+        // Simplified Chinese
+        if (t is "母语" or "第一语言") return "Native";
+        if (t is "流利" or "双语") return "Fluent";
+        if (t is "熟练" or "良好" or "精通") return "Advanced";
+        if (t is "日常交流" or "一般" or "基本") return "Intermediate";
+        if (t is "初级" or "入门") return "Basic";
+        // Traditional Chinese
+        if (t is "母語" or "第一語言") return "Native";
+        if (t is "流暢" or "雙語") return "Fluent";
+        if (t is "熟練" or "精通") return "Advanced";
+        if (t is "初級" or "入門") return "Basic";
+
+        return t.ToLowerInvariant() switch
+        {
+            "native" or "mother tongue" or "first language" => "Native",
+            "fluent" or "bilingual" or "full professional" => "Fluent",
+            "advanced" or "proficient" or "professional" or "upper-intermediate" => "Advanced",
+            "intermediate" or "working" or "conversational" or "limited working" => "Intermediate",
+            "basic" or "beginner" or "elementary" or "novice" or "a1" or "a2" => "Basic",
+            // Spanish
+            "nativo" or "nativa" => "Native",
+            "fluido" or "fluida" or "bilingüe" or "bilingue" => "Fluent",
+            "avanzado" or "avanzada" => "Advanced",
+            "intermedio" or "intermedia" => "Intermediate",
+            "básico" or "basico" or "principiante" => "Basic",
+            _ => "Intermediate"
+        };
+    }
 
     // ── Interests ─────────────────────────────────────────────────────────────
 

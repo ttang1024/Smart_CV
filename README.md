@@ -8,6 +8,12 @@ AI-powered resume builder. Runs entirely in your browser — no account, no clou
 
 ---
 
+## Preview
+
+![SmartCV demo](demos/preview.gif)
+
+---
+
 ## Features
 
 - **AI optimization** — paste a job description and the AI rewrites your bullets and summary with targeted keywords to pass ATS screening
@@ -54,13 +60,13 @@ cd ../SmartCV.API && dotnet publish -c Release -o ./publish
 
 ## Tech Stack
 
-| Layer      | Technology                                    |
-| ---------- | --------------------------------------------- |
-| Frontend   | React 19, TypeScript, Tailwind CSS v4, Vite 8 |
-| State      | Zustand, IndexedDB (`idb`), localStorage      |
-| PDF export | PuppeteerSharp (Chromium)                     |
-| PDF import | pdfjs-dist                                    |
-| Backend    | .NET 10 Minimal API                           |
+| Layer      | Technology                                            |
+| ---------- | ----------------------------------------------------- |
+| Frontend   | React 19, TypeScript, Tailwind CSS v4, Vite 8         |
+| State      | Zustand, IndexedDB (`idb`), localStorage              |
+| PDF export | PuppeteerSharp (Chromium)                             |
+| PDF import | pdfjs-dist                                            |
+| Backend    | .NET 10 Minimal API                                   |
 | Deployment | Docker → Azure Container Registry → Azure App Service |
 
 ---
@@ -86,7 +92,7 @@ The app runs as a Docker container on Azure App Service. The image is built remo
 **One-time infrastructure setup:**
 
 ```bash
-az group create -n smart-cv-rg -l australiaeast
+az group create -n smart-cv-rg -l eastus
 ```
 
 **Deploy infrastructure + app (first time or after infra changes):**
@@ -97,6 +103,7 @@ az group create -n smart-cv-rg -l australiaeast
 ```
 
 `deploy.sh` does three things in order:
+
 1. `az deployment group create` — provisions ACR, App Service Plan, and Web App from `azure/main.bicep`
 2. `az acr build` — builds the Docker image in Azure and pushes it to the registry
 3. `az webapp restart` — restarts the app to pull the new image

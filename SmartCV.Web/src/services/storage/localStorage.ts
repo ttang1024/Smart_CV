@@ -8,6 +8,7 @@ const KEYS = {
 
 const DEFAULT_AI_SETTINGS: AISettings = {
   activeProvider: 'openai',
+  useAI: false,
   providers: {
     openai: { apiKey: '', model: 'gpt-4o' },
     gemini: { apiKey: '', model: 'gemini-2.5-pro' },

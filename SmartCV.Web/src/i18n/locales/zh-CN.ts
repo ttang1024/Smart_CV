@@ -278,6 +278,8 @@ const zhCN = {
     apiKeyLabel: 'API 密钥',
     apiKeyPlaceholder: '输入您的 {{name}} API 密钥',
     modelLabel: '模型',
+    useAILabel: '启用 AI 解析',
+    useAIDesc: '使用 AI 从 PDF 中提取简历数据，需要配置 API 密钥。',
     privacy: 'API 密钥仅存储在您浏览器的 localStorage 中，通过后端代理直接发送给 AI 服务商（服务端不存储密钥）。',
     privacyLabel: '隐私说明：',
   },
@@ -304,6 +306,7 @@ const zhCN = {
     duplicate: '复制',
     delete: '删除',
     updated: '更新于',
+    completion: '完成度',
   },
 
   resumeLayout: {

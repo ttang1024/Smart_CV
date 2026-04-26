@@ -30,6 +30,7 @@ export interface AIProviderSettings {
 export interface AISettings {
 	activeProvider: AIProviderType
 	providers: Record<AIProviderType, AIProviderSettings>
+	useAI: boolean
 }
 
 export interface OptimizationSuggestion {

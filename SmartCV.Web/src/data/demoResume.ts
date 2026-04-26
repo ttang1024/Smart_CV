@@ -13,6 +13,7 @@ export const DEMO_RESUME: Resume = {
 		location: 'San Francisco, CA',
 		linkedin: 'https://www.linkedin.com/in/demo',
 		github: 'https://github.com/ttang1024',
+		website: 'https://smart-cv-app.azurewebsites.net',
 	},
 	summary:
 		'Results-driven Full Stack Engineer with 9+ years of end-to-end web and cloud application development, specializing in scalable frontend systems, microservice backends, and AI-integrated platforms. Proven track record delivering production-grade systems at Google, Apple, and Microsoft. Expert in React, Next.js, .NET, TypeScript, AWS/Azure/GCP, and CI/CD automation. Led cross-functional teams to build user-centric products serving millions globally, with consistent improvements in performance, scalability, and developer experience.',

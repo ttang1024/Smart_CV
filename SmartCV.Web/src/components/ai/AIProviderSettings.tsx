@@ -31,7 +31,7 @@ const PROVIDER_LOGOS: Record<AIProviderType, React.ComponentType<{ className?: s
 };
 
 export default function AIProviderSettings() {
-  const { aiSettings, setActiveProvider, setAPIKey, setModel } = useSettingsStore();
+  const { aiSettings, setActiveProvider, setAPIKey, setModel, setUseAI } = useSettingsStore();
   const { t } = useTranslation();
   const [showKeys, setShowKeys] = useState<Record<AIProviderType, boolean>>({
     openai: false, gemini: false, claude: false, grok: false,
@@ -49,6 +49,28 @@ export default function AIProviderSettings() {
         <p className="text-sm text-gray-500 mt-1">
           {t('aiSettings.subtitle')}
         </p>
+      </div>
+
+      <div className="flex items-center justify-between p-3 rounded-xl border border-gray-200 bg-white">
+        <div>
+          <p className="text-sm font-medium text-gray-900">{t('aiSettings.useAILabel')}</p>
+          <p className="text-xs text-gray-500 mt-0.5">{t('aiSettings.useAIDesc')}</p>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={aiSettings.useAI}
+          onClick={() => setUseAI(!aiSettings.useAI)}
+          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none ${
+            aiSettings.useAI ? 'bg-indigo-600' : 'bg-gray-200'
+          }`}
+        >
+          <span
+            className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform duration-200 ${
+              aiSettings.useAI ? 'translate-x-5' : 'translate-x-0'
+            }`}
+          />
+        </button>
       </div>
 
       <div className="space-y-3">
