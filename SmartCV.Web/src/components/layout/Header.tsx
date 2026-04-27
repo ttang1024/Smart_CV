@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Settings, Sparkles } from 'lucide-react';
+import { Settings } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Button from '../ui/Button';
 import LanguageSwitcher from '../ui/LanguageSwitcher';
@@ -13,10 +13,12 @@ export default function Header() {
       <div className="mx-auto px-4 h-14 flex items-center justify-between">
         {/* Logo */}
         <Link to="/app" className="flex items-center gap-2 font-bold text-gray-900">
-          <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
-            <Sparkles className="w-4 h-4 text-white" />
-          </div>
-          <span className="text-lg">Smart<span className="text-indigo-600">CV</span></span>
+          <img
+            src="/favicon.svg"
+            alt="SmartCV"
+            className="w-8 h-8"
+          />
+          <span className="text-lg">Smart<span className="text-emerald-600">CV</span></span>
         </Link>
 
         <div className="flex-1" />

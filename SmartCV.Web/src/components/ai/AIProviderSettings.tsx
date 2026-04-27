@@ -62,7 +62,7 @@ export default function AIProviderSettings() {
           aria-checked={aiSettings.useAI}
           onClick={() => setUseAI(!aiSettings.useAI)}
           className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none ${
-            aiSettings.useAI ? 'bg-indigo-600' : 'bg-gray-200'
+            aiSettings.useAI ? 'bg-emerald-600' : 'bg-gray-200'
           }`}
         >
           <span
@@ -85,7 +85,7 @@ export default function AIProviderSettings() {
             <div
               key={provider}
               className={`rounded-xl border-2 p-4 transition-all ${isActive
-                ? 'border-indigo-500 bg-indigo-50/50'
+                ? 'border-emerald-500 bg-emerald-50/50'
                 : 'border-gray-200 bg-white'
                 }`}
             >

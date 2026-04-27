@@ -18,13 +18,13 @@ function DragDivider({ onMouseDown, active }: { onMouseDown: (e: React.MouseEven
     <div
       onMouseDown={onMouseDown}
       className={`relative w-1 shrink-0 cursor-col-resize group select-none transition-colors
-        ${active ? 'bg-indigo-500' : 'bg-gray-200 dark:bg-gray-800 hover:bg-indigo-400 dark:hover:bg-indigo-600'}`}
+        ${active ? 'bg-emerald-500' : 'bg-gray-200 dark:bg-gray-800 hover:bg-emerald-400 dark:hover:bg-emerald-600'}`}
     >
       <div className="absolute inset-y-0 -left-1 -right-1" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col gap-0.5">
         {[0, 1, 2].map(i => (
           <div key={i} className={`w-1 h-1 rounded-full transition-colors
-            ${active ? 'bg-white' : 'bg-gray-400 dark:bg-gray-600 group-hover:bg-indigo-300'}`} />
+            ${active ? 'bg-white' : 'bg-gray-400 dark:bg-gray-600 group-hover:bg-emerald-300'}`} />
         ))}
       </div>
     </div>
@@ -222,7 +222,7 @@ export default function EditorPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="flex flex-col items-center gap-3 text-gray-400">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 border-indigo-500 border-t-transparent" />
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-emerald-500 border-t-transparent" />
           <p className="text-sm">{t('editor.loading')}</p>
         </div>
       </div>
@@ -250,7 +250,7 @@ export default function EditorPage() {
         ) : (
           <button
             onClick={() => setEditingName(true)}
-            className="font-semibold text-sm text-gray-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors truncate max-w-48"
+            className="font-semibold text-sm text-gray-900 dark:text-white hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors truncate max-w-48"
           >
             {localResume.name}
           </button>
@@ -271,7 +271,7 @@ export default function EditorPage() {
             onClick={() => setShowAI(v => !v)}
             className="gap-1.5"
           >
-            <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+            <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
             {showAI ? t('editor.hideAI') : t('editor.aiOptimize')}
           </Button>
           <Button

@@ -32,13 +32,13 @@ export default function ResumeCard({ resume, onDelete, onDuplicate }: ResumeCard
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
-      className="group bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5 flex flex-col gap-4 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-md transition-all cursor-pointer"
+      className="group bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5 flex flex-col gap-4 hover:border-emerald-300 dark:hover:border-emerald-700 hover:shadow-md transition-all cursor-pointer"
       onClick={() => navigate(`/editor/${resume.id}`)}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-10 h-10 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center shrink-0">
-            <FileText className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+          <div className="w-10 h-10 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center shrink-0">
+            <FileText className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
           </div>
           <div className="min-w-0">
             <h3 className="font-semibold text-gray-900 dark:text-white truncate">{resume.name}</h3>
@@ -91,7 +91,7 @@ export default function ResumeCard({ resume, onDelete, onDuplicate }: ResumeCard
         </div>
         <div className="h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
           <motion.div
-            className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full"
+            className="h-full bg-gradient-to-r from-emerald-500 to-green-500 rounded-full"
             initial={{ width: 0 }}
             animate={{ width: `${completion}%` }}
             transition={{ duration: 0.6, ease: 'easeOut' }}

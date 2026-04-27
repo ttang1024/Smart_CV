@@ -114,20 +114,20 @@ export default function PDFImport({ onImported, onFill, label }: PDFImportProps)
                 className={cn(
                   'border-2 border-dashed rounded-xl p-10 flex flex-col items-center gap-3 cursor-pointer transition-all',
                   dragging
-                    ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
-                    : 'border-gray-300 dark:border-gray-600 hover:border-indigo-400 hover:bg-gray-50 dark:hover:bg-gray-800/50'
+                    ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'
+                    : 'border-gray-300 dark:border-gray-600 hover:border-emerald-400 hover:bg-gray-50 dark:hover:bg-gray-800/50'
                 )}
               >
                 <div className={cn(
                   'w-14 h-14 rounded-full flex items-center justify-center transition-colors',
-                  dragging ? 'bg-indigo-100 dark:bg-indigo-900/40' : 'bg-gray-100 dark:bg-gray-800'
+                  dragging ? 'bg-emerald-100 dark:bg-emerald-900/40' : 'bg-gray-100 dark:bg-gray-800'
                 )}>
-                  <FileText className={cn('w-7 h-7', dragging ? 'text-indigo-600' : 'text-gray-400')} />
+                  <FileText className={cn('w-7 h-7', dragging ? 'text-emerald-600' : 'text-gray-400')} />
                 </div>
                 <div className="text-center">
                   <p className="font-medium text-gray-900 dark:text-white">{t('pdfImport.dropTitle')}</p>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                    {t('pdfImport.dropOr')} <span className="text-indigo-600 dark:text-indigo-400">{t('pdfImport.dropBrowse')}</span>
+                    {t('pdfImport.dropOr')} <span className="text-emerald-600 dark:text-emerald-400">{t('pdfImport.dropBrowse')}</span>
                   </p>
                 </div>
                 <p className="text-xs text-gray-400 dark:text-gray-500">{t('pdfImport.dropSupports')}</p>
@@ -166,9 +166,9 @@ export default function PDFImport({ onImported, onFill, label }: PDFImportProps)
                 ) : (
                   <motion.div
                     key="loading"
-                    className="w-16 h-16 rounded-full bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center"
+                    className="w-16 h-16 rounded-full bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center"
                   >
-                    <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+                    <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -195,11 +195,11 @@ export default function PDFImport({ onImported, onFill, label }: PDFImportProps)
                     <div key={label} className="flex-1 flex flex-col items-center gap-1">
                       <div className={cn(
                         'w-full h-1.5 rounded-full transition-colors duration-500',
-                        isDone || isActive ? 'bg-indigo-500' : 'bg-gray-200 dark:bg-gray-700'
+                        isDone || isActive ? 'bg-emerald-500' : 'bg-gray-200 dark:bg-gray-700'
                       )} />
                       <span className={cn(
                         'text-xs',
-                        isActive ? 'text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-400'
+                        isActive ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-gray-400'
                       )}>
                         {label}
                       </span>

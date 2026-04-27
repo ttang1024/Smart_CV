@@ -330,7 +330,7 @@ export default function ResumeEditor({ resume, onChange }: ResumeEditorProps) {
       {sectionOrder.map(key => (
         <div
           key={key}
-          className={cn('py-1 transition-colors', dragOverKey === key && dragKey !== key && 'bg-indigo-50 dark:bg-indigo-950/30')}
+          className={cn('py-1 transition-colors', dragOverKey === key && dragKey !== key && 'bg-emerald-50 dark:bg-emerald-950/30')}
           onDragOver={e => { e.preventDefault(); setDragOverKey(key); }}
           onDrop={() => handleDrop(key)}
           onDragLeave={() => setDragOverKey(null)}
@@ -637,7 +637,7 @@ function LanguageItem({ language, onChange, onDelete }: {
       <select
         value={language.proficiency}
         onChange={e => onChange({ ...language, proficiency: e.target.value as Language['proficiency'] })}
-        className="h-10 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-2 text-sm text-gray-900 dark:text-gray-100 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+        className="h-10 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-2 text-sm text-gray-900 dark:text-gray-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
       >
         {PROFICIENCY_OPTIONS.map(({ value, label }) => (
           <option key={value} value={value}>{label}</option>

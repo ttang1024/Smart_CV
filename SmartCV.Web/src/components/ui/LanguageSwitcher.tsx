@@ -48,7 +48,7 @@ export default function LanguageSwitcher({ variant = 'light' }: LanguageSwitcher
               onClick={() => { i18n.changeLanguage(lang.code as LangCode); setOpen(false); }}
               className={`w-full text-left px-3 py-2 text-sm transition-colors ${
                 lang.code === i18n.language
-                  ? 'text-indigo-600 font-semibold bg-indigo-50'
+                  ? 'text-emerald-600 font-semibold bg-emerald-50'
                   : 'text-gray-700 hover:bg-gray-50'
               }`}
             >

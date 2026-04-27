@@ -74,16 +74,16 @@ function TiltCard({ children, className = '' }: { children: React.ReactNode; cla
 const HERO_SCALE = 0.54;
 
 const STEP_COLORS = [
-  'from-indigo-500 to-violet-500',
-  'from-violet-500 to-purple-500',
-  'from-purple-500 to-fuchsia-500',
-  'from-fuchsia-500 to-pink-500',
+  'from-emerald-500 to-green-500',
+  'from-green-500 to-teal-500',
+  'from-teal-500 to-emerald-600',
+  'from-emerald-400 to-green-600',
 ] as const;
 
 const STEP_ICONS = [Upload, Wand2, LayoutTemplate, Download] as const;
 
 const RESUME_STYLES = [
-  { id: 'classic', name: 'Classic', accent: '#4338ca' },
+  { id: 'classic', name: 'Classic', accent: '#059669' },
   { id: 'modern', name: 'Modern', accent: '#0d9488' },
   { id: 'executive', name: 'Executive', accent: '#1e40af' },
   { id: 'minimal', name: 'Minimal', accent: '#6b7280' },
@@ -100,7 +100,7 @@ export default function LandingPage() {
   const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [heroStyleIdx, setHeroStyleIdx] = useState(0);
-  const [heroAccent, setHeroAccent] = useState('#6366f1');
+  const [heroAccent, setHeroAccent] = useState('#059669');
 
   const STEPS = [
     { icon: STEP_ICONS[0], n: '1', title: t('landing.howItWorks.steps.step1.title'), desc: t('landing.howItWorks.steps.step1.desc'), color: STEP_COLORS[0] },
@@ -130,7 +130,7 @@ export default function LandingPage() {
 
       {/* dot grid */}
       <div className="fixed inset-0 -z-20 pointer-events-none"
-        style={{ backgroundImage: 'radial-gradient(circle, #e0e7ff 1px, transparent 1px)', backgroundSize: '32px 32px', opacity: 0.4 }} />
+        style={{ backgroundImage: 'radial-gradient(circle, #d1fae5 1px, transparent 1px)', backgroundSize: '32px 32px', opacity: 0.4 }} />
 
       {/* ── Nav ──────────────────────────────────────────────────────────────── */}
       <motion.header
@@ -147,7 +147,7 @@ export default function LandingPage() {
               transition={spring}
               className="w-8 h-8"
             />
-            <span className="text-lg tracking-tight">Smart<span className="text-indigo-600">CV</span></span>
+            <span className="text-lg tracking-tight">Smart<span className="text-emerald-600">CV</span></span>
           </Link>
 
           <div className="flex items-center gap-2">
@@ -159,7 +159,7 @@ export default function LandingPage() {
               <span className="font-medium">{t('landing.nav.github')}</span>
             </motion.a>
             <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
-              <Link to="/app" className="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-md shadow-indigo-200 transition-colors">
+              <Link to="/app" className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-md shadow-emerald-200 transition-colors">
                 {t('landing.nav.getStarted')} <ArrowRight className="w-4 h-4" />
               </Link>
             </motion.div>
@@ -192,9 +192,9 @@ export default function LandingPage() {
       {/* ── Hero ─────────────────────────────────────────────────────────────── */}
       <section className="relative pt-16 pb-16 px-6 overflow-x-clip">
         <motion.div animate={{ scale: [1, 1.1, 1], opacity: [0.45, 0.6, 0.45] }} transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute -top-48 -right-48 w-[700px] h-[700px] bg-indigo-100 rounded-full blur-3xl -z-10" />
+          className="absolute -top-48 -right-48 w-[700px] h-[700px] bg-emerald-100 rounded-full blur-3xl -z-10" />
         <motion.div animate={{ scale: [1, 1.08, 1], opacity: [0.35, 0.5, 0.35] }} transition={{ duration: 11, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-          className="absolute top-56 -left-48 w-[600px] h-[600px] bg-purple-100 rounded-full blur-3xl -z-10" />
+          className="absolute top-56 -left-48 w-[600px] h-[600px] bg-green-100 rounded-full blur-3xl -z-10" />
 
         <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
 
@@ -204,10 +204,10 @@ export default function LandingPage() {
             <motion.div initial={{ opacity: 0, y: -10, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.5 }}
               className="inline-flex items-center gap-2 mb-8">
               <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-white border border-gray-200 shadow-sm text-gray-700 text-xs font-semibold px-3 py-1.5 rounded-full hover:border-indigo-300 transition-all">
+                className="inline-flex items-center gap-2 bg-white border border-gray-200 shadow-sm text-gray-700 text-xs font-semibold px-3 py-1.5 rounded-full hover:border-emerald-300 transition-all">
                 <GithubFilled /> {t('landing.hero.openSource')} <ExternalLink className="w-3 h-3 text-gray-400" />
               </a>
-              <span className="inline-flex items-center gap-1.5 bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-semibold px-3 py-1.5 rounded-full">
+              <span className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-semibold px-3 py-1.5 rounded-full">
                 <Sparkles className="w-3 h-3" /> {t('landing.hero.freeBadge')}
               </span>
             </motion.div>
@@ -216,7 +216,7 @@ export default function LandingPage() {
             <motion.h1 variants={stagger(0.09)} initial="hidden" animate="show"
               className="text-5xl sm:text-6xl font-extrabold tracking-tight leading-[1.08] mb-6">
               <motion.span variants={fadeUp} className="block text-gray-900">{t('landing.hero.headline1')}</motion.span>
-              <motion.span variants={fadeUp} className="block bg-gradient-to-r from-indigo-600 via-purple-500 to-pink-500 bg-clip-text text-transparent pb-1">
+              <motion.span variants={fadeUp} className="block bg-gradient-to-r from-emerald-600 via-green-500 to-teal-500 bg-clip-text text-transparent pb-1">
                 {t('landing.hero.headline2')}
               </motion.span>
             </motion.h1>
@@ -230,7 +230,7 @@ export default function LandingPage() {
             {/* CTAs */}
             <Reveal delay={0.38} className="flex flex-col sm:flex-row items-start gap-3 mb-10">
               <motion.div whileHover={{ scale: 1.04, y: -2 }} whileTap={{ scale: 0.97 }} transition={spring}>
-                <Link to="/app" className="inline-flex items-center gap-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8 py-4 rounded-xl shadow-xl shadow-indigo-300/40 transition-colors text-base">
+                <Link to="/app" className="inline-flex items-center gap-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-8 py-4 rounded-xl shadow-xl shadow-emerald-300/40 transition-colors text-base">
                   {t('landing.hero.ctaFree')}
                 </Link>
               </motion.div>
@@ -247,8 +247,8 @@ export default function LandingPage() {
               <div className="grid grid-cols-2 gap-x-6 gap-y-2.5">
                 {HERO_FEATURES.map(({ icon: Icon, text }) => (
                   <div key={text} className="flex items-center gap-2 text-sm text-gray-600">
-                    <span className="flex items-center justify-center w-5 h-5 rounded-full bg-indigo-50 shrink-0">
-                      <Icon className="w-3 h-3 text-indigo-500" />
+                    <span className="flex items-center justify-center w-5 h-5 rounded-full bg-emerald-50 shrink-0">
+                      <Icon className="w-3 h-3 text-emerald-500" />
                     </span>
                     {text}
                   </div>
@@ -343,7 +343,7 @@ export default function LandingPage() {
       <section id="how-it-works" className="py-24 px-6 bg-gradient-to-b from-white to-slate-50 overflow-x-clip">
         <div className="max-w-5xl mx-auto">
           <Reveal className="text-center mb-20">
-            <span className="inline-block text-xs font-bold text-indigo-600 tracking-[0.2em] uppercase mb-3 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">{t('landing.howItWorks.label')}</span>
+            <span className="inline-block text-xs font-bold text-emerald-600 tracking-[0.2em] uppercase mb-3 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">{t('landing.howItWorks.label')}</span>
             <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight mt-2 mb-4">{t('landing.howItWorks.title')}</h2>
             <p className="text-gray-500 text-lg max-w-xl mx-auto">{t('landing.howItWorks.subtitle')}</p>
           </Reveal>
@@ -356,7 +356,7 @@ export default function LandingPage() {
               viewport={{ once: true, margin: '-80px' }}
               transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
               style={{ originX: 0 }}
-              className="hidden lg:block absolute top-11 left-[12.5%] right-[12.5%] h-px bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300"
+              className="hidden lg:block absolute top-11 left-[12.5%] right-[12.5%] h-px bg-gradient-to-r from-emerald-300 via-green-300 to-teal-300"
             />
             <motion.div
               variants={stagger(0.18)}
@@ -398,7 +398,7 @@ export default function LandingPage() {
         <div className="border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white">
           <p>{t('landing.footer.copy', { year: new Date().getFullYear() })}</p>
           <p>{t('landing.footer.tagline')}</p>
-          <Link to="/app" className="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
+          <Link to="/app" className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
             {t('landing.footer.openApp')} <ArrowRight className="w-3 h-3" />
           </Link>
         </div>

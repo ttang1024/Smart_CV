@@ -34,7 +34,7 @@ export default function ResumePreview({ resume: r, onChange }: ResumePreviewProp
   const printRef = useRef<HTMLDivElement>(null);
   const scaleWrapRef = useRef<HTMLDivElement>(null);
   const [styleId, setStyleId] = useState<StyleId>('classic');
-  const [mainColor, setMainColor] = useState('#4338ca');
+  const [mainColor, setMainColor] = useState('#047857');
   const [downloading, setDownloading] = useState(false);
   const [dragKey, setDragKey] = useState<ResumeSection | null>(null);
   const [dragOverKey, setDragOverKey] = useState<ResumeSection | null>(null);
@@ -151,8 +151,8 @@ h2{break-after:avoid;page-break-after:avoid;}
                 key={s.id}
                 onClick={() => setStyleId(s.id)}
                 className={`px-2.5 py-1 rounded text-xs font-medium transition-all ${styleId === s.id
-                  ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-indigo-400 dark:hover:border-indigo-500'
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-emerald-400 dark:hover:border-emerald-500'
                   }`}
               >
                 {s.label}
@@ -200,8 +200,8 @@ h2{break-after:avoid;page-break-after:avoid;}
                     key={id}
                     onClick={() => group.set(id)}
                     className={`px-2 py-0.5 rounded text-xs font-medium transition-all ${group.value === id
-                      ? 'bg-indigo-600 text-white shadow-sm'
-                      : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-indigo-400 dark:hover:border-indigo-500'
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-emerald-400 dark:hover:border-emerald-500'
                       }`}
                   >
                     {label}
@@ -294,7 +294,7 @@ function MiniModuleList({ sectionOrder, dragKey, dragOverKey, onDragStart, onDra
       {sectionOrder.map(key => (
         <div
           key={key}
-          className={`flex items-center gap-1 py-0.5 px-0.5 rounded transition-colors ${dragOverKey === key && dragKey !== key ? 'bg-indigo-50 dark:bg-indigo-950/40' : ''
+          className={`flex items-center gap-1 py-0.5 px-0.5 rounded transition-colors ${dragOverKey === key && dragKey !== key ? 'bg-emerald-50 dark:bg-emerald-950/40' : ''
             } ${dragKey === key ? 'opacity-40' : ''}`}
           onDragOver={e => { e.preventDefault(); onDragOver(key); }}
           onDrop={() => onDrop(key)}

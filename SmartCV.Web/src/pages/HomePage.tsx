@@ -50,7 +50,7 @@ export default function HomePage() {
       {/* Hero section for empty state */}
       {resumes.length === 0 && !loading && (
         <div className="text-center py-20">
-          <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Sparkles className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{t('home.emptyTitle')}</h1>

@@ -110,9 +110,9 @@ export default function AIOptimizationPanel({ resume, onApplySuggestion, onSessi
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30">
+      <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-950/30 dark:to-green-950/30">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+          <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
           <h2 className="font-semibold text-gray-900 dark:text-white text-sm">{t('aiPanel.title')}</h2>
           <Badge variant="purple" className="ml-auto">{activeProvider.toUpperCase()}</Badge>
         </div>
@@ -278,7 +278,7 @@ function SuggestionCard({ suggestion, onApply, priorityBadge, typeIcon }: Sugges
             {suggestion.improvedText && (
               <button
                 onClick={() => setExpanded(e => !e)}
-                className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
+                className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline"
               >
                 {expanded ? t('aiPanel.hideImprovement') : t('aiPanel.showImprovement')}
               </button>
