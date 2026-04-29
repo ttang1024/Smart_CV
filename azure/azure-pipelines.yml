@@ -2,69 +2,73 @@ trigger:
   - main
 
 variables:
-  buildConfiguration: 'Release'
   azureSubscription: 'YOUR_AZURE_SERVICE_CONNECTION'
   appName: 'smart-cv-app'
   resourceGroup: 'smart-cv-rg'
+  location: 'eastus'
+  imageTag: '$(Build.BuildId)'
+  dockerPlatform: 'linux/amd64'
 
 stages:
-  - stage: Build
-    displayName: Build
+  - stage: Deploy
+    displayName: Build and Deploy Container App
     jobs:
-      - job: BuildJob
+      - job: DeployJob
+        displayName: Build image and deploy
         pool:
           vmImage: 'ubuntu-latest'
 
         steps:
-          # Node / React build
-          - task: NodeTool@0
+          - task: AzureCLI@2
+            displayName: 'Build image and deploy Container App'
             inputs:
-              versionSpec: '20.x'
-            displayName: 'Install Node.js'
+              azureSubscription: '$(azureSubscription)'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                set -euo pipefail
 
-          - script: |
-              cd SmartCV.Web
-              npm ci
-              npm run build
-            displayName: 'Build React App'
+                ACR_NAME=$(echo "$(appName)acr" | tr -d '-')
 
-          # .NET build
-          - task: UseDotNet@2
-            inputs:
-              packageType: 'sdk'
-              version: '10.x'
-            displayName: 'Install .NET 10'
+                az group create \
+                  --name "$(resourceGroup)" \
+                  --location "$(location)" \
+                  --output none
 
-          - task: DotNetCoreCLI@2
-            inputs:
-              command: 'publish'
-              publishWebProjects: false
-              projects: 'SmartCV.API/SmartCV.API.csproj'
-              arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
-            displayName: 'Publish .NET App'
+                if ! az acr show --name "$ACR_NAME" --resource-group "$(resourceGroup)" --output none 2>/dev/null; then
+                  az acr create \
+                    --name "$ACR_NAME" \
+                    --resource-group "$(resourceGroup)" \
+                    --location "$(location)" \
+                    --sku Basic \
+                    --admin-enabled true \
+                    --output none
+                fi
 
-          - task: PublishBuildArtifacts@1
-            inputs:
-              pathToPublish: '$(Build.ArtifactStagingDirectory)'
-              artifactName: 'drop'
+                ACR_LOGIN_SERVER=$(az acr show \
+                  --name "$ACR_NAME" \
+                  --resource-group "$(resourceGroup)" \
+                  --query loginServer -o tsv)
 
-  - stage: Deploy
-    displayName: Deploy to Azure
-    dependsOn: Build
-    jobs:
-      - deployment: DeployJob
-        environment: 'production'
-        pool:
-          vmImage: 'ubuntu-latest'
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - task: AzureWebApp@1
-                  inputs:
-                    azureSubscription: '$(azureSubscription)'
-                    appType: 'webApp'
-                    appName: '$(appName)'
-                    package: '$(Pipeline.Workspace)/drop/*.zip'
-                    deploymentMethod: 'auto'
-                  displayName: 'Deploy to Azure App Service'
+                IMAGE="${ACR_LOGIN_SERVER}/$(appName):$(imageTag)"
+
+                az acr login --name "$ACR_NAME"
+
+                docker build \
+                  --platform "$(dockerPlatform)" \
+                  --tag "$IMAGE" \
+                  .
+
+                docker push "$IMAGE"
+
+                az deployment group create \
+                  --resource-group "$(resourceGroup)" \
+                  --template-file azure/main.bicep \
+                  --parameters location="$(location)" appName="$(appName)" imageTag="$(imageTag)"
+
+                APP_FQDN=$(az containerapp show \
+                  --resource-group "$(resourceGroup)" \
+                  --name "$(appName)" \
+                  --query properties.configuration.ingress.fqdn -o tsv)
+
+                echo "Container App URL: https://${APP_FQDN}"

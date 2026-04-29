@@ -1,18 +1,27 @@
 @description('Location for all resources')
-param location string = resourceGroup().location
+param location string = 'eastus'
 
-@description('App Service name')
+@description('Azure Container App name')
 param appName string = 'smart-cv-app'
-
-@description('App Service Plan SKU')
-param sku string = 'B1'
 
 @description('Container image tag to deploy')
 param imageTag string = 'latest'
 
-var planName = '${appName}-plan'
-// ACR name must be alphanumeric only
+@description('Minimum Container App replicas')
+param minReplicas int = 0
+
+@description('Maximum Container App replicas')
+param maxReplicas int = 3
+
+@description('Container CPU cores')
+param cpu string = '0.5'
+
+@description('Container memory')
+param memory string = '1Gi'
+
+var environmentName = '${appName}-env'
 var acrName = replace('${appName}acr', '-', '')
+var imageName = '${containerRegistry.properties.loginServer}/${appName}:${imageTag}'
 
 resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-07-01' = {
   name: acrName
@@ -25,53 +34,67 @@ resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-07-01' =
   }
 }
 
-resource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {
-  name: planName
+resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2024-03-01' = {
+  name: environmentName
   location: location
-  sku: {
-    name: sku
-  }
-  kind: 'linux'
-  properties: {
-    reserved: true
-  }
+  properties: {}
 }
 
-resource webApp 'Microsoft.Web/sites@2023-12-01' = {
+resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
   name: appName
   location: location
   properties: {
-    serverFarmId: appServicePlan.id
-    siteConfig: {
-      linuxFxVersion: 'DOCKER|${containerRegistry.properties.loginServer}/${appName}:${imageTag}'
-      appSettings: [
+    managedEnvironmentId: containerAppEnvironment.id
+    configuration: {
+      activeRevisionsMode: 'Single'
+      ingress: {
+        external: true
+        targetPort: 8080
+        transport: 'auto'
+        allowInsecure: false
+      }
+      registries: [
         {
-          name: 'ASPNETCORE_ENVIRONMENT'
-          value: 'Production'
-        }
-        {
-          name: 'DOCKER_REGISTRY_SERVER_URL'
-          value: 'https://${containerRegistry.properties.loginServer}'
-        }
-        {
-          name: 'DOCKER_REGISTRY_SERVER_USERNAME'
-          value: containerRegistry.listCredentials().username
-        }
-        {
-          name: 'DOCKER_REGISTRY_SERVER_PASSWORD'
-          value: containerRegistry.listCredentials().passwords[0].value
-        }
-        {
-          name: 'WEBSITES_PORT'
-          value: '8080'
+          server: containerRegistry.properties.loginServer
+          username: containerRegistry.listCredentials().username
+          passwordSecretRef: 'acr-password'
         }
       ]
-      alwaysOn: true
-      http20Enabled: true
+      secrets: [
+        {
+          name: 'acr-password'
+          value: containerRegistry.listCredentials().passwords[0].value
+        }
+      ]
     }
-    httpsOnly: true
+    template: {
+      containers: [
+        {
+          name: 'smart-cv'
+          image: imageName
+          env: [
+            {
+              name: 'ASPNETCORE_ENVIRONMENT'
+              value: 'Production'
+            }
+            {
+              name: 'ASPNETCORE_HTTP_PORTS'
+              value: '8080'
+            }
+          ]
+          resources: {
+            cpu: json(cpu)
+            memory: memory
+          }
+        }
+      ]
+      scale: {
+        minReplicas: minReplicas
+        maxReplicas: maxReplicas
+      }
+    }
   }
 }
 
-output webAppUrl string = 'https://${webApp.properties.defaultHostName}'
+output containerAppUrl string = 'https://${containerApp.properties.configuration.ingress.fqdn}'
 output acrLoginServer string = containerRegistry.properties.loginServer

@@ -60,14 +60,14 @@ cd ../SmartCV.API && dotnet publish -c Release -o ./publish
 
 ## Tech Stack
 
-| Layer      | Technology                                            |
-| ---------- | ----------------------------------------------------- |
-| Frontend   | React 19, TypeScript, Tailwind CSS v4, Vite 8         |
-| State      | Zustand, IndexedDB (`idb`), localStorage              |
-| PDF export | PuppeteerSharp (Chromium)                             |
+| Layer      | Technology                                               |
+| ---------- | -------------------------------------------------------- |
+| Frontend   | React 19, TypeScript, Tailwind CSS v4, Vite 8            |
+| State      | Zustand, IndexedDB (`idb`), localStorage                 |
+| PDF export | PuppeteerSharp (Chromium)                                |
 | PDF import | pdfjs-dist + AI provider (optional, for higher accuracy) |
-| Backend    | .NET 10 Minimal API                                   |
-| Deployment | Docker → Azure Container Registry → Azure App Service |
+| Backend    | .NET 10 Minimal API                                      |
+| Deployment | Docker → Azure Container Registry → Azure Container Apps |
 
 ---
 
@@ -87,13 +87,7 @@ Browser (React SPA)
 
 ## Deployment
 
-The app runs as a Docker container on Azure App Service. The image is built remotely via ACR Tasks (no local Docker required) and served by a Linux App Service that pulls from the private registry.
-
-**One-time infrastructure setup:**
-
-```bash
-az group create -n smart-cv-rg -l eastus
-```
+The app runs as a Docker container on Azure Container Apps. The image is built locally with Docker, pushed to Azure Container Registry, and served through Container Apps ingress.
 
 **Deploy infrastructure + app (first time or after infra changes):**
 
@@ -102,11 +96,12 @@ az group create -n smart-cv-rg -l eastus
 ./deploy.sh v1.2.0   # deploys with a specific tag
 ```
 
-`deploy.sh` does three things in order:
+`deploy.sh` does four things in order:
 
-1. `az deployment group create` — provisions ACR, App Service Plan, and Web App from `azure/main.bicep`
-2. `az acr build` — builds the Docker image in Azure and pushes it to the registry
-3. `az webapp restart` — restarts the app to pull the new image
+1. `az group create` — creates or reuses the `smart-cv-rg` resource group
+2. `az acr create` — creates or reuses the private Azure Container Registry
+3. `docker build` + `docker push` — builds the Docker image locally and pushes it to the registry
+4. `az deployment group create` — provisions or updates the Container Apps environment and Container App from `azure/main.bicep`
 
 **Deploy app only (after frontend/backend code changes):**
 
@@ -115,9 +110,9 @@ az group create -n smart-cv-rg -l eastus
 ./deploy-app.sh v1.2.0   # builds and deploys with a specific tag
 ```
 
-`deploy-app.sh` skips the Bicep infrastructure step and just runs `az acr build` + `az webapp restart`. Use this for faster iteration when only application code has changed.
+`deploy-app.sh` skips the Bicep infrastructure step and just runs `docker build`, `docker push`, and `az containerapp update`. Use this for faster iteration when only application code has changed.
 
-**Prerequisites:** [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) logged in (`az login`) with Contributor access to the resource group.
+**Prerequisites:** Docker plus [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) logged in (`az login`) with Contributor access to the resource group.
 
 ---
 

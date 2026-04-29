@@ -1,7 +1,13 @@
 node_modules/
+**/node_modules/
 **/bin/
 **/obj/
+**/dist/
 SmartCV.API/wwwroot/
 publish/
 deploy.zip
 .git/
+.claude/
+.DS_Store
+demos/
+azure/

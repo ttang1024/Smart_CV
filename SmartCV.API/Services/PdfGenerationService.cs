@@ -9,8 +9,7 @@ public class PdfGenerationService : IHostedService
     private static Task? _warmupTask;
     private static string? _executablePath;
 
-    // Store Chromium outside wwwroot so it survives zip deployments on Azure App Service Linux.
-    // /home is on Azure Files and persists across container restarts and redeployments.
+    // Store downloaded Chromium outside wwwroot for non-container local or hosted runs.
     private static readonly string ChromiumCacheDir =
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".puppeteer-cache");
 
