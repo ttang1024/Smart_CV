@@ -32,6 +32,51 @@ const es = {
         ats: 'PDF compatible con ATS',
       },
     },
+    aiRules: {
+      label: '100% gratis y de código abierto',
+      title: 'Tu IA, tus reglas',
+      subtitle: 'Ejecuta SmartCV en local, publícalo en contenedores o despliégalo en Azure. Después elige el proveedor y modelo de IA que encajen con tu flujo.',
+      deployTitle: 'Elige cómo se ejecuta SmartCV',
+      deploySubtitle: 'Usa la misma app del portátil a la nube.',
+      deployTabs: {
+        local: 'Local',
+        docker: 'Docker',
+        azure: 'Azure',
+      },
+      deploy: {
+        local: {
+          title: 'Arranque local',
+          desc: 'Inicia la app web y la API en tu máquina para editar CVs de forma privada e iterar rápido.',
+        },
+        docker: {
+          title: 'Despliegue con Docker',
+          desc: 'Empaqueta la app en contenedores repetibles para equipos, demos y entornos autohospedados.',
+        },
+        azure: {
+          title: 'Despliegue en Azure',
+          desc: 'Despliega la pila completa en infraestructura de Azure con los scripts y plantillas incluidos.',
+        },
+      },
+      configureTitle: 'Configura la enumeración de IA',
+      configureSubtitle: 'Selecciona un proveedor, añade tu clave API y cambia el modelo predeterminado cuando necesites otro motor.',
+      apiKeyBadge: 'Tus claves son tuyas',
+      keyInstructionPrefix: 'Obtén una clave API gratis de cualquier proveedor abajo y pégala en',
+      keyInstructionTarget: 'Configuración -> Ajustes del proveedor de IA',
+      keyInstructionSuffix: 'Cambia de proveedor cuando quieras con los inputs configurados.',
+      getKey: 'Obtener clave',
+      githubFree: 'gratis para siempre',
+      badges: {
+        mit: 'Licencia MIT',
+        selfHost: 'Autohospedable',
+        noSubscriptions: 'Sin suscripciones',
+      },
+      configurePoints: {
+        provider: 'Proveedor',
+        key: 'Clave API',
+        model: 'Modelo',
+      },
+      privacy: 'Tu clave API se guarda localmente y se envía directamente al proveedor.',
+    },
     howItWorks: {
       label: 'Cómo funciona',
       title: 'De la página en blanco a la oferta de trabajo',

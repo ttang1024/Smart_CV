@@ -32,6 +32,51 @@ const zhTW = {
         ats: 'ATS 友善型 PDF',
       },
     },
+    aiRules: {
+      label: '100% 免費與開源',
+      title: 'Your AI, Your Rules',
+      subtitle: 'SmartCV 可本地執行、Docker 部署，也可部署到 Azure。接著選擇適合您工作流程的 AI 服務商與模型。',
+      deployTitle: '選擇 SmartCV 的執行方式',
+      deploySubtitle: '從本機到雲端使用同一套應用。',
+      deployTabs: {
+        local: '本地',
+        docker: 'Docker',
+        azure: 'Azure',
+      },
+      deploy: {
+        local: {
+          title: '本地啟動',
+          desc: '在您的機器上啟動 Web 應用與 API，私密編輯履歷並快速迭代。',
+        },
+        docker: {
+          title: 'Docker 部署',
+          desc: '將應用打包為可重複執行的容器，適合團隊、展示與自託管環境。',
+        },
+        azure: {
+          title: 'Azure 部署',
+          desc: '使用內建腳本與範本，將完整應用棧部署到 Azure 基礎設施。',
+        },
+      },
+      configureTitle: '配置 AI 枚舉',
+      configureSubtitle: '選擇服務商，新增 API Key，並在需要時覆蓋預設模型。',
+      apiKeyBadge: '金鑰由您掌控',
+      keyInstructionPrefix: '從下方任意服務商取得免費 API Key，然後貼到',
+      keyInstructionTarget: '設定 -> AI 服務商設定',
+      keyInstructionSuffix: '已配置好的輸入項支援隨時切換服務商。',
+      getKey: '取得 Key',
+      githubFree: '永久免費',
+      badges: {
+        mit: 'MIT 授權',
+        selfHost: '可自託管',
+        noSubscriptions: '無訂閱',
+      },
+      configurePoints: {
+        provider: '服務商',
+        key: 'API Key',
+        model: '模型',
+      },
+      privacy: '您的 API Key 會保存在本地，並直接傳送給所選服務商。',
+    },
     howItWorks: {
       label: '使用流程',
       title: '從空白頁到 offer',

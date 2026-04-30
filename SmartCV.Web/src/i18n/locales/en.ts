@@ -34,6 +34,51 @@ const en = {
         ats: 'ATS-friendly PDF',
       },
     },
+    aiRules: {
+      label: '100% Free & Open Source',
+      title: 'Your AI, Your Rules',
+      subtitle: 'Run SmartCV locally, ship it in containers, or deploy it to Azure. Then choose the AI provider and model that match your workflow.',
+      deployTitle: 'Choose how SmartCV runs',
+      deploySubtitle: 'Use the same app from laptop to cloud.',
+      deployTabs: {
+        local: 'Local',
+        docker: 'Docker',
+        azure: 'Azure',
+      },
+      deploy: {
+        local: {
+          title: 'Local startup',
+          desc: 'Start the web app and API on your machine for private resume editing and quick iteration.',
+        },
+        docker: {
+          title: 'Docker deployment',
+          desc: 'Package the app into repeatable containers for teams, demos, and self-hosted environments.',
+        },
+        azure: {
+          title: 'Azure deployment',
+          desc: 'Deploy the full stack to Azure infrastructure with the included scripts and templates.',
+        },
+      },
+      configureTitle: 'Configure AI enumeration',
+      configureSubtitle: 'Select a provider, add your API key, and override the default model when you need a different engine.',
+      apiKeyBadge: 'Keys stay yours',
+      keyInstructionPrefix: 'Get a free API key from any provider below, then paste it in',
+      keyInstructionTarget: 'Settings -> AI Provider Settings',
+      keyInstructionSuffix: 'Switch providers anytime with the configured inputs.',
+      getKey: 'Get key',
+      githubFree: 'free forever',
+      badges: {
+        mit: 'MIT License',
+        selfHost: 'Self-hostable',
+        noSubscriptions: 'No subscriptions',
+      },
+      configurePoints: {
+        provider: 'Provider',
+        key: 'API key',
+        model: 'Model',
+      },
+      privacy: 'Your API key is stored locally and sent directly to the provider.',
+    },
     howItWorks: {
       label: 'How it works',
       title: 'From blank page to offer letter',
