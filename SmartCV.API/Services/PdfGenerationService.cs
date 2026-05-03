@@ -56,6 +56,7 @@ public class PdfGenerationService : IHostedService
         {
             WaitUntil = [WaitUntilNavigation.Networkidle0],
         });
+        await page.EvaluateExpressionAsync("document.fonts?.ready ?? Promise.resolve()");
 
         return await page.PdfDataAsync(new PdfOptions
         {

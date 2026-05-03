@@ -114,12 +114,9 @@ export default function ResumePreview({ resume: r, onChange }: ResumePreviewProp
 <html>
 <head>
 <meta charset="UTF-8">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:#fff;font-family:'Noto Sans SC','Noto Sans TC','PingFang SC','Microsoft YaHei','SimHei',sans-serif;}
+body{background:#fff;font-family:'Noto Sans CJK SC','Noto Sans CJK TC','Noto Sans SC','Noto Sans TC','PingFang SC','Microsoft YaHei','SimHei',sans-serif;}
 h2{break-after:avoid;page-break-after:avoid;}
 .rich-text-content ul,.rich-text-content ol{margin:0;padding-left:1.35em;}
 .rich-text-content [data-list-style="disc"]{list-style-type:disc;}
