@@ -46,11 +46,12 @@ public class AIProxyService(IHttpClientFactory httpClientFactory, ILogger<AIProx
     {
         var client = httpClientFactory.CreateClient();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", request.ApiKey);
+        var messages = WithResponseLanguageInstruction(request);
 
         var body = new
         {
             model = request.Model,
-            messages = request.Messages.Select(m => new { role = m.Role, content = m.Content }),
+            messages = messages.Select(m => new { role = m.Role, content = m.Content }),
             temperature = request.Temperature,
             stream = false
         };
@@ -82,10 +83,11 @@ public class AIProxyService(IHttpClientFactory httpClientFactory, ILogger<AIProx
         var client = httpClientFactory.CreateClient();
         client.DefaultRequestHeaders.Add("x-api-key", request.ApiKey);
         client.DefaultRequestHeaders.Add("anthropic-version", "2023-06-01");
+        var messages = WithResponseLanguageInstruction(request);
 
-        var systemMsg = request.Messages.FirstOrDefault(m => m.Role == "system")?.Content;
-        var userMessages = request.Messages
-            .Where(m => m.Role != "system")
+        var systemMsg = CombineSystemMessages(messages);
+        var userMessages = messages
+            .Where(m => !IsSystemMessage(m))
             .Select(m => new { role = m.Role, content = m.Content })
             .ToList();
 
@@ -123,9 +125,10 @@ public class AIProxyService(IHttpClientFactory httpClientFactory, ILogger<AIProx
         var client = httpClientFactory.CreateClient();
         var model = request.Model;
         var url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={request.ApiKey}";
+        var messages = WithResponseLanguageInstruction(request);
 
-        var contents = request.Messages
-            .Where(m => m.Role != "system")
+        var contents = messages
+            .Where(m => !IsSystemMessage(m))
             .Select(m => new
             {
                 role = m.Role == "assistant" ? "model" : "user",
@@ -133,7 +136,7 @@ public class AIProxyService(IHttpClientFactory httpClientFactory, ILogger<AIProx
             })
             .ToList();
 
-        var systemMsg = request.Messages.FirstOrDefault(m => m.Role == "system")?.Content;
+        var systemMsg = CombineSystemMessages(messages);
         object body;
         if (systemMsg is not null)
         {
@@ -174,5 +177,51 @@ public class AIProxyService(IHttpClientFactory httpClientFactory, ILogger<AIProx
             .GetString() ?? "";
 
         return Results.Ok(new { content, provider = "gemini", model = request.Model });
+    }
+
+    private static List<AIMessage> WithResponseLanguageInstruction(AIProxyRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.ResponseLanguage))
+        {
+            return request.Messages;
+        }
+
+        var instruction =
+            $"Respond in {request.ResponseLanguage}. " +
+            "Keep code, identifiers, technical terms, proper nouns, JSON keys, and required schemas unchanged. " +
+            "For JSON responses, translate only human-readable string values.";
+        var messages = request.Messages.ToList();
+        var systemMessageIndex = messages.FindIndex(IsSystemMessage);
+
+        if (systemMessageIndex >= 0)
+        {
+            var existing = messages[systemMessageIndex];
+            messages[systemMessageIndex] = existing with
+            {
+                Content = $"{existing.Content}\n\n{instruction}"
+            };
+        }
+        else
+        {
+            messages.Insert(0, new AIMessage("system", instruction));
+        }
+
+        return messages;
+    }
+
+    private static string? CombineSystemMessages(IEnumerable<AIMessage> messages)
+    {
+        var systemMessages = messages
+            .Where(IsSystemMessage)
+            .Select(m => m.Content)
+            .Where(content => !string.IsNullOrWhiteSpace(content))
+            .ToList();
+
+        return systemMessages.Count == 0 ? null : string.Join("\n\n", systemMessages);
+    }
+
+    private static bool IsSystemMessage(AIMessage message)
+    {
+        return string.Equals(message.Role, "system", StringComparison.OrdinalIgnoreCase);
     }
 }

@@ -6,7 +6,8 @@ public record AIProxyRequest(
     string Model,
     List<AIMessage> Messages,
     double Temperature = 0.7,
-    bool Stream = false
+    bool Stream = false,
+    string? ResponseLanguage = null
 );
 
 public record AIMessage(string Role, string Content);

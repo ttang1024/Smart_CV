@@ -6,6 +6,7 @@ import type {
 } from '../../types/ai'
 import type { Resume } from '../../types/resume'
 import { richTextToPlainText } from '../../lib/richText'
+import i18n from '../../i18n'
 
 const API_BASE = import.meta.env.VITE_API_URL ?? '/api'
 
@@ -15,6 +16,14 @@ interface ChatRequest {
 	model: string
 	messages: AIMessage[]
 	temperature?: number
+	responseLanguage?: string
+}
+
+const RESPONSE_LANGUAGE_NAMES: Record<string, string> = {
+	en: 'English',
+	es: 'Spanish',
+	'zh-CN': 'Simplified Chinese',
+	'zh-TW': 'Traditional Chinese',
 }
 
 export async function chatWithAI(request: ChatRequest): Promise<string> {
@@ -27,6 +36,7 @@ export async function chatWithAI(request: ChatRequest): Promise<string> {
 			model: request.model,
 			messages: request.messages,
 			temperature: request.temperature ?? 0.7,
+			responseLanguage: request.responseLanguage ?? getSelectedResponseLanguage(),
 		}),
 	})
 
@@ -43,6 +53,15 @@ export async function chatWithAI(request: ChatRequest): Promise<string> {
 
 	const data = await response.json()
 	return data.content as string
+}
+
+function getSelectedResponseLanguage(): string {
+	const language = i18n.resolvedLanguage ?? i18n.language ?? 'en'
+	const code = Object.keys(RESPONSE_LANGUAGE_NAMES).find(
+		supportedCode => language === supportedCode || language.startsWith(`${supportedCode}-`),
+	) ?? 'en'
+
+	return `${RESPONSE_LANGUAGE_NAMES[code]} (${code})`
 }
 
 export function buildOptimizationPrompt(resume: Resume, jobDescription: string): AIMessage[] {
