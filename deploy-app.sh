@@ -4,7 +4,8 @@ set -euo pipefail
 RESOURCE_GROUP="smart-cv-rg"
 APP_NAME="smart-cv-app"
 ACR_NAME="smartcvappacr"
-IMAGE_TAG="${1:-latest}"
+DEFAULT_IMAGE_TAG="$(git rev-parse --short HEAD 2>/dev/null || date +%Y%m%d%H%M%S)-$(date +%Y%m%d%H%M%S)"
+IMAGE_TAG="${1:-$DEFAULT_IMAGE_TAG}"
 DOCKER_PLATFORM="${DOCKER_PLATFORM:-linux/amd64}"
 
 if ! az group show --name "$RESOURCE_GROUP" --output none 2>/dev/null; then

@@ -79,10 +79,37 @@ ai.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = Date
 
 // Serve React SPA from wwwroot
 app.UseDefaultFiles();
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = context =>
+    {
+        var path = context.Context.Request.Path.Value ?? string.Empty;
+        var headers = context.Context.Response.Headers;
+
+        if (path.StartsWith("/assets/", StringComparison.Ordinal))
+        {
+            headers.CacheControl = "public,max-age=31536000,immutable";
+            return;
+        }
+
+        if (path.Equals("/", StringComparison.Ordinal) ||
+            path.EndsWith("/index.html", StringComparison.OrdinalIgnoreCase))
+        {
+            headers.CacheControl = "no-store,no-cache,must-revalidate,max-age=0";
+            headers.Pragma = "no-cache";
+            headers.Expires = "0";
+        }
+    }
+});
 
 // SPA fallback — return index.html for unmatched routes (client-side routing)
-app.MapFallbackToFile("index.html");
+app.MapFallback(async context =>
+{
+    context.Response.Headers.CacheControl = "no-store,no-cache,must-revalidate,max-age=0";
+    context.Response.Headers.Pragma = "no-cache";
+    context.Response.Headers.Expires = "0";
+    await context.Response.SendFileAsync(Path.Combine(app.Environment.WebRootPath!, "index.html"));
+});
 
 app.Run();
 

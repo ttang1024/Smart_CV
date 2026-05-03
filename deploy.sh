@@ -5,7 +5,8 @@ RESOURCE_GROUP="smart-cv-rg"
 LOCATION="${AZURE_LOCATION:-eastus}"
 APP_NAME="smart-cv-app"
 ACR_NAME=$(echo "${APP_NAME}acr" | tr -d '-')   # "smartcvappacr"
-IMAGE_TAG="${1:-latest}"
+DEFAULT_IMAGE_TAG="$(git rev-parse --short HEAD 2>/dev/null || date +%Y%m%d%H%M%S)-$(date +%Y%m%d%H%M%S)"
+IMAGE_TAG="${1:-$DEFAULT_IMAGE_TAG}"
 DOCKER_PLATFORM="${DOCKER_PLATFORM:-linux/amd64}"
 
 # Step 1 — Ensure the resource group and registry exist.
