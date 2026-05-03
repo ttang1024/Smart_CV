@@ -1,12 +1,12 @@
 import type { CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { LayoutProps, CustomOptions, CustomSectionStyle } from '../resumeTypes';
+import { DEFAULT_PAGE_MARGINS_MM, type LayoutProps, type CustomOptions, type CustomSectionStyle } from '../resumeTypes';
 import { contactItems, ContactRow, dateRange, EduEntry, ExpEntry, CertList, LangList, HighlightList, AchievementRows, InterestsList, RefereesBlock, sectionTitle } from '../resumeShared';
 import { isRichTextEmpty } from '../../../lib/richText';
 import { RichTextContent } from '../RichText';
 import { DEFAULT_SECTION_ORDER } from '../../../types/resume';
 
-export function CustomLayout({ r, theme, options }: LayoutProps & { options: CustomOptions }) {
+export function CustomLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_MM, options }: LayoutProps & { options: CustomOptions }) {
   const { t } = useTranslation();
   const { personalInfo: p, summary, coreHighlights, experience, education, skills, projects, certifications, languages } = r;
   const accent = theme.main;
@@ -120,7 +120,7 @@ export function CustomLayout({ r, theme, options }: LayoutProps & { options: Cus
   if (options.layoutMode === 'two-column') {
     return (
       <div style={{ ...baseStyle, display: 'flex', minHeight: '297mm' }}>
-        <div style={{ width: '65mm', flexShrink: 0, background: theme.light, padding: '14mm 8mm 14mm 8mm', fontSize: '9.5pt' }}>
+        <div style={{ width: '65mm', flexShrink: 0, background: theme.light, padding: `${pageMarginsMm.top}mm 8mm ${pageMarginsMm.bottom}mm ${pageMarginsMm.left}mm`, fontSize: '9.5pt' }}>
           <div style={{ marginBottom: '12px', paddingBottom: '10px', borderBottom: `2px solid ${accent}` }}>
             <h1 style={{ fontSize: '13pt', fontWeight: 700, color: theme.dark, lineHeight: 1.2, marginBottom: '3px' }}>{p.fullName || 'Your Name'}</h1>
             {p.title && <p style={{ fontSize: '9pt', color: accent, fontWeight: 500 }}>{p.title}</p>}
@@ -150,7 +150,7 @@ export function CustomLayout({ r, theme, options }: LayoutProps & { options: Cus
             </Sec>
           )}
         </div>
-        <div style={{ flex: 1, padding: '14mm 14mm 14mm 10mm' }}>
+        <div style={{ flex: 1, padding: `${pageMarginsMm.top}mm ${pageMarginsMm.right}mm ${pageMarginsMm.bottom}mm 10mm` }}>
           {summary && <Sec title={sectionTitle(r, 'summary', t('resumeLayout.sections.summary'))}>{renderSummary()}</Sec>}
           {(coreHighlights ?? []).filter(h => !isRichTextEmpty(h.text)).length > 0 && (
             <Sec title={sectionTitle(r, 'coreHighlights', t('resumeLayout.sections.coreHighlights'))}>
@@ -189,7 +189,7 @@ export function CustomLayout({ r, theme, options }: LayoutProps & { options: Cus
   };
 
   return (
-    <div style={{ ...baseStyle, padding: '14mm 14mm' }}>
+    <div style={{ ...baseStyle, padding: `${pageMarginsMm.top}mm ${pageMarginsMm.right}mm ${pageMarginsMm.bottom}mm ${pageMarginsMm.left}mm` }}>
       {header}
       {sectionOrder.map(key => renderCustomSection(key))}
     </div>

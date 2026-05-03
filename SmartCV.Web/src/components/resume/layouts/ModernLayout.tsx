@@ -1,11 +1,11 @@
 import { useTranslation } from 'react-i18next';
-import type { LayoutProps } from '../resumeTypes';
+import { DEFAULT_PAGE_MARGINS_MM, type LayoutProps } from '../resumeTypes';
 import { ContactRow, contactItems, ExpEntry, EduEntry, CertList, LangList, HighlightList, AchievementRows, InterestsList, RefereesBlock, sectionTitle } from '../resumeShared';
 import { isRichTextEmpty } from '../../../lib/richText';
 import { RichTextContent } from '../RichText';
 import { DEFAULT_SECTION_ORDER } from '../../../types/resume';
 
-export function ModernLayout({ r, theme }: LayoutProps) {
+export function ModernLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_MM }: LayoutProps) {
   const { t } = useTranslation();
   const { personalInfo: p, summary, coreHighlights, experience, education, skills, projects, certifications, languages } = r;
   const accent = theme.main;
@@ -117,7 +117,7 @@ export function ModernLayout({ r, theme }: LayoutProps) {
   };
 
   return (
-    <div style={{ padding: '14mm 14mm', fontFamily: 'Calibri, Arial, Helvetica, "Times New Roman", sans-serif', fontSize: '10.5pt', lineHeight: '1.45', color: '#111827' }}>
+    <div style={{ padding: `${pageMarginsMm.top}mm ${pageMarginsMm.right}mm ${pageMarginsMm.bottom}mm ${pageMarginsMm.left}mm`, fontFamily: 'Calibri, Arial, Helvetica, "Times New Roman", sans-serif', fontSize: '10.5pt', lineHeight: '1.45', color: '#111827' }}>
       <div style={{ marginBottom: '16px' }}>
         <h1 style={{ fontSize: '24pt', fontWeight: 800, color: '#111827', letterSpacing: '-0.02em', marginBottom: '2px' }}>
           {p.fullName || 'Your Name'}

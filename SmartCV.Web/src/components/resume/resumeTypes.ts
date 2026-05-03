@@ -37,7 +37,21 @@ export const STYLES: { id: StyleId; label: string }[] = [
 
 export interface ThemeColors { main: string; light: string; dark: string }
 
-export type LayoutProps = { r: Resume; theme: ThemeColors };
+export interface PageMarginsMm {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+}
+
+export const DEFAULT_PAGE_MARGINS_MM: PageMarginsMm = {
+  top: 14,
+  right: 14,
+  bottom: 14,
+  left: 14,
+};
+
+export type LayoutProps = { r: Resume; theme: ThemeColors; pageMarginsMm?: PageMarginsMm };
 
 export function hexToRgb(hex: string): [number, number, number] {
   return [

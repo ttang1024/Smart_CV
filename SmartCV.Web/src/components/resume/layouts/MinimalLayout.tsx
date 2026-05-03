@@ -1,11 +1,11 @@
 import { useTranslation } from 'react-i18next';
-import type { LayoutProps, ThemeColors } from '../resumeTypes';
+import { DEFAULT_PAGE_MARGINS_MM, type LayoutProps, type ThemeColors } from '../resumeTypes';
 import { ContactRow, contactItems, ExpEntry, EduEntry, CertList, LangList, HighlightList, AchievementRows, InterestsList, RefereesBlock, sectionTitle } from '../resumeShared';
 import { isRichTextEmpty } from '../../../lib/richText';
 import { RichTextContent } from '../RichText';
 import { DEFAULT_SECTION_ORDER } from '../../../types/resume';
 
-export function MinimalLayout({ r, theme }: LayoutProps) {
+export function MinimalLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_MM }: LayoutProps) {
   const { t } = useTranslation();
   const { personalInfo: p, summary, coreHighlights, experience, education, skills, projects, certifications, languages } = r;
   const sectionOrder = r.sectionOrder ?? DEFAULT_SECTION_ORDER;
@@ -116,7 +116,7 @@ export function MinimalLayout({ r, theme }: LayoutProps) {
   };
 
   return (
-    <div style={{ padding: '14mm 16mm', fontFamily: 'Calibri, Arial, Helvetica, "Times New Roman", sans-serif', fontSize: '10.5pt', lineHeight: '1.5', color: '#222222' }}>
+    <div style={{ padding: `${pageMarginsMm.top}mm ${pageMarginsMm.right}mm ${pageMarginsMm.bottom}mm ${pageMarginsMm.left}mm`, fontFamily: 'Calibri, Arial, Helvetica, "Times New Roman", sans-serif', fontSize: '10.5pt', lineHeight: '1.5', color: '#222222' }}>
       <div style={{ marginBottom: '18px' }}>
         <h1 style={{ fontSize: '20pt', fontWeight: 300, letterSpacing: '0.1em', color: '#111111', marginBottom: '2px' }}>
           {(p.fullName || 'Your Name').toUpperCase()}

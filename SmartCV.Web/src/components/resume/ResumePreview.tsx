@@ -2,6 +2,8 @@ import { useRef, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 const PAPER_W_PX = 210 * (96 / 25.4); // A4 width in CSS px at 96 dpi ≈ 793.7
+const MIN_PAGE_MARGIN_MM = 6;
+const MAX_PAGE_MARGIN_MM = 24;
 import { DownloadOutlined } from '@ant-design/icons';
 import { GripVertical } from 'lucide-react';
 import type { Resume, ResumeSection } from '../../types/resume';
@@ -13,6 +15,7 @@ import {
   type StyleId, type CustomOptions, type CustomHeader, type CustomExp,
   type CustomSectionStyle, type CustomLayoutMode, type CustomSkillsStyle,
   type CustomEduStyle, type CustomSummaryStyle, type ThemeColors, type LayoutProps,
+  type PageMarginsMm, DEFAULT_PAGE_MARGINS_MM,
 } from './resumeTypes';
 import { ClassicLayout } from './layouts/ClassicLayout';
 import { ModernLayout } from './layouts/ModernLayout';
@@ -41,6 +44,7 @@ export default function ResumePreview({ resume: r, onChange }: ResumePreviewProp
   const [dragOverKey, setDragOverKey] = useState<ResumeSection | null>(null);
   const [scale, setScale] = useState(1);
   const [paperHeight, setPaperHeight] = useState(297 * (96 / 25.4)); // A4 height px
+  const [pageMarginsMm, setPageMarginsMm] = useState<PageMarginsMm>(DEFAULT_PAGE_MARGINS_MM);
 
   // Recompute scale whenever the clip wrapper resizes
   useEffect(() => {
@@ -71,6 +75,14 @@ export default function ResumePreview({ resume: r, onChange }: ResumePreviewProp
   });
   const theme = deriveTheme(mainColor);
   const sectionOrder = r.sectionOrder ?? DEFAULT_SECTION_ORDER;
+  const updatePageMargin = (side: keyof PageMarginsMm, value: string) => {
+    const next = Number(value);
+    if (Number.isNaN(next)) return;
+    setPageMarginsMm(margins => ({
+      ...margins,
+      [side]: Math.min(MAX_PAGE_MARGIN_MM, Math.max(MIN_PAGE_MARGIN_MM, next)),
+    }));
+  };
 
   const handleSectionDrop = (targetKey: ResumeSection) => {
     if (!dragKey || dragKey === targetKey || !onChange) return;
@@ -92,7 +104,7 @@ export default function ResumePreview({ resume: r, onChange }: ResumePreviewProp
     setDownloading(true);
     try {
       // Clone and strip minHeight from the wrapper and the layout root so that a
-      // 297mm minimum doesn't overflow the 14mm-margined content area and create
+      // 297mm minimum doesn't overflow the margined content area and create
       // a spurious blank trailing page.
       const clone = element.cloneNode(true) as HTMLElement;
       clone.style.minHeight = '';
@@ -124,9 +136,9 @@ h2{break-after:avoid;page-break-after:avoid;}
 .rich-text-content [data-list-style="dash"]>li::before,.rich-text-content [data-list-style="check"]>li::before{position:absolute;left:0;}
 .rich-text-content [data-list-style="dash"]>li::before{content:"-";}
 .rich-text-content [data-list-style="check"]>li::before{content:"✓";}
-/* 14mm breathing room at every page boundary; flush at top of first page
+/* Breathing room at every page boundary; flush at top of first page
    so full-bleed coloured headers reach the paper edge */
-@page{margin:14mm 0;}
+@page{margin:${pageMarginsMm.top}mm ${pageMarginsMm.right}mm ${pageMarginsMm.bottom}mm ${pageMarginsMm.left}mm;}
 @page :first{margin-top:0;}
 </style>
 </head>
@@ -194,6 +206,32 @@ h2{break-after:avoid;page-break-after:avoid;}
           <span className="text-xs text-gray-400 dark:text-gray-500 font-mono">{mainColor}</span>
         </div>
 
+        {/* Page margins */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0">{t('resumeLayout.preview.pageMargins')}</span>
+          {(
+            [
+              ['top', t('resumeLayout.preview.marginTop')],
+              ['bottom', t('resumeLayout.preview.marginBottom')],
+              ['left', t('resumeLayout.preview.marginLeft')],
+              ['right', t('resumeLayout.preview.marginRight')],
+            ] as [keyof PageMarginsMm, string][]
+          ).map(([side, label]) => (
+            <label key={side} className="flex items-center gap-1">
+              <span className="text-xs text-gray-500 dark:text-gray-400">{label}</span>
+              <input
+                type="number"
+                min={MIN_PAGE_MARGIN_MM}
+                max={MAX_PAGE_MARGIN_MM}
+                value={pageMarginsMm[side]}
+                onChange={e => updatePageMargin(side, e.target.value)}
+                className="w-12 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-1.5 py-0.5 text-xs text-gray-700 dark:text-gray-200"
+              />
+            </label>
+          ))}
+          <span className="text-xs text-gray-400 dark:text-gray-500">{t('resumeLayout.preview.mm')}</span>
+        </div>
+
         {/* Custom layout options */}
         {styleId === 'custom' && (
           <div className="flex flex-wrap gap-x-4 gap-y-1.5 pt-1 border-t border-gray-200 dark:border-gray-700">
@@ -244,16 +282,16 @@ h2{break-after:avoid;page-break-after:avoid;}
           >
             <div style={{ width: '210mm', flexShrink: 0, transformOrigin: 'top center', transform: `scale(${scale})` }}>
               <div ref={printRef} className="bg-white" style={{ width: '210mm', minHeight: '297mm' }}>
-                {styleId === 'classic' && <ClassicLayout r={r} theme={theme} />}
-                {styleId === 'modern' && <ModernLayout r={r} theme={theme} />}
-                {styleId === 'executive' && <ExecutiveLayout r={r} theme={theme} />}
-                {styleId === 'minimal' && <MinimalLayout r={r} theme={theme} />}
-                {styleId === 'creative' && <CreativeLayout r={r} theme={theme} />}
-                {styleId === 'elegant' && <ElegantLayout r={r} theme={theme} />}
-                {styleId === 'academic' && <AcademicLayout r={r} theme={theme} />}
-                {styleId === 'split' && <SplitLayout r={r} theme={theme} />}
-                {styleId === 'timeline' && <TimelineLayout r={r} theme={theme} />}
-                {styleId === 'custom' && <CustomLayout r={r} theme={theme} options={customOptions} />}
+                {styleId === 'classic' && <ClassicLayout r={r} theme={theme} pageMarginsMm={pageMarginsMm} />}
+                {styleId === 'modern' && <ModernLayout r={r} theme={theme} pageMarginsMm={pageMarginsMm} />}
+                {styleId === 'executive' && <ExecutiveLayout r={r} theme={theme} pageMarginsMm={pageMarginsMm} />}
+                {styleId === 'minimal' && <MinimalLayout r={r} theme={theme} pageMarginsMm={pageMarginsMm} />}
+                {styleId === 'creative' && <CreativeLayout r={r} theme={theme} pageMarginsMm={pageMarginsMm} />}
+                {styleId === 'elegant' && <ElegantLayout r={r} theme={theme} pageMarginsMm={pageMarginsMm} />}
+                {styleId === 'academic' && <AcademicLayout r={r} theme={theme} pageMarginsMm={pageMarginsMm} />}
+                {styleId === 'split' && <SplitLayout r={r} theme={theme} pageMarginsMm={pageMarginsMm} />}
+                {styleId === 'timeline' && <TimelineLayout r={r} theme={theme} pageMarginsMm={pageMarginsMm} />}
+                {styleId === 'custom' && <CustomLayout r={r} theme={theme} pageMarginsMm={pageMarginsMm} options={customOptions} />}
               </div>
             </div>
           </div>

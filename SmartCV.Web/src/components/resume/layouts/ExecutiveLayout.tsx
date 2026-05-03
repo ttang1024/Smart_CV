@@ -1,11 +1,11 @@
 import { useTranslation } from 'react-i18next';
-import type { LayoutProps, ThemeColors } from '../resumeTypes';
+import { DEFAULT_PAGE_MARGINS_MM, type LayoutProps, type ThemeColors } from '../resumeTypes';
 import { ContactRow, contactItems, ExpEntry, EduEntry, CertList, LangList, HighlightList, AchievementRows, InterestsList, RefereesBlock, sectionTitle } from '../resumeShared';
 import { isRichTextEmpty } from '../../../lib/richText';
 import { RichTextContent } from '../RichText';
 import { DEFAULT_SECTION_ORDER } from '../../../types/resume';
 
-export function ExecutiveLayout({ r, theme }: LayoutProps) {
+export function ExecutiveLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_MM }: LayoutProps) {
   const { t } = useTranslation();
   const { personalInfo: p, summary, coreHighlights, experience, education, skills, projects, certifications, languages } = r;
   const sectionOrder = r.sectionOrder ?? DEFAULT_SECTION_ORDER;
@@ -119,7 +119,7 @@ export function ExecutiveLayout({ r, theme }: LayoutProps) {
 
   return (
     <div style={{ fontFamily: 'Calibri, Arial, Helvetica, "Times New Roman", sans-serif', fontSize: '11pt', lineHeight: '1.45', color: theme.dark }}>
-      <div style={{ background: theme.dark, padding: '14mm 14mm 10mm', color: '#ffffff' }}>
+      <div style={{ background: theme.dark, padding: `${pageMarginsMm.top}mm ${pageMarginsMm.right}mm 10mm ${pageMarginsMm.left}mm`, color: '#ffffff' }}>
         <h1 style={{ fontSize: '26pt', fontWeight: 700, letterSpacing: '0.04em', marginBottom: '4px', color: '#ffffff' }}>
           {p.fullName || 'Your Name'}
         </h1>
@@ -133,7 +133,7 @@ export function ExecutiveLayout({ r, theme }: LayoutProps) {
           <ContactRow items={contactItems(p)} />
         </div>
       </div>
-      <div style={{ padding: '10mm 14mm' }}>
+      <div style={{ padding: `10mm ${pageMarginsMm.right}mm ${pageMarginsMm.bottom}mm ${pageMarginsMm.left}mm` }}>
         {sectionOrder.map(key => renderSection(key))}
       </div>
     </div>

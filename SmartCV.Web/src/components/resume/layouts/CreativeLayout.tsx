@@ -1,10 +1,10 @@
 import { useTranslation } from 'react-i18next';
-import type { LayoutProps } from '../resumeTypes';
+import { DEFAULT_PAGE_MARGINS_MM, type LayoutProps } from '../resumeTypes';
 import { contactItems, HighlightList, AchievementRows, InterestsList, RefereesBlock, dateRange, sectionTitle } from '../resumeShared';
 import { isRichTextEmpty } from '../../../lib/richText';
 import { RichTextContent } from '../RichText';
 
-export function CreativeLayout({ r, theme }: LayoutProps) {
+export function CreativeLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_MM }: LayoutProps) {
   const { t } = useTranslation();
   const { personalInfo: p, summary, coreHighlights, experience, education, skills, projects, certifications, languages } = r;
   const sidebarBg = theme.dark;
@@ -14,7 +14,7 @@ export function CreativeLayout({ r, theme }: LayoutProps) {
   return (
     <div style={{ display: 'flex', minHeight: '297mm', fontFamily: 'Calibri, Arial, Helvetica, "Times New Roman", sans-serif', fontSize: '10.5pt', lineHeight: '1.45' }}>
       {/* Sidebar */}
-      <div style={{ width: '68mm', background: sidebarBg, color: '#e2e8f0', padding: '14mm 7mm', flexShrink: 0 }}>
+      <div style={{ width: '68mm', background: sidebarBg, color: '#e2e8f0', padding: `${pageMarginsMm.top}mm 7mm ${pageMarginsMm.bottom}mm ${pageMarginsMm.left}mm`, flexShrink: 0 }}>
         <div style={{ marginBottom: '14px', borderBottom: `2px solid ${accent}`, paddingBottom: '10px' }}>
           <h1 style={{ fontSize: '14pt', fontWeight: 700, color: '#ffffff', lineHeight: 1.2, marginBottom: '4px' }}>
             {p.fullName || 'Your Name'}
@@ -84,7 +84,7 @@ export function CreativeLayout({ r, theme }: LayoutProps) {
       </div>
 
       {/* Main content */}
-      <div style={{ flex: 1, padding: '14mm 10mm', color: '#1e293b' }}>
+      <div style={{ flex: 1, padding: `${pageMarginsMm.top}mm ${pageMarginsMm.right}mm ${pageMarginsMm.bottom}mm 10mm`, color: '#1e293b' }}>
         {summary && (
           <CreativeSection title={sectionTitle(r, 'summary', t('resumeLayout.sections.summary'))} accent={accent}>
             <RichTextContent html={summary} style={{ color: '#475569', textAlign: 'justify', whiteSpace: 'pre-wrap' }} />
