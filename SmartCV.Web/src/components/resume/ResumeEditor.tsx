@@ -5,9 +5,9 @@ import { useTranslation } from 'react-i18next';
 import type { Resume, Experience, Education, Skill, Project, Certification, Language, Interest, Achievement, Referee, ResumeSection } from '../../types/resume';
 import { DEFAULT_SECTION_ORDER } from '../../types/resume';
 import Input from '../ui/Input';
-import Textarea from '../ui/Textarea';
 import Button from '../ui/Button';
 import { cn, generateId } from '../../lib/utils';
+import RichTextEditor from './RichText';
 
 interface ResumeEditorProps {
   resume: Resume;
@@ -49,6 +49,16 @@ export default function ResumeEditor({ resume, onChange }: ResumeEditorProps) {
 
   const update = (key: keyof Resume, value: unknown) => {
     onChange({ ...resume, [key]: value });
+  };
+
+  const updateSectionTitle = (key: SectionKey, value: string) => {
+    onChange({
+      ...resume,
+      sectionTitles: {
+        ...(resume.sectionTitles ?? {}),
+        [key]: value,
+      },
+    });
   };
 
   const handleDrop = (targetKey: SectionKey) => {
@@ -104,11 +114,11 @@ export default function ResumeEditor({ resume, onChange }: ResumeEditorProps) {
       case 'summary':
         return (
           <div className="pb-4">
-            <Textarea
+            <RichTextEditor
               value={resume.summary}
-              onChange={e => update('summary', e.target.value)}
+              onChange={value => update('summary', value)}
               placeholder={t('resumeEditor.summary.placeholder')}
-              rows={5}
+              minHeight={132}
             />
           </div>
         );
@@ -121,13 +131,14 @@ export default function ResumeEditor({ resume, onChange }: ResumeEditorProps) {
             {(resume.coreHighlights ?? []).map((hl, i) => (
               <div key={hl.id} className="flex gap-2 items-center">
                 <span className="text-gray-400 dark:text-gray-500 text-sm select-none w-4 text-right shrink-0">{i + 1}.</span>
-                <Input
+                <RichTextEditor
                   value={hl.text}
-                  onChange={e => {
-                    const next = (resume.coreHighlights ?? []).map(h => h.id === hl.id ? { ...h, text: e.target.value } : h);
+                  onChange={value => {
+                    const next = (resume.coreHighlights ?? []).map(h => h.id === hl.id ? { ...h, text: value } : h);
                     update('coreHighlights', next);
                   }}
                   placeholder={t('resumeEditor.coreHighlights.placeholder')}
+                  minHeight={72}
                   className="flex-1"
                 />
                 <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 text-red-400"
@@ -283,46 +294,60 @@ export default function ResumeEditor({ resume, onChange }: ResumeEditorProps) {
     }
   };
 
+  const renderPreviewTitleInput = (id: SectionKey, fallback: string) => (
+    <div className="pb-3">
+      <Input
+        label="Preview title"
+        value={resume.sectionTitles?.[id] ?? ''}
+        onChange={e => updateSectionTitle(id, e.target.value)}
+        placeholder={fallback}
+      />
+    </div>
+  );
+
   return (
     <div className="space-y-0 divide-y divide-gray-200 dark:divide-gray-700">
       {/* Personal Info — fixed, not draggable */}
       <div className="py-1">
         <SectionHeader id="personalInfo" title={t('resumeEditor.sections.personalInfo')} />
         {openSections.has('personalInfo') && (
-          <div className="pb-4 grid grid-cols-2 gap-3">
-            <div className="col-span-2">
-              <Input label={t('resumeEditor.personalInfo.fullName')} value={resume.personalInfo.fullName}
-                onChange={e => update('personalInfo', { ...resume.personalInfo, fullName: e.target.value })}
-                placeholder={t('resumeEditor.personalInfo.fullNamePlaceholder')} />
+          <>
+            {renderPreviewTitleInput('personalInfo', t('resumeEditor.sections.personalInfo'))}
+            <div className="pb-4 grid grid-cols-2 gap-3">
+              <div className="col-span-2">
+                <Input label={t('resumeEditor.personalInfo.fullName')} value={resume.personalInfo.fullName}
+                  onChange={e => update('personalInfo', { ...resume.personalInfo, fullName: e.target.value })}
+                  placeholder={t('resumeEditor.personalInfo.fullNamePlaceholder')} />
+              </div>
+              <div className="col-span-2">
+                <Input label={t('resumeEditor.personalInfo.title')} value={resume.personalInfo.title ?? ''}
+                  onChange={e => update('personalInfo', { ...resume.personalInfo, title: e.target.value })}
+                  placeholder={t('resumeEditor.personalInfo.titlePlaceholder')} />
+              </div>
+              <Input label={t('resumeEditor.personalInfo.email')} type="email" value={resume.personalInfo.email}
+                onChange={e => update('personalInfo', { ...resume.personalInfo, email: e.target.value })}
+                placeholder={t('resumeEditor.personalInfo.emailPlaceholder')} />
+              <Input label={t('resumeEditor.personalInfo.phone')} value={resume.personalInfo.phone}
+                onChange={e => update('personalInfo', { ...resume.personalInfo, phone: e.target.value })}
+                placeholder={t('resumeEditor.personalInfo.phonePlaceholder')} />
+              <div className="col-span-2">
+                <Input label={t('resumeEditor.personalInfo.location')} value={resume.personalInfo.location}
+                  onChange={e => update('personalInfo', { ...resume.personalInfo, location: e.target.value })}
+                  placeholder={t('resumeEditor.personalInfo.locationPlaceholder')} />
+              </div>
+              <Input label={t('resumeEditor.personalInfo.linkedin')} value={resume.personalInfo.linkedin ?? ''}
+                onChange={e => update('personalInfo', { ...resume.personalInfo, linkedin: e.target.value })}
+                placeholder={t('resumeEditor.personalInfo.linkedinPlaceholder')} />
+              <Input label={t('resumeEditor.personalInfo.github')} value={resume.personalInfo.github ?? ''}
+                onChange={e => update('personalInfo', { ...resume.personalInfo, github: e.target.value })}
+                placeholder={t('resumeEditor.personalInfo.githubPlaceholder')} />
+              <div className="col-span-2">
+                <Input label={t('resumeEditor.personalInfo.website')} value={resume.personalInfo.website ?? ''}
+                  onChange={e => update('personalInfo', { ...resume.personalInfo, website: e.target.value })}
+                  placeholder={t('resumeEditor.personalInfo.websitePlaceholder')} />
+              </div>
             </div>
-            <div className="col-span-2">
-              <Input label={t('resumeEditor.personalInfo.title')} value={resume.personalInfo.title ?? ''}
-                onChange={e => update('personalInfo', { ...resume.personalInfo, title: e.target.value })}
-                placeholder={t('resumeEditor.personalInfo.titlePlaceholder')} />
-            </div>
-            <Input label={t('resumeEditor.personalInfo.email')} type="email" value={resume.personalInfo.email}
-              onChange={e => update('personalInfo', { ...resume.personalInfo, email: e.target.value })}
-              placeholder={t('resumeEditor.personalInfo.emailPlaceholder')} />
-            <Input label={t('resumeEditor.personalInfo.phone')} value={resume.personalInfo.phone}
-              onChange={e => update('personalInfo', { ...resume.personalInfo, phone: e.target.value })}
-              placeholder={t('resumeEditor.personalInfo.phonePlaceholder')} />
-            <div className="col-span-2">
-              <Input label={t('resumeEditor.personalInfo.location')} value={resume.personalInfo.location}
-                onChange={e => update('personalInfo', { ...resume.personalInfo, location: e.target.value })}
-                placeholder={t('resumeEditor.personalInfo.locationPlaceholder')} />
-            </div>
-            <Input label={t('resumeEditor.personalInfo.linkedin')} value={resume.personalInfo.linkedin ?? ''}
-              onChange={e => update('personalInfo', { ...resume.personalInfo, linkedin: e.target.value })}
-              placeholder={t('resumeEditor.personalInfo.linkedinPlaceholder')} />
-            <Input label={t('resumeEditor.personalInfo.github')} value={resume.personalInfo.github ?? ''}
-              onChange={e => update('personalInfo', { ...resume.personalInfo, github: e.target.value })}
-              placeholder={t('resumeEditor.personalInfo.githubPlaceholder')} />
-            <div className="col-span-2">
-              <Input label={t('resumeEditor.personalInfo.website')} value={resume.personalInfo.website ?? ''}
-                onChange={e => update('personalInfo', { ...resume.personalInfo, website: e.target.value })}
-                placeholder={t('resumeEditor.personalInfo.websitePlaceholder')} />
-            </div>
-          </div>
+          </>
         )}
       </div>
 
@@ -347,7 +372,12 @@ export default function ResumeEditor({ resume, onChange }: ResumeEditorProps) {
             </span>
             <SectionHeader id={key} title={SECTION_TITLES[key] ?? key} count={getSectionCount(key)} />
           </div>
-          {openSections.has(key) && renderSectionContent(key)}
+          {openSections.has(key) && (
+            <>
+              {renderPreviewTitleInput(key, SECTION_TITLES[key] ?? key)}
+              {renderSectionContent(key)}
+            </>
+          )}
         </div>
       ))}
     </div>
@@ -405,27 +435,27 @@ function ExperienceItem({ experience, onChange, onDelete }: {
           </label>
         </div>
       </div>
-      <Textarea
+      <RichTextEditor
         label={t('resumeEditor.experience.description')}
         value={experience.description}
-        onChange={e => up('description', e.target.value)}
+        onChange={value => up('description', value)}
         placeholder={t('resumeEditor.experience.descriptionPlaceholder')}
-        rows={2}
+        minHeight={82}
       />
       <div>
         <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1.5">{t('resumeEditor.experience.keyAchievements')}</label>
         {experience.highlights.map((h, i) => (
           <div key={i} className="flex mb-1.5">
-            <textarea
+            <RichTextEditor
               value={h}
-              onChange={e => {
+              onChange={value => {
                 const next = [...experience.highlights];
-                next[i] = e.target.value;
+                next[i] = value;
                 up('highlights', next);
               }}
               placeholder={t('resumeEditor.experience.achievementPlaceholder')}
-              className="flex-1 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              rows={2}
+              minHeight={72}
+              className="flex-1"
             />
             <Button
               variant="ghost"
@@ -539,7 +569,7 @@ function ProjectItem({ project, onChange, onDelete }: {
         </Button>
       </div>
       <Input label={t('resumeEditor.projects.name')} value={project.name} onChange={e => up('name', e.target.value)} placeholder={t('resumeEditor.projects.namePlaceholder')} />
-      <Textarea label={t('resumeEditor.projects.description')} value={project.description} onChange={e => up('description', e.target.value)} rows={2} placeholder={t('resumeEditor.projects.descriptionPlaceholder')} />
+      <RichTextEditor label={t('resumeEditor.projects.description')} value={project.description} onChange={value => up('description', value)} minHeight={82} placeholder={t('resumeEditor.projects.descriptionPlaceholder')} />
       <Input
         label={t('resumeEditor.projects.technologies')}
         value={project.technologies.join(', ')}
@@ -554,16 +584,16 @@ function ProjectItem({ project, onChange, onDelete }: {
         <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1.5">{t('resumeEditor.projects.keyAchievements')}</label>
         {(project.highlights ?? []).map((h, i) => (
           <div key={i} className="flex mb-1.5">
-            <textarea
+            <RichTextEditor
               value={h}
-              onChange={e => {
+              onChange={value => {
                 const next = [...(project.highlights ?? [])];
-                next[i] = e.target.value;
+                next[i] = value;
                 up('highlights', next);
               }}
               placeholder={t('resumeEditor.projects.achievementPlaceholder')}
-              className="flex-1 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              rows={2}
+              minHeight={72}
+              className="flex-1"
             />
             <Button
               variant="ghost"
@@ -671,11 +701,11 @@ function AchievementItem({ achievement, onChange, onDelete }: {
         <Input label={t('resumeEditor.achievements.issuer')} value={achievement.issuer ?? ''} onChange={e => up('issuer', e.target.value)} placeholder={t('resumeEditor.achievements.issuerPlaceholder')} />
         <Input label={t('resumeEditor.achievements.date')} type="month" value={achievement.date ?? ''} onChange={e => up('date', e.target.value)} />
       </div>
-      <Textarea
+      <RichTextEditor
         label={t('resumeEditor.achievements.description')}
         value={achievement.description ?? ''}
-        onChange={e => up('description', e.target.value)}
-        rows={2}
+        onChange={value => up('description', value)}
+        minHeight={82}
         placeholder={t('resumeEditor.achievements.descriptionPlaceholder')}
       />
     </div>

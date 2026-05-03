@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import type { LayoutProps, ThemeColors } from '../resumeTypes';
-import { ContactRow, contactItems, ExpEntry, EduEntry, CertList, LangList, HighlightList, AchievementRows, InterestsList, RefereesBlock } from '../resumeShared';
+import { ContactRow, contactItems, ExpEntry, EduEntry, CertList, LangList, HighlightList, AchievementRows, InterestsList, RefereesBlock, sectionTitle } from '../resumeShared';
+import { isRichTextEmpty } from '../../../lib/richText';
+import { RichTextContent } from '../RichText';
 import { DEFAULT_SECTION_ORDER } from '../../../types/resume';
 
 export function SplitLayout({ r, theme }: LayoutProps) {
@@ -13,23 +15,23 @@ export function SplitLayout({ r, theme }: LayoutProps) {
     switch (key) {
       case 'summary':
         return summary ? (
-          <SplitSection key="summary" title={t('resumeLayout.sections.summary')} theme={theme}>
-            <p style={{ textAlign: 'justify', whiteSpace: 'pre-wrap' }}>{summary}</p>
+          <SplitSection key="summary" title={sectionTitle(r, 'summary', t('resumeLayout.sections.summary'))} theme={theme}>
+            <RichTextContent html={summary} style={{ textAlign: 'justify', whiteSpace: 'pre-wrap' }} />
           </SplitSection>
         ) : null;
       case 'coreHighlights':
         return coreHighlights?.length > 0 ? (
-          <SplitSection key="coreHighlights" title={t('resumeLayout.sections.coreHighlights')} theme={theme}>
+          <SplitSection key="coreHighlights" title={sectionTitle(r, 'coreHighlights', t('resumeLayout.sections.coreHighlights'))} theme={theme}>
             <ul style={{ paddingLeft: '16px', margin: 0 }}>
-              {coreHighlights.filter(h => h.text).map(h => (
-                <li key={h.id} style={{ marginBottom: '3px', color: '#374151' }}>{h.text}</li>
+              {coreHighlights.filter(h => !isRichTextEmpty(h.text)).map(h => (
+                <li key={h.id} style={{ marginBottom: '3px', color: '#374151' }}><RichTextContent html={h.text} /></li>
               ))}
             </ul>
           </SplitSection>
         ) : null;
       case 'skills':
         return skills.length > 0 ? (
-          <SplitSection key="skills" title={t('resumeLayout.sections.skills')} theme={theme}>
+          <SplitSection key="skills" title={sectionTitle(r, 'skills', t('resumeLayout.sections.skills'))} theme={theme}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
               {skills.map(s => (
                 <div key={s.id}>
@@ -42,7 +44,7 @@ export function SplitLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'experience':
         return experience.length > 0 ? (
-          <SplitSection key="experience" title={t('resumeLayout.sections.experience')} theme={theme}>
+          <SplitSection key="experience" title={sectionTitle(r, 'experience', t('resumeLayout.sections.experience'))} theme={theme}>
             {experience.map(exp => (
               <ExpEntry key={exp.id} exp={exp}
                 companyColor={theme.main} companySep=" · "
@@ -54,7 +56,7 @@ export function SplitLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'education':
         return education.length > 0 ? (
-          <SplitSection key="education" title={t('resumeLayout.sections.education')} theme={theme}>
+          <SplitSection key="education" title={sectionTitle(r, 'education', t('resumeLayout.sections.education'))} theme={theme}>
             {education.map(edu => (
               <EduEntry key={edu.id} edu={edu}
                 accentColor={theme.main} dateColor="#6b7280" gpaColor="#4b5563" />
@@ -63,7 +65,7 @@ export function SplitLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'projects':
         return projects.length > 0 ? (
-          <SplitSection key="projects" title={t('resumeLayout.sections.projects')} theme={theme}>
+          <SplitSection key="projects" title={sectionTitle(r, 'projects', t('resumeLayout.sections.projects'))} theme={theme}>
             {projects.map(p => (
               <div key={p.id} style={{ marginBottom: '8px' }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
@@ -72,7 +74,7 @@ export function SplitLayout({ r, theme }: LayoutProps) {
                     <span style={{ fontSize: '9pt', color: '#6b7280' }}>({p.technologies.join(', ')})</span>
                   )}
                 </div>
-                <p style={{ color: '#374151', whiteSpace: 'pre-wrap' }}>{p.description}</p>
+                <RichTextContent html={p.description} style={{ color: '#374151', whiteSpace: 'pre-wrap' }} />
                 <HighlightList highlights={p.highlights ?? []} color="#374151" />
               </div>
             ))}
@@ -80,31 +82,31 @@ export function SplitLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'certifications':
         return certifications.length > 0 ? (
-          <SplitSection key="certifications" title={t('resumeLayout.sections.certifications')} theme={theme}>
+          <SplitSection key="certifications" title={sectionTitle(r, 'certifications', t('resumeLayout.sections.certifications'))} theme={theme}>
             <CertList items={certifications} dateColor="#6b7280" />
           </SplitSection>
         ) : null;
       case 'languages':
         return languages.length > 0 ? (
-          <SplitSection key="languages" title={t('resumeLayout.sections.languages')} theme={theme}>
+          <SplitSection key="languages" title={sectionTitle(r, 'languages', t('resumeLayout.sections.languages'))} theme={theme}>
             <LangList items={languages} />
           </SplitSection>
         ) : null;
       case 'achievements':
         return (r.achievements ?? []).filter(a => a.title).length > 0 ? (
-          <SplitSection key="achievements" title={t('resumeLayout.sections.achievements')} theme={theme}>
+          <SplitSection key="achievements" title={sectionTitle(r, 'achievements', t('resumeLayout.sections.achievements'))} theme={theme}>
             <AchievementRows achievements={r.achievements} accent={theme.main} />
           </SplitSection>
         ) : null;
       case 'interests':
         return (r.interests ?? []).filter(i => i.name).length > 0 ? (
-          <SplitSection key="interests" title={t('resumeLayout.sections.interests')} theme={theme}>
+          <SplitSection key="interests" title={sectionTitle(r, 'interests', t('resumeLayout.sections.interests'))} theme={theme}>
             <p style={{ color: '#374151' }}><InterestsList r={r} /></p>
           </SplitSection>
         ) : null;
       case 'referees':
         return (r.referees?.length ?? 0) > 0 ? (
-          <SplitSection key="referees" title={t('resumeLayout.sections.referees')} theme={theme}>
+          <SplitSection key="referees" title={sectionTitle(r, 'referees', t('resumeLayout.sections.referees'))} theme={theme}>
             <RefereesBlock r={r} />
           </SplitSection>
         ) : null;

@@ -1,8 +1,14 @@
 import { MailOutlined, PhoneOutlined, EnvironmentOutlined, LinkedinOutlined, GithubOutlined, GlobalOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import type { Resume, Experience, Education, Certification, Language } from '../../types/resume';
+import type { Resume, Experience, Education, Certification, Language, ResumeSection } from '../../types/resume';
+import { isRichTextEmpty } from '../../lib/richText';
+import { RichTextContent } from './RichText';
 
 export interface ContactItem { icon: React.ReactNode; text: string }
+
+export function sectionTitle(r: Resume, key: ResumeSection, fallback: string): string {
+  return r.sectionTitles?.[key]?.trim() || fallback;
+}
 
 export const contactIcon = (Icon: React.ComponentType<{ style?: React.CSSProperties }>) => (
   <Icon style={{ fontSize: '11px', display: 'inline-block', verticalAlign: 'middle', lineHeight: 1 }} />
@@ -50,7 +56,9 @@ export function AchievementRows({ achievements, accent }: { achievements: Resume
             {a.date && <span style={{ fontSize: '9pt', color: '#6b7280', whiteSpace: 'nowrap' }}>{a.date}</span>}
           </div>
           {a.issuer && <div style={{ fontSize: '9.5pt', color: accent }}>{a.issuer}</div>}
-          {a.description && <p style={{ fontSize: '9.5pt', color: '#374151', marginTop: '2px', whiteSpace: 'pre-wrap' }}>{a.description}</p>}
+          {a.description && (
+            <RichTextContent html={a.description} style={{ fontSize: '9.5pt', color: '#374151', marginTop: '2px' }} />
+          )}
         </div>
       ))}
     </>
@@ -84,20 +92,18 @@ export function RefereesBlock({ r }: { r: Resume }) {
   );
 }
 
-export function HighlightList({ highlights, color, dotColor = '#6b7280', fontSize }: {
+export function HighlightList({ highlights, color, fontSize }: {
   highlights: string[];
   color?: string;
-  dotColor?: string;
   fontSize?: string;
 }) {
-  const items = highlights.filter(Boolean);
+  const items = highlights.filter(h => !isRichTextEmpty(h));
   if (!items.length) return null;
   return (
     <ul style={{ marginTop: '4px', paddingLeft: 0, listStyle: 'none', ...(fontSize && { fontSize }) }}>
       {items.map((h, i) => (
-        <li key={i} style={{ marginBottom: '2px', paddingLeft: '12px', position: 'relative', ...(color && { color }) }}>
-          <span style={{ position: 'absolute', left: 0, color: dotColor, fontWeight: 700, fontSize: '11pt', lineHeight: 1 }}>·</span>
-          {h}
+        <li key={i} style={{ marginBottom: '2px', ...(color && { color }) }}>
+          <RichTextContent html={h} />
         </li>
       ))}
     </ul>
@@ -109,7 +115,7 @@ export function ExpEntry({ exp, companyColor, locColor, dateColor, descColor,
   locFontSize = '9.5pt', locSep = ' · ',
   dateFontSize = '9pt', dateBadge,
   positionFontSize, positionWeight = 700, positionColor,
-  descMt = '4px', highlightColor, highlightDotColor = '#6b7280', highlightFontSize, mb = '12px',
+  descMt = '4px', highlightColor, highlightFontSize, mb = '12px',
 }: {
   exp: Experience;
   companyColor: string;
@@ -130,7 +136,6 @@ export function ExpEntry({ exp, companyColor, locColor, dateColor, descColor,
   positionColor?: string;
   descMt?: string;
   highlightColor?: string;
-  highlightDotColor?: string;
   highlightFontSize?: string;
   mb?: string;
 }) {
@@ -160,8 +165,8 @@ export function ExpEntry({ exp, companyColor, locColor, dateColor, descColor,
           </span>
         )}
       </div>
-      {exp.description && <p style={{ marginTop: descMt, color: descColor, whiteSpace: 'pre-wrap' }}>{exp.description}</p>}
-      <HighlightList highlights={exp.highlights} color={highlightColor} dotColor={highlightDotColor} fontSize={highlightFontSize} />
+      {exp.description && <RichTextContent html={exp.description} style={{ marginTop: descMt, color: descColor }} />}
+      <HighlightList highlights={exp.highlights} color={highlightColor} fontSize={highlightFontSize} />
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { GripVertical } from 'lucide-react';
 import type { Resume, ResumeSection } from '../../types/resume';
 import { DEFAULT_SECTION_ORDER } from '../../types/resume';
 import Button from '../ui/Button';
+import { sectionTitle } from './resumeShared';
 import {
   deriveTheme, STYLES,
   type StyleId, type CustomOptions, type CustomHeader, type CustomExp,
@@ -108,6 +109,21 @@ export default function ResumePreview({ resume: r, onChange }: ResumePreviewProp
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:#fff;font-family:'Noto Sans SC','Noto Sans TC','PingFang SC','Microsoft YaHei','SimHei',sans-serif;}
 h2{break-after:avoid;page-break-after:avoid;}
+.rich-text-content ul,.rich-text-content ol{margin:0;padding-left:1.35em;}
+.rich-text-content [data-list-style="disc"]{list-style-type:disc;}
+.rich-text-content [data-list-style="circle"]{list-style-type:circle;}
+.rich-text-content [data-list-style="square"]{list-style-type:square;}
+.rich-text-content [data-list-style="decimal"]{list-style-type:decimal;}
+.rich-text-content [data-list-style="lower-alpha"]{list-style-type:lower-alpha;}
+.rich-text-content [data-list-style="upper-alpha"]{list-style-type:upper-alpha;}
+.rich-text-content [data-list-style="lower-roman"]{list-style-type:lower-roman;}
+.rich-text-content [data-list-style="upper-roman"]{list-style-type:upper-roman;}
+.rich-text-content [data-list-style="none"]{list-style-type:none;}
+.rich-text-content [data-list-style="dash"],.rich-text-content [data-list-style="check"]{list-style-type:none;padding-left:0;}
+.rich-text-content [data-list-style="dash"]>li,.rich-text-content [data-list-style="check"]>li{position:relative;padding-left:1.15em;}
+.rich-text-content [data-list-style="dash"]>li::before,.rich-text-content [data-list-style="check"]>li::before{position:absolute;left:0;}
+.rich-text-content [data-list-style="dash"]>li::before{content:"-";}
+.rich-text-content [data-list-style="check"]>li::before{content:"✓";}
 /* 14mm breathing room at every page boundary; flush at top of first page
    so full-bleed coloured headers reach the paper edge */
 @page{margin:14mm 0;}
@@ -253,18 +269,18 @@ h2{break-after:avoid;page-break-after:avoid;}
                 onDragEnd={() => { setDragKey(null); setDragOverKey(null); }}
                 panelTitle={t('resumeLayout.preview.sections')}
                 sectionLabels={{
-                  personalInfo: t('resumeLayout.sectionLabels.personalInfo'),
-                  summary: t('resumeLayout.sectionLabels.summary'),
-                  coreHighlights: t('resumeLayout.sectionLabels.coreHighlights'),
-                  experience: t('resumeLayout.sectionLabels.experience'),
-                  education: t('resumeLayout.sectionLabels.education'),
-                  skills: t('resumeLayout.sectionLabels.skills'),
-                  projects: t('resumeLayout.sectionLabels.projects'),
-                  certifications: t('resumeLayout.sectionLabels.certifications'),
-                  languages: t('resumeLayout.sectionLabels.languages'),
-                  achievements: t('resumeLayout.sectionLabels.achievements'),
-                  interests: t('resumeLayout.sectionLabels.interests'),
-                  referees: t('resumeLayout.sectionLabels.referees'),
+                  personalInfo: sectionTitle(r, 'personalInfo', t('resumeLayout.sectionLabels.personalInfo')),
+                  summary: sectionTitle(r, 'summary', t('resumeLayout.sectionLabels.summary')),
+                  coreHighlights: sectionTitle(r, 'coreHighlights', t('resumeLayout.sectionLabels.coreHighlights')),
+                  experience: sectionTitle(r, 'experience', t('resumeLayout.sectionLabels.experience')),
+                  education: sectionTitle(r, 'education', t('resumeLayout.sectionLabels.education')),
+                  skills: sectionTitle(r, 'skills', t('resumeLayout.sectionLabels.skills')),
+                  projects: sectionTitle(r, 'projects', t('resumeLayout.sectionLabels.projects')),
+                  certifications: sectionTitle(r, 'certifications', t('resumeLayout.sectionLabels.certifications')),
+                  languages: sectionTitle(r, 'languages', t('resumeLayout.sectionLabels.languages')),
+                  achievements: sectionTitle(r, 'achievements', t('resumeLayout.sectionLabels.achievements')),
+                  interests: sectionTitle(r, 'interests', t('resumeLayout.sectionLabels.interests')),
+                  referees: sectionTitle(r, 'referees', t('resumeLayout.sectionLabels.referees')),
                 }}
               />
             </div>

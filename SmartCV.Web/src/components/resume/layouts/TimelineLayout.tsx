@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import type { LayoutProps, ThemeColors } from '../resumeTypes';
-import { ContactRow, contactItems, dateRange, EduEntry, CertList, LangList, HighlightList, AchievementRows, InterestsList, RefereesBlock } from '../resumeShared';
+import { ContactRow, contactItems, dateRange, EduEntry, CertList, LangList, HighlightList, AchievementRows, InterestsList, RefereesBlock, sectionTitle } from '../resumeShared';
+import { isRichTextEmpty } from '../../../lib/richText';
+import { RichTextContent } from '../RichText';
 import { DEFAULT_SECTION_ORDER } from '../../../types/resume';
 
 export function TimelineLayout({ r, theme }: LayoutProps) {
@@ -12,23 +14,23 @@ export function TimelineLayout({ r, theme }: LayoutProps) {
     switch (key) {
       case 'summary':
         return summary ? (
-          <TimelineSection key="summary" title={t('resumeLayout.sections.summary')} theme={theme}>
-            <p style={{ textAlign: 'justify', color: '#374151', whiteSpace: 'pre-wrap' }}>{summary}</p>
+          <TimelineSection key="summary" title={sectionTitle(r, 'summary', t('resumeLayout.sections.summary'))} theme={theme}>
+            <RichTextContent html={summary} style={{ textAlign: 'justify', color: '#374151', whiteSpace: 'pre-wrap' }} />
           </TimelineSection>
         ) : null;
       case 'coreHighlights':
         return coreHighlights?.length > 0 ? (
-          <TimelineSection key="coreHighlights" title={t('resumeLayout.sections.coreHighlights')} theme={theme}>
+          <TimelineSection key="coreHighlights" title={sectionTitle(r, 'coreHighlights', t('resumeLayout.sections.coreHighlights'))} theme={theme}>
             <ul style={{ paddingLeft: '16px', margin: 0 }}>
-              {coreHighlights.filter(h => h.text).map(h => (
-                <li key={h.id} style={{ marginBottom: '3px', color: '#374151' }}>{h.text}</li>
+              {coreHighlights.filter(h => !isRichTextEmpty(h.text)).map(h => (
+                <li key={h.id} style={{ marginBottom: '3px', color: '#374151' }}><RichTextContent html={h.text} /></li>
               ))}
             </ul>
           </TimelineSection>
         ) : null;
       case 'skills':
         return skills.length > 0 ? (
-          <TimelineSection key="skills" title={t('resumeLayout.sections.skills')} theme={theme}>
+          <TimelineSection key="skills" title={sectionTitle(r, 'skills', t('resumeLayout.sections.skills'))} theme={theme}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
               {skills.map(s => (
                 <div key={s.id}>
@@ -41,7 +43,7 @@ export function TimelineLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'experience':
         return experience.length > 0 ? (
-          <TimelineSection key="experience" title={t('resumeLayout.sections.experience')} theme={theme}>
+          <TimelineSection key="experience" title={sectionTitle(r, 'experience', t('resumeLayout.sections.experience'))} theme={theme}>
             {experience.map((exp, idx) => (
               <div key={exp.id} style={{ display: 'flex', gap: '0' }}>
                 <div style={{ width: '112px', flexShrink: 0, paddingTop: '3px' }}>
@@ -67,7 +69,7 @@ export function TimelineLayout({ r, theme }: LayoutProps) {
                   <div style={{ fontWeight: 700 }}>{exp.position}</div>
                   {exp.company && <span style={{ color: theme.dark, fontWeight: 500 }}>{exp.company}</span>}
                   {exp.location && <span style={{ color: '#6b7280', fontSize: '9pt' }}>{exp.company ? ' · ' : ''}{exp.location}</span>}
-                  {exp.description && <p style={{ marginTop: '4px', color: '#374151', fontSize: '9.5pt', whiteSpace: 'pre-wrap' }}>{exp.description}</p>}
+                  {exp.description && <RichTextContent html={exp.description} style={{ marginTop: '4px', color: '#374151', fontSize: '9.5pt', whiteSpace: 'pre-wrap' }} />}
                   <HighlightList highlights={exp.highlights} color="#374151" fontSize="9.5pt" />
                 </div>
               </div>
@@ -76,7 +78,7 @@ export function TimelineLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'education':
         return education.length > 0 ? (
-          <TimelineSection key="education" title={t('resumeLayout.sections.education')} theme={theme}>
+          <TimelineSection key="education" title={sectionTitle(r, 'education', t('resumeLayout.sections.education'))} theme={theme}>
             {education.map(edu => (
               <EduEntry key={edu.id} edu={edu}
                 accentColor={theme.main} dateColor="#6b7280" gpaColor="#4b5563" />
@@ -85,7 +87,7 @@ export function TimelineLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'projects':
         return projects.length > 0 ? (
-          <TimelineSection key="projects" title={t('resumeLayout.sections.projects')} theme={theme}>
+          <TimelineSection key="projects" title={sectionTitle(r, 'projects', t('resumeLayout.sections.projects'))} theme={theme}>
             {projects.map(p => (
               <div key={p.id} style={{ marginBottom: '8px' }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
@@ -94,7 +96,7 @@ export function TimelineLayout({ r, theme }: LayoutProps) {
                     <span style={{ fontSize: '9pt', color: '#6b7280' }}>({p.technologies.join(', ')})</span>
                   )}
                 </div>
-                <p style={{ color: '#374151', whiteSpace: 'pre-wrap' }}>{p.description}</p>
+                <RichTextContent html={p.description} style={{ color: '#374151', whiteSpace: 'pre-wrap' }} />
                 <HighlightList highlights={p.highlights ?? []} color="#374151" />
               </div>
             ))}
@@ -102,31 +104,31 @@ export function TimelineLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'certifications':
         return certifications.length > 0 ? (
-          <TimelineSection key="certifications" title={t('resumeLayout.sections.certifications')} theme={theme}>
+          <TimelineSection key="certifications" title={sectionTitle(r, 'certifications', t('resumeLayout.sections.certifications'))} theme={theme}>
             <CertList items={certifications} dateColor="#6b7280" />
           </TimelineSection>
         ) : null;
       case 'languages':
         return languages.length > 0 ? (
-          <TimelineSection key="languages" title={t('resumeLayout.sections.languages')} theme={theme}>
+          <TimelineSection key="languages" title={sectionTitle(r, 'languages', t('resumeLayout.sections.languages'))} theme={theme}>
             <LangList items={languages} />
           </TimelineSection>
         ) : null;
       case 'achievements':
         return (r.achievements ?? []).filter(a => a.title).length > 0 ? (
-          <TimelineSection key="achievements" title={t('resumeLayout.sections.achievements')} theme={theme}>
+          <TimelineSection key="achievements" title={sectionTitle(r, 'achievements', t('resumeLayout.sections.achievements'))} theme={theme}>
             <AchievementRows achievements={r.achievements} accent={theme.main} />
           </TimelineSection>
         ) : null;
       case 'interests':
         return (r.interests ?? []).filter(i => i.name).length > 0 ? (
-          <TimelineSection key="interests" title={t('resumeLayout.sections.interests')} theme={theme}>
+          <TimelineSection key="interests" title={sectionTitle(r, 'interests', t('resumeLayout.sections.interests'))} theme={theme}>
             <p style={{ color: '#374151' }}><InterestsList r={r} /></p>
           </TimelineSection>
         ) : null;
       case 'referees':
         return (r.referees?.length ?? 0) > 0 ? (
-          <TimelineSection key="referees" title={t('resumeLayout.sections.referees')} theme={theme}>
+          <TimelineSection key="referees" title={sectionTitle(r, 'referees', t('resumeLayout.sections.referees'))} theme={theme}>
             <RefereesBlock r={r} />
           </TimelineSection>
         ) : null;

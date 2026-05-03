@@ -102,6 +102,7 @@ export interface Resume {
   createdAt: string;
   updatedAt: string;
   sectionOrder?: ResumeSection[];
+  sectionTitles?: Partial<Record<ResumeSection, string>>;
   personalInfo: PersonalInfo;
   summary: string;
   coreHighlights: CoreHighlight[];

@@ -11,6 +11,7 @@ import AIOptimizationPanel from '../components/ai/AIOptimizationPanel';
 import PDFImport from '../components/resume/PDFImport';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
+import { richTextToPlainText } from '../lib/richText';
 import toast from 'react-hot-toast';
 
 function DragDivider({ onMouseDown, active }: { onMouseDown: (e: React.MouseEvent) => void; active: boolean }) {
@@ -147,11 +148,11 @@ export default function EditorPage() {
       case 'experience': {
         if (suggestion.originalText) {
           const newExperience = updated.experience.map(exp => {
-            if (exp.description.includes(suggestion.originalText!)) {
+            if (richTextToPlainText(exp.description).includes(suggestion.originalText!)) {
               return { ...exp, description: suggestion.improvedText! };
             }
             const updatedHighlights = exp.highlights.map(h =>
-              h.includes(suggestion.originalText!) ? suggestion.improvedText! : h
+              richTextToPlainText(h).includes(suggestion.originalText!) ? suggestion.improvedText! : h
             );
             if (updatedHighlights.some((h, i) => h !== exp.highlights[i])) {
               return { ...exp, highlights: updatedHighlights };

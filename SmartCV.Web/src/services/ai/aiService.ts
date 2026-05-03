@@ -5,6 +5,7 @@ import type {
 	OptimizationSuggestion,
 } from '../../types/ai'
 import type { Resume } from '../../types/resume'
+import { richTextToPlainText } from '../../lib/richText'
 
 const API_BASE = import.meta.env.VITE_API_URL ?? '/api'
 
@@ -188,7 +189,7 @@ function formatResumeAsText(resume: Resume): string {
 
 	if (summary) {
 		lines.push('\nSUMMARY:')
-		lines.push(summary)
+		lines.push(richTextToPlainText(summary))
 	}
 
 	if (experience.length > 0) {
@@ -197,8 +198,8 @@ function formatResumeAsText(resume: Resume): string {
 			lines.push(
 				`${exp.position} at ${exp.company} (${exp.startDate} - ${exp.current ? 'Present' : (exp.endDate ?? '')})`,
 			)
-			if (exp.description) lines.push(exp.description)
-			exp.highlights.forEach(h => lines.push(`• ${h}`))
+			if (exp.description) lines.push(richTextToPlainText(exp.description))
+			exp.highlights.forEach(h => lines.push(`• ${richTextToPlainText(h)}`))
 		})
 	}
 
@@ -220,7 +221,7 @@ function formatResumeAsText(resume: Resume): string {
 	if (projects.length > 0) {
 		lines.push('\nPROJECTS:')
 		projects.forEach(p => {
-			lines.push(`${p.name}: ${p.description}`)
+			lines.push(`${p.name}: ${richTextToPlainText(p.description)}`)
 			if (p.technologies.length > 0) lines.push(`Technologies: ${p.technologies.join(', ')}`)
 		})
 	}

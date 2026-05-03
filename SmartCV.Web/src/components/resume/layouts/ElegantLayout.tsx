@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import type { LayoutProps } from '../resumeTypes';
-import { ContactRow, contactItems, ExpEntry, EduEntry, CertList, LangList, HighlightList, AchievementRows, InterestsList, RefereesBlock } from '../resumeShared';
+import { ContactRow, contactItems, ExpEntry, EduEntry, CertList, LangList, HighlightList, AchievementRows, InterestsList, RefereesBlock, sectionTitle } from '../resumeShared';
+import { isRichTextEmpty } from '../../../lib/richText';
+import { RichTextContent } from '../RichText';
 import { DEFAULT_SECTION_ORDER } from '../../../types/resume';
 
 export function ElegantLayout({ r, theme }: LayoutProps) {
@@ -13,23 +15,23 @@ export function ElegantLayout({ r, theme }: LayoutProps) {
     switch (key) {
       case 'summary':
         return summary ? (
-          <ElegantSection key="summary" title={t('resumeLayout.sections.summary')} gold={gold} light={theme.light}>
-            <p style={{ textAlign: 'justify', color: '#4a3c28', whiteSpace: 'pre-wrap' }}>{summary}</p>
+          <ElegantSection key="summary" title={sectionTitle(r, 'summary', t('resumeLayout.sections.summary'))} gold={gold} light={theme.light}>
+            <RichTextContent html={summary} style={{ textAlign: 'justify', color: '#4a3c28', whiteSpace: 'pre-wrap' }} />
           </ElegantSection>
         ) : null;
       case 'coreHighlights':
-        return (coreHighlights ?? []).filter(h => h.text).length > 0 ? (
-          <ElegantSection key="coreHighlights" title={t('resumeLayout.sections.coreHighlights')} gold={gold} light={theme.light}>
+        return (coreHighlights ?? []).filter(h => !isRichTextEmpty(h.text)).length > 0 ? (
+          <ElegantSection key="coreHighlights" title={sectionTitle(r, 'coreHighlights', t('resumeLayout.sections.coreHighlights'))} gold={gold} light={theme.light}>
             <ul style={{ paddingLeft: '18px', margin: 0 }}>
-              {(coreHighlights ?? []).filter(h => h.text).map(h => (
-                <li key={h.id} style={{ marginBottom: '3px', color: '#4a3c28' }}>{h.text}</li>
+              {(coreHighlights ?? []).filter(h => !isRichTextEmpty(h.text)).map(h => (
+                <li key={h.id} style={{ marginBottom: '3px', color: '#4a3c28' }}><RichTextContent html={h.text} /></li>
               ))}
             </ul>
           </ElegantSection>
         ) : null;
       case 'skills':
         return skills.length > 0 ? (
-          <ElegantSection key="skills" title={t('resumeLayout.sections.skills')} gold={gold} light={theme.light}>
+          <ElegantSection key="skills" title={sectionTitle(r, 'skills', t('resumeLayout.sections.skills'))} gold={gold} light={theme.light}>
             <div style={{ columns: 2, columnGap: '16px' }}>
               {skills.map(s => (
                 <div key={s.id} style={{ breakInside: 'avoid', marginBottom: '4px' }}>
@@ -42,7 +44,7 @@ export function ElegantLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'experience':
         return experience.length > 0 ? (
-          <ElegantSection key="experience" title={t('resumeLayout.sections.experience')} gold={gold} light={theme.light}>
+          <ElegantSection key="experience" title={sectionTitle(r, 'experience', t('resumeLayout.sections.experience'))} gold={gold} light={theme.light}>
             {experience.map(exp => (
               <ExpEntry key={exp.id} exp={exp}
                 companyColor={gold} locColor="#7a6a50" locFontSize="9.5pt"
@@ -54,7 +56,7 @@ export function ElegantLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'education':
         return education.length > 0 ? (
-          <ElegantSection key="education" title={t('resumeLayout.sections.education')} gold={gold} light={theme.light}>
+          <ElegantSection key="education" title={sectionTitle(r, 'education', t('resumeLayout.sections.education'))} gold={gold} light={theme.light}>
             {education.map(edu => (
               <EduEntry key={edu.id} edu={edu}
                 accentColor={gold} dateColor="#7a6a50" dateFontSize="9.5pt" dateItalic
@@ -64,12 +66,12 @@ export function ElegantLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'projects':
         return projects.length > 0 ? (
-          <ElegantSection key="projects" title={t('resumeLayout.sections.projects')} gold={gold} light={theme.light}>
+          <ElegantSection key="projects" title={sectionTitle(r, 'projects', t('resumeLayout.sections.projects'))} gold={gold} light={theme.light}>
             {projects.map(p => (
               <div key={p.id} style={{ marginBottom: '8px' }}>
                 <span style={{ fontWeight: 700 }}>{p.name}</span>
                 {p.technologies.length > 0 && <span style={{ color: '#7a6a50', fontSize: '9.5pt', marginLeft: '6px' }}>({p.technologies.join(', ')})</span>}
-                <p style={{ color: '#4a3c28', marginTop: '2px', whiteSpace: 'pre-wrap' }}>{p.description}</p>
+                <RichTextContent html={p.description} style={{ color: '#4a3c28', marginTop: '2px', whiteSpace: 'pre-wrap' }} />
                 <HighlightList highlights={p.highlights ?? []} color="#4a3c28" />
               </div>
             ))}
@@ -77,31 +79,31 @@ export function ElegantLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'certifications':
         return certifications.length > 0 ? (
-          <ElegantSection key="certifications" title={t('resumeLayout.sections.certifications')} gold={gold} light={theme.light}>
+          <ElegantSection key="certifications" title={sectionTitle(r, 'certifications', t('resumeLayout.sections.certifications'))} gold={gold} light={theme.light}>
             <CertList items={certifications} dateColor="#7a6a50" dateFontSize="9.5pt" dateItalic />
           </ElegantSection>
         ) : null;
       case 'languages':
         return languages.length > 0 ? (
-          <ElegantSection key="languages" title={t('resumeLayout.sections.languages')} gold={gold} light={theme.light}>
+          <ElegantSection key="languages" title={sectionTitle(r, 'languages', t('resumeLayout.sections.languages'))} gold={gold} light={theme.light}>
             <LangList items={languages} color="#4a3c28" />
           </ElegantSection>
         ) : null;
       case 'achievements':
         return (r.achievements ?? []).filter(a => a.title).length > 0 ? (
-          <ElegantSection key="achievements" title={t('resumeLayout.sections.achievements')} gold={gold} light={theme.light}>
+          <ElegantSection key="achievements" title={sectionTitle(r, 'achievements', t('resumeLayout.sections.achievements'))} gold={gold} light={theme.light}>
             <AchievementRows achievements={r.achievements} accent={gold} />
           </ElegantSection>
         ) : null;
       case 'interests':
         return (r.interests ?? []).filter(i => i.name).length > 0 ? (
-          <ElegantSection key="interests" title={t('resumeLayout.sections.interests')} gold={gold} light={theme.light}>
+          <ElegantSection key="interests" title={sectionTitle(r, 'interests', t('resumeLayout.sections.interests'))} gold={gold} light={theme.light}>
             <p style={{ color: '#4a3c28' }}><InterestsList r={r} /></p>
           </ElegantSection>
         ) : null;
       case 'referees':
         return (r.referees?.length ?? 0) > 0 ? (
-          <ElegantSection key="referees" title={t('resumeLayout.sections.referees')} gold={gold} light={theme.light}>
+          <ElegantSection key="referees" title={sectionTitle(r, 'referees', t('resumeLayout.sections.referees'))} gold={gold} light={theme.light}>
             <RefereesBlock r={r} />
           </ElegantSection>
         ) : null;

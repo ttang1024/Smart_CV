@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import type { LayoutProps, ThemeColors } from '../resumeTypes';
-import { ContactRow, contactItems, ExpEntry, EduEntry, CertList, LangList, HighlightList, AchievementRows, InterestsList, RefereesBlock } from '../resumeShared';
+import { ContactRow, contactItems, ExpEntry, EduEntry, CertList, LangList, HighlightList, AchievementRows, InterestsList, RefereesBlock, sectionTitle } from '../resumeShared';
+import { isRichTextEmpty } from '../../../lib/richText';
+import { RichTextContent } from '../RichText';
 import { DEFAULT_SECTION_ORDER } from '../../../types/resume';
 
 export function MinimalLayout({ r, theme }: LayoutProps) {
@@ -12,18 +14,18 @@ export function MinimalLayout({ r, theme }: LayoutProps) {
     switch (key) {
       case 'summary':
         return summary ? (
-          <MinimalSection key="summary" title={t('resumeLayout.sections.summary')} theme={theme}>
-            <p style={{ color: '#444444', textAlign: 'justify', whiteSpace: 'pre-wrap' }}>{summary}</p>
+          <MinimalSection key="summary" title={sectionTitle(r, 'summary', t('resumeLayout.sections.summary'))} theme={theme}>
+            <RichTextContent html={summary} style={{ color: '#444444', textAlign: 'justify', whiteSpace: 'pre-wrap' }} />
           </MinimalSection>
         ) : null;
       case 'coreHighlights':
         return coreHighlights?.length > 0 ? (
-          <MinimalSection key="coreHighlights" title={t('resumeLayout.sections.highlightsMinimal')} theme={theme}>
+          <MinimalSection key="coreHighlights" title={sectionTitle(r, 'coreHighlights', t('resumeLayout.sections.highlightsMinimal'))} theme={theme}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-              {coreHighlights.filter(h => h.text).map(h => (
+              {coreHighlights.filter(h => !isRichTextEmpty(h.text)).map(h => (
                 <div key={h.id} style={{ color: '#444444', paddingLeft: '12px', position: 'relative' }}>
                   <span style={{ position: 'absolute', left: 0, color: '#aaaaaa' }}>—</span>
-                  {h.text}
+                  <RichTextContent html={h.text} />
                 </div>
               ))}
             </div>
@@ -31,7 +33,7 @@ export function MinimalLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'skills':
         return skills.length > 0 ? (
-          <MinimalSection key="skills" title={t('resumeLayout.sections.skills')} theme={theme}>
+          <MinimalSection key="skills" title={sectionTitle(r, 'skills', t('resumeLayout.sections.skills'))} theme={theme}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
               {skills.map(s => (
                 <div key={s.id}>
@@ -44,7 +46,7 @@ export function MinimalLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'experience':
         return experience.length > 0 ? (
-          <MinimalSection key="experience" title={t('resumeLayout.sections.experience')} theme={theme}>
+          <MinimalSection key="experience" title={sectionTitle(r, 'experience', t('resumeLayout.sections.experience'))} theme={theme}>
             {experience.map(exp => (
               <ExpEntry key={exp.id} exp={exp}
                 companyColor="#888888" locColor="#aaaaaa" locSep=", "
@@ -55,7 +57,7 @@ export function MinimalLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'education':
         return education.length > 0 ? (
-          <MinimalSection key="education" title={t('resumeLayout.sections.education')} theme={theme}>
+          <MinimalSection key="education" title={sectionTitle(r, 'education', t('resumeLayout.sections.education'))} theme={theme}>
             {education.map(edu => (
               <EduEntry key={edu.id} edu={edu}
                 accentColor="#888888" instSep=", "
@@ -65,14 +67,14 @@ export function MinimalLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'projects':
         return projects.length > 0 ? (
-          <MinimalSection key="projects" title={t('resumeLayout.sections.projects')} theme={theme}>
+          <MinimalSection key="projects" title={sectionTitle(r, 'projects', t('resumeLayout.sections.projects'))} theme={theme}>
             {projects.map(p => (
               <div key={p.id} style={{ marginBottom: '8px' }}>
                 <span style={{ fontWeight: 600 }}>{p.name}</span>
                 {p.technologies.length > 0 && (
                   <span style={{ color: '#999999', fontSize: '9pt', marginLeft: '6px' }}>{p.technologies.join(', ')}</span>
                 )}
-                <p style={{ color: '#555555', marginTop: '2px', whiteSpace: 'pre-wrap' }}>{p.description}</p>
+                <RichTextContent html={p.description} style={{ color: '#555555', marginTop: '2px', whiteSpace: 'pre-wrap' }} />
                 <HighlightList highlights={p.highlights ?? []} color="#555555" />
               </div>
             ))}
@@ -80,31 +82,31 @@ export function MinimalLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'certifications':
         return certifications.length > 0 ? (
-          <MinimalSection key="certifications" title={t('resumeLayout.sections.certifications')} theme={theme}>
+          <MinimalSection key="certifications" title={sectionTitle(r, 'certifications', t('resumeLayout.sections.certifications'))} theme={theme}>
             <CertList items={certifications} dateColor="#aaaaaa" />
           </MinimalSection>
         ) : null;
       case 'languages':
         return languages.length > 0 ? (
-          <MinimalSection key="languages" title={t('resumeLayout.sections.languages')} theme={theme}>
+          <MinimalSection key="languages" title={sectionTitle(r, 'languages', t('resumeLayout.sections.languages'))} theme={theme}>
             <LangList items={languages} gap="8px 20px" color="#555555" />
           </MinimalSection>
         ) : null;
       case 'achievements':
         return (r.achievements ?? []).filter(a => a.title).length > 0 ? (
-          <MinimalSection key="achievements" title={t('resumeLayout.sections.achievements')} theme={theme}>
+          <MinimalSection key="achievements" title={sectionTitle(r, 'achievements', t('resumeLayout.sections.achievements'))} theme={theme}>
             <AchievementRows achievements={r.achievements} accent={theme.main} />
           </MinimalSection>
         ) : null;
       case 'interests':
         return (r.interests ?? []).filter(i => i.name).length > 0 ? (
-          <MinimalSection key="interests" title={t('resumeLayout.sections.interests')} theme={theme}>
+          <MinimalSection key="interests" title={sectionTitle(r, 'interests', t('resumeLayout.sections.interests'))} theme={theme}>
             <p style={{ color: '#555555' }}><InterestsList r={r} /></p>
           </MinimalSection>
         ) : null;
       case 'referees':
         return (r.referees?.length ?? 0) > 0 ? (
-          <MinimalSection key="referees" title={t('resumeLayout.sections.referees')} theme={theme}>
+          <MinimalSection key="referees" title={sectionTitle(r, 'referees', t('resumeLayout.sections.referees'))} theme={theme}>
             <RefereesBlock r={r} />
           </MinimalSection>
         ) : null;

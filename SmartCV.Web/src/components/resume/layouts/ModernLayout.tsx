@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import type { LayoutProps } from '../resumeTypes';
-import { ContactRow, contactItems, ExpEntry, EduEntry, CertList, LangList, HighlightList, AchievementRows, InterestsList, RefereesBlock } from '../resumeShared';
+import { ContactRow, contactItems, ExpEntry, EduEntry, CertList, LangList, HighlightList, AchievementRows, InterestsList, RefereesBlock, sectionTitle } from '../resumeShared';
+import { isRichTextEmpty } from '../../../lib/richText';
+import { RichTextContent } from '../RichText';
 import { DEFAULT_SECTION_ORDER } from '../../../types/resume';
 
 export function ModernLayout({ r, theme }: LayoutProps) {
@@ -13,18 +15,18 @@ export function ModernLayout({ r, theme }: LayoutProps) {
     switch (key) {
       case 'summary':
         return summary ? (
-          <ModernSection key="summary" title={t('resumeLayout.sections.summary')} accent={accent}>
-            <p style={{ color: '#374151', textAlign: 'justify', whiteSpace: 'pre-wrap' }}>{summary}</p>
+          <ModernSection key="summary" title={sectionTitle(r, 'summary', t('resumeLayout.sections.summary'))} accent={accent}>
+            <RichTextContent html={summary} style={{ color: '#374151', textAlign: 'justify', whiteSpace: 'pre-wrap' }} />
           </ModernSection>
         ) : null;
       case 'coreHighlights':
         return coreHighlights?.length > 0 ? (
-          <ModernSection key="coreHighlights" title={t('resumeLayout.sections.coreHighlights')} accent={accent}>
+          <ModernSection key="coreHighlights" title={sectionTitle(r, 'coreHighlights', t('resumeLayout.sections.coreHighlights'))} accent={accent}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              {coreHighlights.filter(h => h.text).map(h => (
+              {coreHighlights.filter(h => !isRichTextEmpty(h.text)).map(h => (
                 <div key={h.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
                   <span style={{ color: accent, fontWeight: 700, fontSize: '13pt', lineHeight: '1.1', flexShrink: 0 }}>›</span>
-                  <span style={{ color: '#374151' }}>{h.text}</span>
+                  <span style={{ color: '#374151' }}><RichTextContent html={h.text} /></span>
                 </div>
               ))}
             </div>
@@ -32,7 +34,7 @@ export function ModernLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'experience':
         return experience.length > 0 ? (
-          <ModernSection key="experience" title={t('resumeLayout.sections.experience')} accent={accent}>
+          <ModernSection key="experience" title={sectionTitle(r, 'experience', t('resumeLayout.sections.experience'))} accent={accent}>
             {experience.map(exp => (
               <ExpEntry key={exp.id} exp={exp}
                 companyColor={accent} companyWeight={500}
@@ -44,7 +46,7 @@ export function ModernLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'education':
         return education.length > 0 ? (
-          <ModernSection key="education" title={t('resumeLayout.sections.education')} accent={accent}>
+          <ModernSection key="education" title={sectionTitle(r, 'education', t('resumeLayout.sections.education'))} accent={accent}>
             {education.map(edu => (
               <EduEntry key={edu.id} edu={edu}
                 accentColor={accent} dateColor="#9ca3af" gpaColor="#6b7280" />
@@ -53,7 +55,7 @@ export function ModernLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'skills':
         return skills.length > 0 ? (
-          <ModernSection key="skills" title={t('resumeLayout.sections.skills')} accent={accent}>
+          <ModernSection key="skills" title={sectionTitle(r, 'skills', t('resumeLayout.sections.skills'))} accent={accent}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               {skills.map(s => (
                 <div key={s.id} style={{ display: 'flex', gap: '8px', alignItems: 'baseline' }}>
@@ -66,14 +68,14 @@ export function ModernLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'projects':
         return projects.length > 0 ? (
-          <ModernSection key="projects" title={t('resumeLayout.sections.projects')} accent={accent}>
+          <ModernSection key="projects" title={sectionTitle(r, 'projects', t('resumeLayout.sections.projects'))} accent={accent}>
             {projects.map(p => (
               <div key={p.id} style={{ marginBottom: '8px' }}>
                 <span style={{ fontWeight: 700 }}>{p.name}</span>
                 {p.technologies.length > 0 && (
                   <span style={{ fontSize: '9pt', color: '#9ca3af', marginLeft: '6px' }}>[{p.technologies.join(', ')}]</span>
                 )}
-                <p style={{ color: '#4b5563', marginTop: '2px', whiteSpace: 'pre-wrap' }}>{p.description}</p>
+                <RichTextContent html={p.description} style={{ color: '#4b5563', marginTop: '2px', whiteSpace: 'pre-wrap' }} />
                 <HighlightList highlights={p.highlights ?? []} color="#4b5563" />
               </div>
             ))}
@@ -81,31 +83,31 @@ export function ModernLayout({ r, theme }: LayoutProps) {
         ) : null;
       case 'certifications':
         return certifications.length > 0 ? (
-          <ModernSection key="certifications" title={t('resumeLayout.sections.certifications')} accent={accent}>
+          <ModernSection key="certifications" title={sectionTitle(r, 'certifications', t('resumeLayout.sections.certifications'))} accent={accent}>
             <CertList items={certifications} dateColor="#9ca3af" />
           </ModernSection>
         ) : null;
       case 'languages':
         return languages.length > 0 ? (
-          <ModernSection key="languages" title={t('resumeLayout.sections.languages')} accent={accent}>
+          <ModernSection key="languages" title={sectionTitle(r, 'languages', t('resumeLayout.sections.languages'))} accent={accent}>
             <LangList items={languages} gap="8px 20px" profColor="#9ca3af" />
           </ModernSection>
         ) : null;
       case 'achievements':
         return (r.achievements ?? []).filter(a => a.title).length > 0 ? (
-          <ModernSection key="achievements" title={t('resumeLayout.sections.achievements')} accent={accent}>
+          <ModernSection key="achievements" title={sectionTitle(r, 'achievements', t('resumeLayout.sections.achievements'))} accent={accent}>
             <AchievementRows achievements={r.achievements} accent={accent} />
           </ModernSection>
         ) : null;
       case 'interests':
         return (r.interests ?? []).filter(i => i.name).length > 0 ? (
-          <ModernSection key="interests" title={t('resumeLayout.sections.interests')} accent={accent}>
+          <ModernSection key="interests" title={sectionTitle(r, 'interests', t('resumeLayout.sections.interests'))} accent={accent}>
             <p style={{ color: '#374151' }}><InterestsList r={r} /></p>
           </ModernSection>
         ) : null;
       case 'referees':
         return (r.referees?.length ?? 0) > 0 ? (
-          <ModernSection key="referees" title={t('resumeLayout.sections.referees')} accent={accent}>
+          <ModernSection key="referees" title={sectionTitle(r, 'referees', t('resumeLayout.sections.referees'))} accent={accent}>
             <RefereesBlock r={r} />
           </ModernSection>
         ) : null;
