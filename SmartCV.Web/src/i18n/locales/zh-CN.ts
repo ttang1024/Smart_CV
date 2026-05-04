@@ -13,7 +13,7 @@ const zhCN = {
       reviews: '用户评价',
       faq: '常见问题',
       github: 'GitHub',
-      getStarted: '免费开始',
+      getStarted: '开始',
     },
     hero: {
       openSource: '在 GitHub 上开源',

@@ -13,7 +13,7 @@ const es = {
       reviews: 'Reseñas',
       faq: 'Preguntas frecuentes',
       github: 'GitHub',
-      getStarted: 'Comenzar gratis',
+      getStarted: 'Comenzar',
     },
     hero: {
       openSource: 'Código abierto en GitHub',

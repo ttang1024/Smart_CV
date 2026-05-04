@@ -13,7 +13,7 @@ const zhTW = {
       reviews: '使用者評價',
       faq: '常見問題',
       github: 'GitHub',
-      getStarted: '免費開始',
+      getStarted: '開始',
     },
     hero: {
       openSource: '在 GitHub 上開源',

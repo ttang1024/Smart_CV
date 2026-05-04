@@ -15,7 +15,7 @@ const en = {
       reviews: 'Reviews',
       faq: 'FAQ',
       github: 'GitHub',
-      getStarted: 'Get started free',
+      getStarted: 'Get started',
     },
     hero: {
       openSource: 'Open Source on GitHub',
