@@ -23,7 +23,7 @@ AI-powered resume builder. Runs entirely in your browser — no account, no clou
 - **One-click PDF export** — pixel-perfect A4 PDF powered by Puppeteer
 - **Autosave** — changes are debounced and persisted to IndexedDB
 - **Fully private** — all data stays in the browser; the only outbound traffic is your own AI API calls
-- **Bring your own AI** — configure OpenAI, Claude, Gemini, Grok, or Qianwen in Settings
+- **Bring your own AI** — configure OpenAI, Claude, Gemini, Grok, DeepSeek, or Qianwen in Settings
 
 ---
 

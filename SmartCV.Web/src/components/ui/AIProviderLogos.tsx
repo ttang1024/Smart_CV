@@ -23,6 +23,10 @@ export function GrokLogo({ className, style }: LogoProps) {
   return <ImageLogo src="/images/grok.ico" alt="Grok" className={className} style={style} />;
 }
 
+export function DeepSeekLogo({ className, style }: LogoProps) {
+  return <ImageLogo src="/images/deepseek.png" alt="DeepSeek" className={className} style={style} />;
+}
+
 export function QianwenLogo({ className, style }: LogoProps) {
   return <ImageLogo src="/images/qwen.png" alt="Qianwen" className={className} style={style} />;
 }

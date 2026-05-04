@@ -3,6 +3,7 @@ export type AIProviderType =
 	| 'gemini'
 	| 'claude'
 	| 'grok'
+	| 'deepseek'
 	| 'qianwen'
 	| 'kimi'
 	| 'doubao'
@@ -86,6 +87,11 @@ export const AI_PROVIDER_CONFIGS: Record<
 		name: 'xAI Grok',
 		color: '#1d9bf0',
 		defaultModel: 'grok-3',
+	},
+	deepseek: {
+		name: 'DeepSeek',
+		color: '#4d6bfe',
+		defaultModel: 'deepseek-v4-flash',
 	},
 	qianwen: {
 		name: 'Qwen (Alibaba)',

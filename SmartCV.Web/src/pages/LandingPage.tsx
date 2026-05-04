@@ -18,7 +18,7 @@ import LanguageSwitcher from '../components/ui/LanguageSwitcher';
 import { AI_PROVIDER_CONFIGS, type AIProviderType } from '../types/ai';
 import {
   OpenAILogo, GeminiLogo, ClaudeLogo, GrokLogo,
-  QianwenLogo, KimiLogo, DoubaoLogo, WenyanyixinLogo,
+  DeepSeekLogo, QianwenLogo, KimiLogo, DoubaoLogo, WenyanyixinLogo,
 } from '../components/ui/AIProviderLogos';
 
 
@@ -114,7 +114,7 @@ const DEPLOYMENT_LINES: Record<DeployTab, { prompt: string | null; cmd: string; 
 };
 
 const AI_PROVIDER_ORDER: AIProviderType[] = [
-  'openai', 'gemini', 'claude', 'grok', 'qianwen',
+  'openai', 'gemini', 'claude', 'grok', 'qianwen', 'deepseek',
   //  'kimi', 'doubao', 'wenyanyixin',
 ];
 
@@ -123,6 +123,7 @@ const AI_PROVIDER_ACCESS: Record<AIProviderType, { keyHint: string; free: string
   gemini: { keyHint: 'AIza...', free: 'Free tier', url: 'https://aistudio.google.com/app/apikey' },
   claude: { keyHint: 'sk-ant-...', free: 'Free tier', url: 'https://console.anthropic.com/settings/keys' },
   grok: { keyHint: 'xai-...', free: 'Free tier', url: 'https://console.x.ai' },
+  deepseek: { keyHint: 'sk-...', free: 'Low cost', url: 'https://platform.deepseek.com/api_keys' },
   qianwen: { keyHint: 'sk-...', free: 'Free credits', url: 'https://dashscope.aliyuncs.com' },
   kimi: { keyHint: 'sk-...', free: 'Free credits', url: 'https://platform.moonshot.cn/console/api-keys' },
   doubao: { keyHint: 'custom', free: 'Low cost', url: 'https://console.volcengine.com/ark' },
@@ -134,6 +135,7 @@ const AI_PROVIDER_LOGOS: Record<AIProviderType, React.ComponentType<{ className?
   gemini: GeminiLogo,
   claude: ClaudeLogo,
   grok: GrokLogo,
+  deepseek: DeepSeekLogo,
   qianwen: QianwenLogo,
   kimi: KimiLogo,
   doubao: DoubaoLogo,
@@ -562,10 +564,9 @@ export default function LandingPage() {
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2 min-w-0">
                               <div
-                                className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                                style={{ background: `${meta.color}18` }}
+                                className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
                               >
-                                <Logo className="w-4.5 h-4.5" style={{ color: meta.color }} />
+                                <Logo className="w-6 h-6" style={{ color: meta.color }} />
                               </div>
                               <span className="text-sm font-bold truncate" style={{ color: meta.color }}>{meta.name}</span>
                             </div>

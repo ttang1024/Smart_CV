@@ -24,6 +24,9 @@ public class AIProxyService(IHttpClientFactory httpClientFactory, ILogger<AIProx
             "grok" => await ProxyOpenAICompatibleAsync(
                 "https://api.x.ai/v1/chat/completions",
                 request, ct),
+            "deepseek" => await ProxyOpenAICompatibleAsync(
+                "https://api.deepseek.com/chat/completions",
+                request, ct),
             "qianwen" => await ProxyOpenAICompatibleAsync(
                 "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
                 request, ct),

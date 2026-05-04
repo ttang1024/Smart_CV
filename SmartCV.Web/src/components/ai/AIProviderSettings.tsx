@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import type { AIProviderType } from '../../types/ai';
 import { AI_PROVIDER_CONFIGS } from '../../types/ai';
 import { useSettingsStore } from '../../store/settingsStore';
-import { OpenAILogo, GeminiLogo, ClaudeLogo, GrokLogo, QianwenLogo, KimiLogo, DoubaoLogo, WenyanyixinLogo } from '../ui/AIProviderLogos';
+import { OpenAILogo, GeminiLogo, ClaudeLogo, GrokLogo, DeepSeekLogo, QianwenLogo, KimiLogo, DoubaoLogo, WenyanyixinLogo } from '../ui/AIProviderLogos';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
 
@@ -13,6 +13,7 @@ const PROVIDER_MODEL_HINTS: Record<AIProviderType, string> = {
   gemini: 'e.g. gemini-2.5-pro, gemini-2.0-flash',
   claude: 'e.g. claude-opus-4-7, claude-sonnet-4-6',
   grok: 'e.g. grok-3, grok-3-mini',
+  deepseek: 'e.g. deepseek-v4-flash, deepseek-v4-pro, deepseek-reasoner',
   qianwen: 'e.g. qwen-plus, qwen-max, qwen-turbo',
   kimi: 'e.g. moonshot-v1-32k, moonshot-v1-128k, kimi-k2-0711-preview',
   doubao: 'e.g. doubao-pro-32k, doubao-lite-32k',
@@ -24,6 +25,7 @@ const PROVIDER_LOGOS: Record<AIProviderType, React.ComponentType<{ className?: s
   gemini: GeminiLogo,
   claude: ClaudeLogo,
   grok: GrokLogo,
+  deepseek: DeepSeekLogo,
   qianwen: QianwenLogo,
   kimi: KimiLogo,
   doubao: DoubaoLogo,
@@ -35,10 +37,11 @@ export default function AIProviderSettings() {
   const { t } = useTranslation();
   const [showKeys, setShowKeys] = useState<Record<AIProviderType, boolean>>({
     openai: false, gemini: false, claude: false, grok: false,
+    deepseek: false,
     qianwen: false, kimi: false, doubao: false, wenyanyixin: false
   });
 
-  const providers: AIProviderType[] = ['openai', 'gemini', 'claude', 'grok', 'qianwen',
+  const providers: AIProviderType[] = ['openai', 'gemini', 'claude', 'grok', 'deepseek', 'qianwen',
     // 'kimi', 'doubao','wenyanyixin'
   ];
 
@@ -61,14 +64,12 @@ export default function AIProviderSettings() {
           role="switch"
           aria-checked={aiSettings.useAI}
           onClick={() => setUseAI(!aiSettings.useAI)}
-          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none ${
-            aiSettings.useAI ? 'bg-emerald-600' : 'bg-gray-200'
-          }`}
+          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none ${aiSettings.useAI ? 'bg-emerald-600' : 'bg-gray-200'
+            }`}
         >
           <span
-            className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform duration-200 ${
-              aiSettings.useAI ? 'translate-x-5' : 'translate-x-0'
-            }`}
+            className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform duration-200 ${aiSettings.useAI ? 'translate-x-5' : 'translate-x-0'
+              }`}
           />
         </button>
       </div>
@@ -93,9 +94,8 @@ export default function AIProviderSettings() {
                 <div className="flex items-center gap-3">
                   <div
                     className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                    style={{ backgroundColor: `${meta.color}18` }}
                   >
-                    <Logo className="w-5 h-5" style={{ color: meta.color }} />
+                    <Logo className="w-7 h-7" style={{ color: meta.color }} />
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 text-sm">{meta.name}</h3>

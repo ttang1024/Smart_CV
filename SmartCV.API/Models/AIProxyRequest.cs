@@ -18,6 +18,7 @@ public enum AIProvider
     Gemini,
     Claude,
     Grok,
+    DeepSeek,
     Qianwen,
     Kimi,
     Doubao,

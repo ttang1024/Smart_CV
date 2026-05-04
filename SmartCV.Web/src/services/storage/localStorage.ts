@@ -14,6 +14,7 @@ const DEFAULT_AI_SETTINGS: AISettings = {
     gemini: { apiKey: '', model: 'gemini-2.5-pro' },
     claude: { apiKey: '', model: 'claude-opus-4-6' },
     grok: { apiKey: '', model: 'grok-3' },
+    deepseek: { apiKey: '', model: 'deepseek-v4-flash' },
     qianwen: { apiKey: '', model: 'qwen-plus' },
     kimi: { apiKey: '', model: 'moonshot-v1-32k' },
     doubao: { apiKey: '', model: 'doubao-pro-32k' },
