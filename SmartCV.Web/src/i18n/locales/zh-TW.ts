@@ -396,6 +396,8 @@ const zhTW = {
       generating: '生成中…',
       downloadPdf: '下載 PDF',
       themeColour: '主題色：',
+      backgroundColour: '背景色：',
+      fullNameColour: '姓名顏色：',
       pageMargins: '頁邊距：',
       marginTop: '上',
       marginBottom: '下',

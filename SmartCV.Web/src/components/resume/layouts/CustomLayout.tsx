@@ -6,7 +6,7 @@ import { isRichTextEmpty } from '../../../lib/richText';
 import { RichTextContent } from '../RichText';
 import { DEFAULT_SECTION_ORDER } from '../../../types/resume';
 
-export function CustomLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_MM, options }: LayoutProps & { options: CustomOptions }) {
+export function CustomLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_MM, backgroundColor = theme.dark, fullNameColor = '#ffffff', options }: LayoutProps & { options: CustomOptions }) {
   const { t } = useTranslation();
   const { personalInfo: p, summary, coreHighlights, experience, education, skills, projects, certifications, languages } = r;
   const accent = theme.main;
@@ -119,38 +119,67 @@ export function CustomLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_MM
 
   if (options.layoutMode === 'two-column') {
     return (
-      <div style={{ ...baseStyle, display: 'flex', minHeight: '297mm' }}>
-        <div style={{ width: '65mm', flexShrink: 0, background: theme.light, padding: `${pageMarginsMm.top}mm 8mm ${pageMarginsMm.bottom}mm ${pageMarginsMm.left}mm`, fontSize: '9.5pt' }}>
-          <div style={{ marginBottom: '12px', paddingBottom: '10px', borderBottom: `2px solid ${accent}` }}>
-            <h1 style={{ fontSize: '13pt', fontWeight: 700, color: theme.dark, lineHeight: 1.2, marginBottom: '3px' }}>{p.fullName || 'Your Name'}</h1>
+      <div style={{ ...baseStyle, position: 'relative' }}>
+        <div style={{ float: 'left', width: '78mm', height: '297mm' }} />
+        <div style={{ position: 'absolute', top: 0, left: 0, width: '68mm', height: 'calc(297mm + 1px)', overflow: 'hidden', background: backgroundColor, color: '#e2e8f0', padding: `${pageMarginsMm.top}mm 7mm 0 ${pageMarginsMm.left}mm`, fontSize: '9.5pt' }}>
+          <div style={{ marginBottom: '14px', paddingBottom: '10px', borderBottom: `2px solid ${accent}` }}>
+            <h1 style={{ fontSize: '14pt', fontWeight: 700, color: fullNameColor, lineHeight: 1.2, marginBottom: '4px' }}>{p.fullName || 'Your Name'}</h1>
             {p.title && <p style={{ fontSize: '9pt', color: accent, fontWeight: 500 }}>{p.title}</p>}
           </div>
           <div style={{ marginBottom: '14px' }}>
-            <div style={{ fontSize: '8pt', fontWeight: 700, color: accent, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '5px' }}>{sectionTitle(r, 'personalInfo', t('resumeLayout.sections.contact'))}</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', fontSize: '8.5pt', color: '#4b5563' }}>
+            <div style={{ fontSize: '8pt', fontWeight: 700, color: accent, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '6px' }}>{sectionTitle(r, 'personalInfo', t('resumeLayout.sections.contact'))}</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '8.5pt', color: '#94a3b8' }}>
               {contactItems(p).map((item, i) => (
-                <span key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                   {item.icon}<span style={{ verticalAlign: 'middle' }}>{item.text}</span>
                 </span>
               ))}
             </div>
           </div>
-          {skills.length > 0 && <Sec title={sectionTitle(r, 'skills', t('resumeLayout.sections.skillsShort'))}>{renderSkills(1)}</Sec>}
-          {education.length > 0 && <Sec title={sectionTitle(r, 'education', t('resumeLayout.sections.education'))}>{renderEducation()}</Sec>}
-          {languages.length > 0 && <Sec title={sectionTitle(r, 'languages', t('resumeLayout.sections.languages'))}><LangList items={languages} gap="4px 8px" profColor="#9ca3af" /></Sec>}
-          {certifications.length > 0 && (
-            <Sec title={sectionTitle(r, 'certifications', t('resumeLayout.sections.certifications'))}>
-              {certifications.map(c => (
-                <div key={c.id} style={{ marginBottom: '5px' }}>
-                  <div style={{ fontWeight: 600, fontSize: '8.5pt' }}>{c.name}</div>
-                  <div style={{ fontSize: '8pt', color: '#6b7280' }}>{c.issuer}</div>
-                  {c.date && <div style={{ fontSize: '8pt', color: '#9ca3af' }}>{c.date}</div>}
+          {skills.length > 0 && (
+            <CustomSidebarSection title={sectionTitle(r, 'skills', t('resumeLayout.sections.skillsShort'))} accent={accent}>
+              {skills.map(s => (
+                <div key={s.id} style={{ marginBottom: '5px' }}>
+                  <div style={{ fontSize: '8.5pt', fontWeight: 600, color: accent, marginBottom: '2px' }}>{s.category}</div>
+                  <div style={{ fontSize: '8.5pt', color: '#94a3b8' }}>{s.items.join(', ')}</div>
                 </div>
               ))}
-            </Sec>
+            </CustomSidebarSection>
+          )}
+          {education.length > 0 && (
+            <CustomSidebarSection title={sectionTitle(r, 'education', t('resumeLayout.sections.education'))} accent={accent}>
+              {education.map(edu => (
+                <div key={edu.id} style={{ marginBottom: '8px', fontSize: '8.5pt' }}>
+                  <div style={{ fontWeight: 600, color: '#e2e8f0' }}>{edu.degree}{edu.field ? ` - ${edu.field}` : ''}</div>
+                  {edu.institution && <div style={{ color: '#94a3b8' }}>{edu.institution}</div>}
+                  <div style={{ color: '#64748b', marginTop: '1px' }}>{dateRange(edu.startDate, edu.endDate, edu.current, presentLabel)}</div>
+                </div>
+              ))}
+            </CustomSidebarSection>
+          )}
+          {languages.length > 0 && (
+            <CustomSidebarSection title={sectionTitle(r, 'languages', t('resumeLayout.sections.languages'))} accent={accent}>
+              {languages.map(l => (
+                <div key={l.id} style={{ fontSize: '8.5pt', marginBottom: '3px' }}>
+                  <span style={{ fontWeight: 600, color: '#e2e8f0' }}>{l.language}</span>
+                  <span style={{ color: '#94a3b8' }}> - {l.proficiency}</span>
+                </div>
+              ))}
+            </CustomSidebarSection>
+          )}
+          {certifications.length > 0 && (
+            <CustomSidebarSection title={sectionTitle(r, 'certifications', t('resumeLayout.sections.certifications'))} accent={accent}>
+              {certifications.map(c => (
+                <div key={c.id} style={{ marginBottom: '5px' }}>
+                  <div style={{ fontWeight: 600, fontSize: '8.5pt', color: '#e2e8f0' }}>{c.name}</div>
+                  <div style={{ fontSize: '8pt', color: '#94a3b8' }}>{c.issuer}</div>
+                  {c.date && <div style={{ fontSize: '8pt', color: '#64748b' }}>{c.date}</div>}
+                </div>
+              ))}
+            </CustomSidebarSection>
           )}
         </div>
-        <div style={{ flex: 1, padding: `${pageMarginsMm.top}mm ${pageMarginsMm.right}mm ${pageMarginsMm.bottom}mm 10mm` }}>
+        <div style={{ padding: `${pageMarginsMm.top}mm ${pageMarginsMm.right}mm ${pageMarginsMm.bottom}mm 10mm`, color: '#1e293b' }}>
           {summary && <Sec title={sectionTitle(r, 'summary', t('resumeLayout.sections.summary'))}>{renderSummary()}</Sec>}
           {(coreHighlights ?? []).filter(h => !isRichTextEmpty(h.text)).length > 0 && (
             <Sec title={sectionTitle(r, 'coreHighlights', t('resumeLayout.sections.coreHighlights'))}>
@@ -163,6 +192,7 @@ export function CustomLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_MM
           {(r.interests ?? []).filter(i => i.name).length > 0 && <Sec title={sectionTitle(r, 'interests', t('resumeLayout.sections.interests'))}><p style={{ color: '#374151' }}><InterestsList r={r} /></p></Sec>}
           {(r.referees?.length ?? 0) > 0 && <Sec title={sectionTitle(r, 'referees', t('resumeLayout.sections.referees'))}><RefereesBlock r={r} /></Sec>}
         </div>
+        <div style={{ clear: 'both' }} />
       </div>
     );
   }
@@ -192,6 +222,21 @@ export function CustomLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_MM
     <div style={{ ...baseStyle, padding: `${pageMarginsMm.top}mm ${pageMarginsMm.right}mm ${pageMarginsMm.bottom}mm ${pageMarginsMm.left}mm` }}>
       {header}
       {sectionOrder.map(key => renderCustomSection(key))}
+    </div>
+  );
+}
+
+function CustomSidebarSection({ title, accent, children }: { title: string; accent: string; children: React.ReactNode }) {
+  return (
+    <div style={{ marginBottom: '14px' }}>
+      <h2 style={{
+        fontSize: '8pt', fontWeight: 700, color: accent,
+        textTransform: 'uppercase', letterSpacing: '0.12em',
+        marginBottom: '6px',
+      }}>
+        {title}
+      </h2>
+      {children}
     </div>
   );
 }

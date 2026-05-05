@@ -407,6 +407,8 @@ const en = {
       generating: 'Generating…',
       downloadPdf: 'Download PDF',
       themeColour: 'Theme colour:',
+      backgroundColour: 'Background colour:',
+      fullNameColour: 'Full name colour:',
       pageMargins: 'Page margins:',
       marginTop: 'Upper',
       marginBottom: 'Lower',

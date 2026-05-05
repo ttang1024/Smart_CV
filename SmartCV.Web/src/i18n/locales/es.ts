@@ -396,6 +396,8 @@ const es = {
       generating: 'Generando…',
       downloadPdf: 'Descargar PDF',
       themeColour: 'Color del tema:',
+      backgroundColour: 'Color de fondo:',
+      fullNameColour: 'Color del nombre:',
       pageMargins: 'Márgenes:',
       marginTop: 'Superior',
       marginBottom: 'Inferior',

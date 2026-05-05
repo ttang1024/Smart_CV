@@ -45,13 +45,19 @@ export interface PageMarginsMm {
 }
 
 export const DEFAULT_PAGE_MARGINS_MM: PageMarginsMm = {
-  top: 14,
-  right: 14,
-  bottom: 14,
-  left: 14,
+  top: 10,
+  right: 10,
+  bottom: 10,
+  left: 10,
 };
 
-export type LayoutProps = { r: Resume; theme: ThemeColors; pageMarginsMm?: PageMarginsMm };
+export type LayoutProps = {
+  r: Resume;
+  theme: ThemeColors;
+  pageMarginsMm?: PageMarginsMm;
+  backgroundColor?: string;
+  fullNameColor?: string;
+};
 
 export function hexToRgb(hex: string): [number, number, number] {
   return [

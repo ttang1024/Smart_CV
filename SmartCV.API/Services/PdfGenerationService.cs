@@ -61,6 +61,7 @@ public class PdfGenerationService : IHostedService
         return await page.PdfDataAsync(new PdfOptions
         {
             Format = PaperFormat.A4,
+            PreferCSSPageSize = true,
             PrintBackground = true,
             MarginOptions = new MarginOptions { Top = "0", Bottom = "0", Left = "0", Right = "0" },
         });

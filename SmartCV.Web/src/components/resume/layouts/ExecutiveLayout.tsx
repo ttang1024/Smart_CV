@@ -5,7 +5,7 @@ import { isRichTextEmpty } from '../../../lib/richText';
 import { RichTextContent } from '../RichText';
 import { DEFAULT_SECTION_ORDER } from '../../../types/resume';
 
-export function ExecutiveLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_MM }: LayoutProps) {
+export function ExecutiveLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_MM, backgroundColor = theme.dark, fullNameColor = '#ffffff' }: LayoutProps) {
   const { t } = useTranslation();
   const { personalInfo: p, summary, coreHighlights, experience, education, skills, projects, certifications, languages } = r;
   const sectionOrder = r.sectionOrder ?? DEFAULT_SECTION_ORDER;
@@ -119,8 +119,8 @@ export function ExecutiveLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS
 
   return (
     <div style={{ fontFamily: 'Calibri, Arial, Helvetica, "Times New Roman", sans-serif', fontSize: '11pt', lineHeight: '1.45', color: theme.dark }}>
-      <div style={{ background: theme.dark, padding: `${pageMarginsMm.top}mm ${pageMarginsMm.right}mm 10mm ${pageMarginsMm.left}mm`, color: '#ffffff' }}>
-        <h1 style={{ fontSize: '26pt', fontWeight: 700, letterSpacing: '0.04em', marginBottom: '4px', color: '#ffffff' }}>
+      <div style={{ background: backgroundColor, padding: `${pageMarginsMm.top}mm ${pageMarginsMm.right}mm 10mm ${pageMarginsMm.left}mm`, color: '#ffffff' }}>
+        <h1 style={{ fontSize: '26pt', fontWeight: 700, letterSpacing: '0.04em', marginBottom: '4px', color: fullNameColor }}>
           {p.fullName || 'Your Name'}
         </h1>
         {p.title && (

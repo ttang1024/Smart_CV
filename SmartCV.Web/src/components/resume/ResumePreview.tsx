@@ -39,6 +39,8 @@ export default function ResumePreview({ resume: r, onChange }: ResumePreviewProp
   const scaleWrapRef = useRef<HTMLDivElement>(null);
   const [styleId, setStyleId] = useState<StyleId>('classic');
   const [mainColor, setMainColor] = useState('#047857');
+  const [backgroundColor, setBackgroundColor] = useState<string | null>(null);
+  const [fullNameColor, setFullNameColor] = useState('#ffffff');
   const [downloading, setDownloading] = useState(false);
   const [dragKey, setDragKey] = useState<ResumeSection | null>(null);
   const [dragOverKey, setDragOverKey] = useState<ResumeSection | null>(null);
@@ -74,7 +76,12 @@ export default function ResumePreview({ resume: r, onChange }: ResumePreviewProp
     summary: 'paragraph',
   });
   const theme = deriveTheme(mainColor);
+  const layoutBackgroundColor = backgroundColor ?? theme.dark;
   const sectionOrder = r.sectionOrder ?? DEFAULT_SECTION_ORDER;
+  const usesDownloadedSidebar =
+    styleId === 'creative' || (styleId === 'custom' && customOptions.layoutMode === 'two-column');
+  const supportsBackgroundColor =
+    styleId === 'executive' || styleId === 'creative' || (styleId === 'custom' && customOptions.layoutMode === 'two-column');
   const updatePageMargin = (side: keyof PageMarginsMm, value: string) => {
     const next = Number(value);
     if (Number.isNaN(next)) return;
@@ -110,6 +117,26 @@ export default function ResumePreview({ resume: r, onChange }: ResumePreviewProp
       clone.style.minHeight = '';
       const layoutRoot = clone.firstElementChild as HTMLElement | null;
       if (layoutRoot) layoutRoot.style.minHeight = '';
+      if (usesDownloadedSidebar) {
+        clone.style.position = 'relative';
+        clone.style.minHeight = '297mm';
+        const sidebarBackfill = document.createElement('div');
+        sidebarBackfill.setAttribute('aria-hidden', 'true');
+        sidebarBackfill.style.position = 'absolute';
+        sidebarBackfill.style.top = '0';
+        sidebarBackfill.style.left = '0';
+        sidebarBackfill.style.width = '68mm';
+        sidebarBackfill.style.height = 297 + pageMarginsMm.bottom + 4 + 'mm';
+        sidebarBackfill.style.background = layoutBackgroundColor;
+        sidebarBackfill.style.zIndex = '0';
+        clone.insertBefore(sidebarBackfill, clone.firstChild);
+        Array.from(clone.children).forEach(child => {
+          if (child === sidebarBackfill || !(child instanceof HTMLElement)) return;
+          child.style.position = child.style.position || 'relative';
+          child.style.zIndex = child.style.zIndex || '1';
+        });
+      }
+
       const html = `<!DOCTYPE html>
 <html>
 <head>
@@ -134,9 +161,13 @@ h2{break-after:avoid;page-break-after:avoid;}
 .rich-text-content [data-list-style="dash"]>li::before{content:"-";}
 .rich-text-content [data-list-style="check"]>li::before{content:"✓";}
 /* Breathing room at every page boundary; flush at top of first page
-   so full-bleed coloured headers reach the paper edge */
-@page{margin:${pageMarginsMm.top}mm ${pageMarginsMm.right}mm ${pageMarginsMm.bottom}mm ${pageMarginsMm.left}mm;}
-@page :first{margin-top:0;}
+   so full-bleed coloured headers reach the paper edge.
+   Sidebar layouts manage their own left edge, so left=0. */
+@page{size:A4;margin:${pageMarginsMm.top}mm ${pageMarginsMm.right}mm ${usesDownloadedSidebar ? '0' : pageMarginsMm.bottom + 'mm'} ${usesDownloadedSidebar ? '0' : pageMarginsMm.left + 'mm'};}
+@page :first{margin:${usesDownloadedSidebar
+          ? '0'
+          : `0 ${pageMarginsMm.right}mm ${pageMarginsMm.bottom}mm ${pageMarginsMm.left}mm`
+        };}
 </style>
 </head>
 <body>${clone.outerHTML}</body>
@@ -201,6 +232,28 @@ h2{break-after:avoid;page-break-after:avoid;}
             title="Pick theme colour"
           />
           <span className="text-xs text-gray-400 dark:text-gray-500 font-mono">{mainColor}</span>
+          {supportsBackgroundColor && (
+            <>
+              <span className="ml-3 text-xs text-gray-500 dark:text-gray-400 shrink-0">{t('resumeLayout.preview.backgroundColour')}</span>
+              <input
+                type="color"
+                value={layoutBackgroundColor}
+                onChange={e => setBackgroundColor(e.target.value)}
+                className="w-7 h-7 rounded cursor-pointer border border-gray-300 dark:border-gray-600 bg-transparent p-0.5"
+                title="Pick background colour"
+              />
+              <span className="text-xs text-gray-400 dark:text-gray-500 font-mono">{layoutBackgroundColor}</span>
+              <span className="ml-3 text-xs text-gray-500 dark:text-gray-400 shrink-0">{t('resumeLayout.preview.fullNameColour')}</span>
+              <input
+                type="color"
+                value={fullNameColor}
+                onChange={e => setFullNameColor(e.target.value)}
+                className="w-7 h-7 rounded cursor-pointer border border-gray-300 dark:border-gray-600 bg-transparent p-0.5"
+                title="Pick full name text colour"
+              />
+              <span className="text-xs text-gray-400 dark:text-gray-500 font-mono">{fullNameColor}</span>
+            </>
+          )}
         </div>
 
         {/* Page margins */}
@@ -281,14 +334,14 @@ h2{break-after:avoid;page-break-after:avoid;}
               <div ref={printRef} className="bg-white" style={{ width: '210mm', minHeight: '297mm' }}>
                 {styleId === 'classic' && <ClassicLayout r={r} theme={theme} pageMarginsMm={pageMarginsMm} />}
                 {styleId === 'modern' && <ModernLayout r={r} theme={theme} pageMarginsMm={pageMarginsMm} />}
-                {styleId === 'executive' && <ExecutiveLayout r={r} theme={theme} pageMarginsMm={pageMarginsMm} />}
+                {styleId === 'executive' && <ExecutiveLayout r={r} theme={theme} pageMarginsMm={pageMarginsMm} backgroundColor={layoutBackgroundColor} fullNameColor={fullNameColor} />}
                 {styleId === 'minimal' && <MinimalLayout r={r} theme={theme} pageMarginsMm={pageMarginsMm} />}
-                {styleId === 'creative' && <CreativeLayout r={r} theme={theme} pageMarginsMm={pageMarginsMm} />}
+                {styleId === 'creative' && <CreativeLayout r={r} theme={theme} pageMarginsMm={pageMarginsMm} backgroundColor={layoutBackgroundColor} fullNameColor={fullNameColor} />}
                 {styleId === 'elegant' && <ElegantLayout r={r} theme={theme} pageMarginsMm={pageMarginsMm} />}
                 {styleId === 'academic' && <AcademicLayout r={r} theme={theme} pageMarginsMm={pageMarginsMm} />}
                 {styleId === 'split' && <SplitLayout r={r} theme={theme} pageMarginsMm={pageMarginsMm} />}
                 {styleId === 'timeline' && <TimelineLayout r={r} theme={theme} pageMarginsMm={pageMarginsMm} />}
-                {styleId === 'custom' && <CustomLayout r={r} theme={theme} pageMarginsMm={pageMarginsMm} options={customOptions} />}
+                {styleId === 'custom' && <CustomLayout r={r} theme={theme} pageMarginsMm={pageMarginsMm} backgroundColor={layoutBackgroundColor} fullNameColor={fullNameColor} options={customOptions} />}
               </div>
             </div>
           </div>

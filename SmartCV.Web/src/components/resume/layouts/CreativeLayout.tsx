@@ -4,19 +4,21 @@ import { contactItems, HighlightList, AchievementRows, InterestsList, RefereesBl
 import { isRichTextEmpty } from '../../../lib/richText';
 import { RichTextContent } from '../RichText';
 
-export function CreativeLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_MM }: LayoutProps) {
+export function CreativeLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_MM, backgroundColor = theme.dark, fullNameColor = '#ffffff' }: LayoutProps) {
   const { t } = useTranslation();
   const { personalInfo: p, summary, coreHighlights, experience, education, skills, projects, certifications, languages } = r;
-  const sidebarBg = theme.dark;
+  const sidebarBg = backgroundColor;
   const accent = theme.main;
   const presentLabel = t('resumeLayout.present');
 
   return (
-    <div style={{ display: 'flex', minHeight: '297mm', fontFamily: 'Calibri, Arial, Helvetica, "Times New Roman", sans-serif', fontSize: '10.5pt', lineHeight: '1.45' }}>
-      {/* Sidebar */}
-      <div style={{ width: '68mm', background: sidebarBg, color: '#e2e8f0', padding: `${pageMarginsMm.top}mm 7mm ${pageMarginsMm.bottom}mm ${pageMarginsMm.left}mm`, flexShrink: 0 }}>
+    <div style={{ position: 'relative', fontFamily: 'Calibri, Arial, Helvetica, "Times New Roman", sans-serif', fontSize: '10.5pt', lineHeight: '1.45' }}>
+      {/* Transparent spacer float — 78mm = 68mm sidebar + 10mm gap, matching original marginLeft+paddingLeft spacing */}
+      <div style={{ float: 'left', width: '78mm', height: '297mm' }} />
+      {/* Sidebar — absolutely positioned on top of the spacer; only covers page 1 visually */}
+      <div style={{ position: 'absolute', top: 0, left: 0, width: '68mm', height: 'calc(297mm + 1px)', overflow: 'hidden', background: sidebarBg, color: '#e2e8f0', padding: `${pageMarginsMm.top}mm 7mm 0 ${pageMarginsMm.left}mm` }}>
         <div style={{ marginBottom: '14px', borderBottom: `2px solid ${accent}`, paddingBottom: '10px' }}>
-          <h1 style={{ fontSize: '14pt', fontWeight: 700, color: '#ffffff', lineHeight: 1.2, marginBottom: '4px' }}>
+          <h1 style={{ fontSize: '14pt', fontWeight: 700, color: fullNameColor, lineHeight: 1.2, marginBottom: '4px' }}>
             {p.fullName || 'Your Name'}
           </h1>
           {p.title && (
@@ -83,8 +85,8 @@ export function CreativeLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_
         )}
       </div>
 
-      {/* Main content */}
-      <div style={{ flex: 1, padding: `${pageMarginsMm.top}mm ${pageMarginsMm.right}mm ${pageMarginsMm.bottom}mm 10mm`, color: '#1e293b' }}>
+      {/* Main content — text wraps right of the spacer float on page 1; fills full width on page 2+ */}
+      <div style={{ padding: `${pageMarginsMm.top}mm ${pageMarginsMm.right}mm ${pageMarginsMm.bottom}mm 10mm`, color: '#1e293b' }}>
         {summary && (
           <CreativeSection title={sectionTitle(r, 'summary', t('resumeLayout.sections.summary'))} accent={accent}>
             <RichTextContent html={summary} style={{ color: '#475569', textAlign: 'justify', whiteSpace: 'pre-wrap' }} />
@@ -158,6 +160,7 @@ export function CreativeLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_
           </CreativeSection>
         )}
       </div>
+      <div style={{ clear: 'both' }} />
     </div>
   );
 }

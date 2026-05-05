@@ -396,6 +396,8 @@ const zhCN = {
       generating: '生成中…',
       downloadPdf: '下载 PDF',
       themeColour: '主题色：',
+      backgroundColour: '背景色：',
+      fullNameColour: '姓名颜色：',
       pageMargins: '页边距：',
       marginTop: '上',
       marginBottom: '下',
