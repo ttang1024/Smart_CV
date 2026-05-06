@@ -171,7 +171,7 @@ export function ExpEntry({ exp, companyColor, locColor, dateColor, descColor,
   );
 }
 
-export function EduEntry({ edu, accentColor, instSep = ' · ', instItalic, dateColor, dateFontSize = '9pt', dateItalic, gpaColor, mb = '8px', degreeWeight = 700 }: {
+export function EduEntry({ edu, accentColor, instSep = ' · ', dateColor, dateFontSize = '9pt', gpaColor, mb = '8px', degreeWeight = 700 }: {
   edu: Education;
   accentColor: string;
   instSep?: string;
@@ -208,7 +208,7 @@ export function EduEntry({ edu, accentColor, instSep = ' · ', instItalic, dateC
   );
 }
 
-export function CertList({ items, dateColor, dateFontSize = '9pt', dateItalic, sep = ' · ' }: {
+export function CertList({ items, dateColor, dateFontSize = '9pt', sep = ' · ' }: {
   items: Certification[];
   dateColor: string;
   dateFontSize?: string;

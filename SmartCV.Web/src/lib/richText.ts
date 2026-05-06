@@ -116,6 +116,7 @@ function sanitizeNode(node: Node, doc: Document): Node | null {
 
 export function sanitizeRichText(value: string): string {
 	if (!value.trim()) return ''
+	if (typeof DOMParser === 'undefined' || typeof document === 'undefined') return value
 
 	const parser = new DOMParser()
 	const parsed = parser.parseFromString(value, 'text/html')
@@ -131,6 +132,18 @@ export function sanitizeRichText(value: string): string {
 
 export function richTextToPlainText(value: string): string {
 	if (!value) return ''
+	if (typeof DOMParser === 'undefined') {
+		return value
+			.replace(/<br\s*\/?>/gi, '\n')
+			.replace(/<\/(div|p|li)>/gi, '\n')
+			.replace(/<[^>]*>/g, '')
+			.replace(/&nbsp;/g, ' ')
+			.replace(/&amp;/g, '&')
+			.replace(/&lt;/g, '<')
+			.replace(/&gt;/g, '>')
+			.replace(/\n{3,}/g, '\n\n')
+			.trim()
+	}
 
 	const parser = new DOMParser()
 	const parsed = parser.parseFromString(sanitizeRichText(value), 'text/html')

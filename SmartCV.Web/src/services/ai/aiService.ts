@@ -8,7 +8,11 @@ import type { Resume } from '../../types/resume'
 import { richTextToPlainText } from '../../lib/richText'
 import i18n from '../../i18n'
 
-const API_BASE = import.meta.env.VITE_API_URL ?? '/api'
+const API_BASE =
+	process.env.NEXT_PUBLIC_API_URL ??
+	(typeof window !== 'undefined' && window.location.port === '3000'
+		? 'http://localhost:5167/api'
+		: '/api')
 
 interface ChatRequest {
 	provider: AIProviderType

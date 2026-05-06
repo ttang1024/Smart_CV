@@ -52,7 +52,7 @@ export const createEmptyResume = (name = 'My Resume'): Resume => ({
   targetJob: ''
 });
 
-export const useResumeStore = create<ResumeState>((set, get) => ({
+export const useResumeStore = create<ResumeState>((set) => ({
   resumes: [],
   currentResume: null,
   currentOptimization: null,

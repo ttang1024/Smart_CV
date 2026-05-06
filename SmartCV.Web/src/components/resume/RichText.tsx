@@ -113,46 +113,6 @@ export default function RichTextEditor({ value, onChange, label, placeholder, mi
     emitChange();
   };
 
-  const applyInlineStyle = (style: Partial<CSSStyleDeclaration>) => {
-    const editor = editorRef.current;
-    if (!editor) return;
-
-    editor.focus();
-    restoreSelection();
-
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) return;
-
-    const range = selection.getRangeAt(0);
-    if (!editor.contains(range.commonAncestorContainer)) return;
-
-    const span = document.createElement('span');
-    Object.assign(span.style, style);
-
-    if (range.collapsed && editor.textContent?.trim()) {
-      const wrapper = document.createElement('div');
-      Object.assign(wrapper.style, style);
-      while (editor.firstChild) wrapper.appendChild(editor.firstChild);
-      editor.appendChild(wrapper);
-      range.selectNodeContents(wrapper);
-      range.collapse(false);
-    } else if (range.collapsed) {
-      span.appendChild(document.createTextNode('\u200b'));
-      range.insertNode(span);
-      range.setStart(span.firstChild ?? span, 1);
-      range.collapse(true);
-    } else {
-      span.appendChild(range.extractContents());
-      range.insertNode(span);
-      range.selectNodeContents(span);
-    }
-
-    selection.removeAllRanges();
-    selection.addRange(range);
-    saveSelection();
-    emitChange();
-  };
-
   const applyFieldStyle = (property: 'fontSize' | 'lineHeight', value: string) => {
     const editor = editorRef.current;
     if (!editor) return;

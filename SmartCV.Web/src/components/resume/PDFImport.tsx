@@ -70,7 +70,7 @@ export default function PDFImport({ onImported, onFill, label }: PDFImportProps)
       setError(e instanceof Error ? e.message : t('pdfImport.failed'));
       setStep('error');
     }
-  }, [saveResume, onImported, onFill, useAI]);
+  }, [saveResume, onImported, onFill, useAI, t]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();

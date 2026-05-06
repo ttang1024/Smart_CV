@@ -1,7 +1,9 @@
+'use client';
+
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { Plus, Search, Sparkles, FileText } from 'lucide-react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useResumeStore } from '../store/resumeStore';
 import ResumeCard from '../components/resume/ResumeCard';
@@ -11,7 +13,7 @@ import Input from '../components/ui/Input';
 import Modal from '../components/ui/Modal';
 
 export default function HomePage() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { t } = useTranslation();
   const { resumes, loading, loadResumes, createResume, deleteResume, duplicateResume } = useResumeStore();
   const [search, setSearch] = useState('');
@@ -19,7 +21,7 @@ export default function HomePage() {
   const [newResumeName, setNewResumeName] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
-  useEffect(() => { loadResumes(); }, []);
+  useEffect(() => { loadResumes(); }, [loadResumes]);
 
   const filtered = resumes.filter(r =>
     r.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -31,7 +33,7 @@ export default function HomePage() {
     const resume = await createResume(name);
     setCreating(false);
     setNewResumeName('');
-    navigate(`/editor/${resume.id}`);
+    router.push(`/editor?id=${encodeURIComponent(resume.id)}`);
   };
 
   const handleDelete = async () => {
@@ -62,7 +64,7 @@ export default function HomePage() {
               <Plus className="w-5 h-5" />
               {t('home.createFromScratch')}
             </Button>
-            <PDFImport onImported={id => navigate(`/editor/${id}`)} />
+            <PDFImport onImported={id => router.push(`/editor?id=${encodeURIComponent(id)}`)} />
           </div>
         </div>
       )}
@@ -79,7 +81,7 @@ export default function HomePage() {
               className="max-w-sm"
             />
           </div>
-          <PDFImport onImported={id => navigate(`/editor/${id}`)} />
+          <PDFImport onImported={id => router.push(`/editor?id=${encodeURIComponent(id)}`)} />
           <Button onClick={() => setCreating(true)}>
             <Plus className="w-4 h-4" />
             {t('home.newResume')}

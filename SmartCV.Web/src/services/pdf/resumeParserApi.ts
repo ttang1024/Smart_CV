@@ -11,7 +11,11 @@ if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
   ).toString();
 }
 
-const API_BASE = import.meta.env.VITE_API_URL ?? '/api';
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL ??
+  (typeof window !== 'undefined' && window.location.port === '3000'
+    ? 'http://localhost:5167/api'
+    : '/api');
 
 /**
  * Check if the PDF has embedded SmartCV resume JSON in its metadata.

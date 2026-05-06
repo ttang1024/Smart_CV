@@ -21,6 +21,15 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+var webRootPath = Path.Combine(app.Environment.ContentRootPath, "wwwroot");
+
+IResult FrontendPage(string fileName)
+{
+    var path = Path.Combine(webRootPath, fileName);
+    return File.Exists(path)
+        ? Results.File(path, "text/html; charset=utf-8")
+        : Results.NotFound("Frontend bundle is missing. Build SmartCV.Web before publishing the API.");
+}
 
 app.UseCors();
 
@@ -77,8 +86,7 @@ ai.MapPost("/chat", async (AIProxyRequest request, AIProxyService proxy, Cancell
 
 ai.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
 
-// Serve React SPA from wwwroot
-app.UseDefaultFiles();
+// Serve exported Next.js assets from wwwroot.
 app.UseStaticFiles(new StaticFileOptions
 {
     OnPrepareResponse = context =>
@@ -86,7 +94,10 @@ app.UseStaticFiles(new StaticFileOptions
         var path = context.Context.Request.Path.Value ?? string.Empty;
         var headers = context.Context.Response.Headers;
 
-        if (path.StartsWith("/assets/", StringComparison.Ordinal))
+        if (path.StartsWith("/_next/", StringComparison.Ordinal) ||
+            path.StartsWith("/images/", StringComparison.Ordinal) ||
+            path.EndsWith(".br", StringComparison.OrdinalIgnoreCase) ||
+            path.EndsWith(".gz", StringComparison.OrdinalIgnoreCase))
         {
             headers.CacheControl = "public,max-age=31536000,immutable";
             return;
@@ -102,13 +113,16 @@ app.UseStaticFiles(new StaticFileOptions
     }
 });
 
-// SPA fallback — return index.html for unmatched routes (client-side routing)
-app.MapFallback(async context =>
+app.MapGet("/", () => FrontendPage("index.html"));
+app.MapGet("/app", () => FrontendPage("app.html"));
+app.MapGet("/editor", () => FrontendPage("editor.html"));
+app.MapGet("/settings", () => FrontendPage("settings.html"));
+
+// Compatibility for pre-static-export editor URLs.
+app.MapGet("/editor/{id}", (string id) =>
 {
-    context.Response.Headers.CacheControl = "no-store,no-cache,must-revalidate,max-age=0";
-    context.Response.Headers.Pragma = "no-cache";
-    context.Response.Headers.Expires = "0";
-    await context.Response.SendFileAsync(Path.Combine(app.Environment.WebRootPath!, "index.html"));
+    var encodedId = Uri.EscapeDataString(id);
+    return Results.Redirect($"/editor?id={encodedId}", permanent: false);
 });
 
 app.Run();

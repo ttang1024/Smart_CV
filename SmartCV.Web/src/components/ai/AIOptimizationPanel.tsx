@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Sparkles, AlertCircle, ChevronRight, Check, X, Lightbulb, Target, Search, Tag } from 'lucide-react';
+import { Sparkles, AlertCircle, ChevronRight, Check, Lightbulb, Target, Search, Tag } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import type { Resume } from '../../types/resume';
@@ -283,7 +283,7 @@ function SuggestionCard({ suggestion, onApply, priorityBadge, typeIcon }: Sugges
                 {expanded ? t('aiPanel.hideImprovement') : t('aiPanel.showImprovement')}
               </button>
             )}
-            {/* {!suggestion.applied && suggestion.improvedText && (
+            {!suggestion.applied && suggestion.improvedText && (
               <Button
                 size="sm"
                 variant="secondary"
@@ -292,7 +292,7 @@ function SuggestionCard({ suggestion, onApply, priorityBadge, typeIcon }: Sugges
               >
                 <Check className="w-3 h-3" /> Apply
               </Button>
-            )} */}
+            )}
           </div>
         </div>
       </div>

@@ -1,5 +1,7 @@
+'use client';
+
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Save, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useResumeStore } from '../store/resumeStore';
@@ -33,8 +35,9 @@ function DragDivider({ onMouseDown, active }: { onMouseDown: (e: React.MouseEven
 }
 
 export default function EditorPage() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+  const searchParams = useSearchParams();
+  const id = searchParams?.get('id');
+  const router = useRouter();
   const { t } = useTranslation();
   const { currentResume, loadResume, saveResume, saveOptimization } = useResumeStore();
   const [localResume, setLocalResume] = useState<Resume | null>(null);
@@ -87,7 +90,7 @@ export default function EditorPage() {
 
   useEffect(() => {
     if (id) loadResume(id);
-  }, [id]);
+  }, [id, loadResume]);
 
   useEffect(() => {
     if (currentResume) setLocalResume(currentResume);
@@ -116,12 +119,12 @@ export default function EditorPage() {
       await saveResume(localResume);
       setHasUnsaved(false);
       toast.success(t('editor.toast.saved'));
-    } catch (e) {
+    } catch {
       toast.error(t('editor.toast.saveFailed'));
     } finally {
       setSaving(false);
     }
-  }, [localResume, saveResume]);
+  }, [localResume, saveResume, t]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -202,7 +205,7 @@ export default function EditorPage() {
       handleResumeChange(updated);
       toast.success(t('editor.toast.suggestionApplied'));
     }
-  }, [localResume, handleResumeChange]);
+  }, [localResume, handleResumeChange, t]);
 
   const handleSessionSaved = useCallback(async (session: OptimizationSession) => {
     await saveOptimization(session);
@@ -217,7 +220,7 @@ export default function EditorPage() {
       createdAt: localResume.createdAt,
     });
     toast.success(t('editor.toast.filledFromPdf'));
-  }, [localResume, handleResumeChange]);
+  }, [localResume, handleResumeChange, t]);
 
   if (!localResume) {
     return (
@@ -234,7 +237,7 @@ export default function EditorPage() {
     <div className="flex flex-col h-[calc(100vh-56px)]">
       {/* Toolbar */}
       <div className="flex items-center gap-2 px-4 py-2 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 shrink-0">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/app')}>
+        <Button variant="ghost" size="icon" onClick={() => router.push('/app')}>
           <ArrowLeft className="w-4 h-4" />
         </Button>
 

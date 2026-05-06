@@ -1,4 +1,6 @@
-import { useNavigate } from 'react-router-dom';
+'use client';
+
+import { useRouter } from 'next/navigation';
 import { FileText, Trash2, Copy, Edit3, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -13,7 +15,7 @@ interface ResumeCardProps {
 }
 
 export default function ResumeCard({ resume, onDelete, onDuplicate }: ResumeCardProps) {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { t } = useTranslation();
 
   const completionFields = [
@@ -33,7 +35,7 @@ export default function ResumeCard({ resume, onDelete, onDuplicate }: ResumeCard
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
       className="group bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5 flex flex-col gap-4 hover:border-emerald-300 dark:hover:border-emerald-700 hover:shadow-md transition-all cursor-pointer"
-      onClick={() => navigate(`/editor/${resume.id}`)}
+      onClick={() => router.push(`/editor?id=${encodeURIComponent(resume.id)}`)}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-3 min-w-0">
@@ -58,7 +60,7 @@ export default function ResumeCard({ resume, onDelete, onDuplicate }: ResumeCard
             size="icon"
             className="h-8 w-8"
             title={t('resumeCard.edit')}
-            onClick={() => navigate(`/editor/${resume.id}`)}
+            onClick={() => router.push(`/editor?id=${encodeURIComponent(resume.id)}`)}
           >
             <Edit3 className="w-3.5 h-3.5" />
           </Button>

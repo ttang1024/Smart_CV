@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
 import { Plus, Trash2, ChevronDown, ChevronUp, GripVertical } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import type { Resume, Experience, Education, Skill, Project, Certification, Language, Interest, Achievement, Referee, ResumeSection } from '../../types/resume';
+import type { Resume, Experience, Education, Skill, Project, Certification, Language, Achievement, Referee, ResumeSection } from '../../types/resume';
 import { DEFAULT_SECTION_ORDER } from '../../types/resume';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
@@ -74,7 +73,7 @@ export default function ResumeEditor({ resume, onChange }: ResumeEditorProps) {
     setDragOverKey(null);
   };
 
-  const SectionHeader = ({ id, title, count }: { id: SectionKey; title: string; count?: number }) => (
+  const renderSectionHeader = (id: SectionKey, title: string, count?: number) => (
     <button
       type="button"
       onClick={() => toggleSection(id)}
@@ -309,7 +308,7 @@ export default function ResumeEditor({ resume, onChange }: ResumeEditorProps) {
     <div className="space-y-0 divide-y divide-gray-200 dark:divide-gray-700">
       {/* Personal Info — fixed, not draggable */}
       <div className="py-1">
-        <SectionHeader id="personalInfo" title={t('resumeEditor.sections.personalInfo')} />
+        {renderSectionHeader('personalInfo', t('resumeEditor.sections.personalInfo'))}
         {openSections.has('personalInfo') && (
           <>
             {renderPreviewTitleInput('personalInfo', t('resumeEditor.sections.personalInfo'))}
@@ -370,7 +369,7 @@ export default function ResumeEditor({ resume, onChange }: ResumeEditorProps) {
             >
               <GripVertical className="w-4 h-4" />
             </span>
-            <SectionHeader id={key} title={SECTION_TITLES[key] ?? key} count={getSectionCount(key)} />
+            {renderSectionHeader(key, SECTION_TITLES[key] ?? key, getSectionCount(key))}
           </div>
           {openSections.has(key) && (
             <>

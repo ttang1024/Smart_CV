@@ -1,16 +1,18 @@
-import { useRef, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+'use client';
+
+import { useRef, useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { TemplatePreview, deriveTheme } from '../components/resume/ResumePreview';
-import { DEMO_RESUME } from '../data/demoResume';
+import { getDemoResume } from '../data/demoResume';
 import {
   motion, useInView, useMotionValue, useSpring,
   useTransform, AnimatePresence,
 } from 'framer-motion';
 import {
-  Sparkles, FileText, Download, Zap, Shield, Palette,
-  ArrowRight, Check, Star, ExternalLink, Brain, Lock,
-  ChevronDown, Upload, Wand2, LayoutTemplate, Plus, Minus,
+  Sparkles, FileText, Download, Shield, Palette,
+  ArrowRight, ExternalLink, Brain, Lock,
+  ChevronDown, Upload, Wand2, LayoutTemplate,
   Terminal, KeyRound, SlidersHorizontal,
 } from 'lucide-react';
 import { GithubFilled } from '@ant-design/icons';
@@ -157,11 +159,15 @@ const RESUME_STYLES = [
 
 // ─── page ─────────────────────────────────────────────────────────────────────
 export default function LandingPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [heroStyleIdx, setHeroStyleIdx] = useState(0);
   const [heroAccent, setHeroAccent] = useState('#059669');
   const [deployTab, setDeployTab] = useState<DeployTab>('local');
+  const demoResume = useMemo(
+    () => getDemoResume(i18n.resolvedLanguage ?? i18n.language),
+    [i18n.language, i18n.resolvedLanguage],
+  );
 
   const STEPS = [
     { icon: STEP_ICONS[0], n: '1', title: t('landing.howItWorks.steps.step1.title'), desc: t('landing.howItWorks.steps.step1.desc'), color: STEP_COLORS[0] },
@@ -200,7 +206,7 @@ export default function LandingPage() {
         className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200/60 shadow-sm"
       >
         <div className="max-w-6xl mx-auto h-16 flex items-center justify-between gap-4">
-          <Link to="/" className="flex items-center gap-2 font-bold text-gray-900 shrink-0">
+          <Link href="/" className="flex items-center gap-2 font-bold text-gray-900 shrink-0">
             <motion.img
               src="/favicon.svg"
               alt="SmartCV"
@@ -220,7 +226,7 @@ export default function LandingPage() {
               <span className="font-medium">{t('landing.nav.github')}</span>
             </motion.a>
             <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
-              <Link to="/app" className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-md shadow-emerald-200 transition-colors">
+              <Link href="/app" className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-md shadow-emerald-200 transition-colors">
                 {t('landing.nav.getStarted')} <ArrowRight className="w-4 h-4" />
               </Link>
             </motion.div>
@@ -291,7 +297,7 @@ export default function LandingPage() {
             {/* CTAs */}
             <Reveal delay={0.38} className="flex flex-col sm:flex-row items-start gap-3 mb-10">
               <motion.div whileHover={{ scale: 1.04, y: -2 }} whileTap={{ scale: 0.97 }} transition={spring}>
-                <Link to="/app" className="inline-flex items-center gap-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-8 py-4 rounded-xl shadow-xl shadow-emerald-300/40 transition-colors text-base">
+                <Link href="/app" className="inline-flex items-center gap-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-8 py-4 rounded-xl shadow-xl shadow-emerald-300/40 transition-colors text-base">
                   {t('landing.hero.ctaFree')}
                 </Link>
               </motion.div>
@@ -377,7 +383,7 @@ export default function LandingPage() {
                         }}>
                           <TemplatePreview
                             resume={{
-                              ...DEMO_RESUME,
+                              ...demoResume,
                               sectionOrder: [
                                 'summary', 'skills', 'experience', 'education',
                                 'projects', 'certifications', 'languages',
@@ -431,7 +437,7 @@ export default function LandingPage() {
               <div className="flex flex-col gap-4">
                 <div
                   className="rounded-2xl overflow-hidden"
-                  style={{ background: 'rgba(0,0,0,0.7)', border: '1px solid rgba(74,222,128,0.2)', boxShadow: '0 0 40px rgba(74,222,128,0.06)' }}
+                  style={{ background: 'rgba(0,0,0,1)', border: '1px solid rgba(74,222,128,0.2)', boxShadow: '0 0 40px rgba(74,222,128,0.06)' }}
                 >
                   <div
                     className="flex items-center gap-2 px-4 py-3"
@@ -667,7 +673,7 @@ export default function LandingPage() {
         <div className="border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white">
           <p>{t('landing.footer.copy', { year: new Date().getFullYear() })}</p>
           <p>{t('landing.footer.tagline')}</p>
-          <Link to="/app" className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
+          <Link href="/app" className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
             {t('landing.footer.openApp')} <ArrowRight className="w-3 h-3" />
           </Link>
         </div>
