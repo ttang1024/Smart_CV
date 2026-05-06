@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from 'next';
 import '../index.css';
 import Providers from './providers';
+import { buildWechatMetadata, SHARE_IMAGE_PATH, SITE_URL } from './metadata';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://smart-cv.app'),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: 'SmartCV - Free AI Resume Builder',
     template: '%s | SmartCV',
@@ -30,7 +31,7 @@ export const metadata: Metadata = {
       'Create ATS-friendly resumes with AI optimization, professional templates, local-first privacy, and export-ready formatting.',
     images: [
       {
-        url: '/favicon.svg',
+        url: SHARE_IMAGE_PATH,
         width: 512,
         height: 512,
         alt: 'SmartCV',
@@ -42,8 +43,14 @@ export const metadata: Metadata = {
     title: 'SmartCV - Free AI Resume Builder',
     description:
       'Create ATS-friendly resumes with AI optimization, professional templates, local-first privacy, and export-ready formatting.',
-    images: ['/favicon.svg'],
+    images: [SHARE_IMAGE_PATH],
   },
+  other: buildWechatMetadata({
+    title: 'SmartCV - Free AI Resume Builder',
+    description:
+      'Create ATS-friendly resumes with AI optimization, professional templates, local-first privacy, and export-ready formatting.',
+    path: '/',
+  }),
   icons: {
     icon: '/favicon.svg',
   },

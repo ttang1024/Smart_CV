@@ -1,4 +1,7 @@
+'use client';
+
 import { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
 import { Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { SUPPORTED_LANGUAGES, type LangCode } from '../../i18n';
@@ -11,8 +14,15 @@ export default function LanguageSwitcher({ variant = 'light' }: LanguageSwitcher
   const { i18n } = useTranslation();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const languageLinks: Record<LangCode, string> = {
+    en: '/',
+    es: '/es',
+    'zh-CN': '/zh-cn',
+    'zh-TW': '/zh-tw',
+  };
 
-  const current = SUPPORTED_LANGUAGES.find(l => l.code === i18n.language)
+  const currentLanguage = i18n.resolvedLanguage ?? i18n.language;
+  const current = SUPPORTED_LANGUAGES.find(l => l.code === currentLanguage)
     ?? SUPPORTED_LANGUAGES[0];
 
   useEffect(() => {
@@ -43,17 +53,18 @@ export default function LanguageSwitcher({ variant = 'light' }: LanguageSwitcher
       {open && (
         <div className="absolute right-0 mt-1 w-40 bg-white border border-gray-200 rounded-xl shadow-lg py-1 z-50">
           {SUPPORTED_LANGUAGES.map(lang => (
-            <button
+            <Link
               key={lang.code}
+              href={languageLinks[lang.code]}
               onClick={() => { i18n.changeLanguage(lang.code as LangCode); setOpen(false); }}
-              className={`w-full text-left px-3 py-2 text-sm transition-colors ${
-                lang.code === i18n.language
+              className={`block w-full text-left px-3 py-2 text-sm transition-colors ${
+                lang.code === currentLanguage
                   ? 'text-emerald-600 font-semibold bg-emerald-50'
                   : 'text-gray-700 hover:bg-gray-50'
               }`}
             >
               {lang.label}
-            </button>
+            </Link>
           ))}
         </div>
       )}
