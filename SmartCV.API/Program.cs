@@ -114,6 +114,9 @@ app.UseStaticFiles(new StaticFileOptions
 });
 
 app.MapGet("/", () => FrontendPage("index.html"));
+app.MapGet("/es", () => FrontendPage("es.html"));
+app.MapGet("/zh-cn", () => FrontendPage("zh-cn.html"));
+app.MapGet("/zh-tw", () => FrontendPage("zh-tw.html"));
 app.MapGet("/app", () => FrontendPage("app.html"));
 app.MapGet("/editor", () => FrontendPage("editor.html"));
 app.MapGet("/settings", () => FrontendPage("settings.html"));
