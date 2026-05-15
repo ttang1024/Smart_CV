@@ -16,14 +16,18 @@ AI-powered resume builder. Runs entirely in your browser — no account, no clou
 
 ## Features
 
-- **AI optimization** — paste a job description and the AI rewrites your bullets and summary with targeted keywords to pass ATS screening
-- **10 resume styles** — Classic, Modern, Executive, Minimal, Creative, Elegant, Academic, Split, Timeline, and a fully configurable **Custom** style with swappable layouts, section styles, and more
+- **AI optimization** — paste a job description and get an ATS match score, keyword gap analysis, and per-section rewrites
+- **ATS checker** — instant client-side audit of contact completeness, content quality, formatting, and keyword coverage — no AI key needed
+- **Cover letter generator** — AI writes a tailored cover letter from your resume and job description, with tone selection
+- **Job versions** — fork your resume for a specific role, track application status (draft → offer), and compare the tailored copy against the original
+- **Undo / redo** — bounded revision history persisted in localStorage; coalesced so fast typing creates one snapshot
+- **10 resume styles** — Classic, Modern, Executive, Minimal, Creative, Elegant, Academic, Split, Timeline, and a fully configurable **Custom** style
 - **Live theme colour** — change the accent colour and the preview updates instantly
-- **PDF import** — upload an existing resume and every section is extracted automatically; enable AI-powered parsing in Settings for significantly more accurate section detection and content extraction
+- **PDF import** — upload an existing resume; enable AI-powered parsing in Settings for higher accuracy
 - **One-click PDF export** — pixel-perfect A4 PDF powered by Puppeteer
 - **Autosave** — changes are debounced and persisted to IndexedDB
 - **Fully private** — all data stays in the browser; the only outbound traffic is your own AI API calls
-- **Bring your own AI** — configure OpenAI, Claude, Gemini, Grok, DeepSeek, or Qianwen in Settings
+- **Bring your own AI** — configure OpenAI, Claude, Gemini, Grok, DeepSeek, Qianwen, Kimi, Doubao, or Wenyanyixin
 
 ---
 
@@ -60,28 +64,32 @@ cd ../SmartCV.API && dotnet publish -c Release -o ./publish
 
 ## Tech Stack
 
-| Layer      | Technology                                               |
-| ---------- | -------------------------------------------------------- |
-| Frontend   | React 19, TypeScript, Tailwind CSS v4, Vite 8            |
-| State      | Zustand, IndexedDB (`idb`), localStorage                 |
-| PDF export | PuppeteerSharp (Chromium)                                |
-| PDF import | pdfjs-dist + AI provider (optional, for higher accuracy) |
-| Backend    | .NET 10 Minimal API                                      |
-| Deployment | Docker → Azure Container Registry → Azure Container Apps |
+| Layer      | Technology                                                        |
+| ---------- | ----------------------------------------------------------------- |
+| Frontend   | Next.js 15 (App Router, static export), React 19, TypeScript      |
+| Styling    | Tailwind CSS                                                      |
+| State      | Zustand, IndexedDB (`idb`), localStorage                          |
+| PDF export | PuppeteerSharp (headless Chromium)                                |
+| PDF import | pdfjs-dist + Tesseract.js OCR + optional AI parsing               |
+| Backend    | .NET 10 Minimal API                                               |
+| i18n       | i18next (en / es / zh-CN / zh-TW)                                 |
+| Deployment | Docker → Azure Container Registry → Azure Container Apps          |
 
 ---
 
 ## Architecture
 
 ```
-Browser (React SPA)
-  │  IndexedDB — resume data
-  │  localStorage — AI settings
+Browser (Next.js SSG)
+  │  IndexedDB      — resumes, optimization sessions
+  │  localStorage   — AI settings, job applications, revision history
   └─ /api ──► .NET 10 Minimal API
-                  ├─ /api/ai/chat      — proxies to AI provider (avoids CORS, keeps keys server-side)
-                  ├─ /api/pdf/parse    — extracts sections from uploaded PDFs
-                  └─ /api/pdf/generate — renders HTML to A4 PDF via Puppeteer
+                  ├─ /api/ai/chat      — proxies to AI provider (avoids CORS, hides keys)
+                  ├─ /api/pdf/parse    — extracts sections from uploaded PDFs (PdfPig)
+                  └─ /api/pdf/generate — renders HTML to A4 PDF (Puppeteer/Chromium)
 ```
+
+See [`tech/`](tech/) for detailed module documentation.
 
 ---
 

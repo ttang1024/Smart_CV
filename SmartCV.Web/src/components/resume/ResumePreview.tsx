@@ -31,9 +31,10 @@ import { CustomLayout } from './layouts/CustomLayout';
 interface ResumePreviewProps {
   resume: Resume;
   onChange?: (resume: Resume) => void;
+  onExport?: (filename: string) => void;
 }
 
-export default function ResumePreview({ resume: r, onChange }: ResumePreviewProps) {
+export default function ResumePreview({ resume: r, onChange, onExport }: ResumePreviewProps) {
   const { t } = useTranslation();
   const printRef = useRef<HTMLDivElement>(null);
   const scaleWrapRef = useRef<HTMLDivElement>(null);
@@ -190,6 +191,7 @@ h2{break-after:avoid;page-break-after:avoid;}
       a.download = filename;
       a.click();
       URL.revokeObjectURL(url);
+      onExport?.(filename);
     } finally {
       setDownloading(false);
     }

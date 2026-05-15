@@ -71,6 +71,9 @@ export const resumeDB = {
       ...original,
       id: crypto.randomUUID(),
       name: `${original.name} (Copy)`,
+      baseResumeId: undefined,
+      jobApplicationId: undefined,
+      versionLabel: undefined,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };

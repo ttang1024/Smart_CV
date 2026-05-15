@@ -1,21 +1,31 @@
 import { useState } from 'react';
-import { Plus, Trash2, ChevronDown, ChevronUp, GripVertical } from 'lucide-react';
+import { Plus, Trash2, ChevronDown, ChevronUp, GripVertical, Wand2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import toast from 'react-hot-toast';
 import type { Resume, Experience, Education, Skill, Project, Certification, Language, Achievement, Referee, ResumeSection } from '../../types/resume';
 import { DEFAULT_SECTION_ORDER } from '../../types/resume';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
 import { cn, generateId } from '../../lib/utils';
 import RichTextEditor from './RichText';
+import { richTextToPlainText } from '../../lib/richText';
+import { useSettingsStore } from '../../store/settingsStore';
+import { improveSection } from '../../services/ai/aiService';
 
 interface ResumeEditorProps {
   resume: Resume;
   onChange: (resume: Resume) => void;
+  jobContext?: {
+    jobTitle: string;
+    company: string;
+    jobDescription: string;
+  };
 }
 
 type SectionKey = ResumeSection;
+type InlineAIAction = 'rewrite' | 'concise' | 'metrics' | 'senior' | 'tailor' | 'bullets' | 'grammar';
 
-export default function ResumeEditor({ resume, onChange }: ResumeEditorProps) {
+export default function ResumeEditor({ resume, onChange, jobContext }: ResumeEditorProps) {
   const { t } = useTranslation();
   const [openSections, setOpenSections] = useState<Set<SectionKey>>(new Set(['personalInfo', 'summary']));
   const [dragKey, setDragKey] = useState<SectionKey | null>(null);
@@ -58,6 +68,14 @@ export default function ResumeEditor({ resume, onChange }: ResumeEditorProps) {
         [key]: value,
       },
     });
+  };
+
+  const aiContext = {
+    jobDescription: [
+      jobContext?.jobTitle && `Role: ${jobContext.jobTitle}`,
+      jobContext?.company && `Company: ${jobContext.company}`,
+      jobContext?.jobDescription,
+    ].filter(Boolean).join('\n\n'),
   };
 
   const handleDrop = (targetKey: SectionKey) => {
@@ -119,6 +137,13 @@ export default function ResumeEditor({ resume, onChange }: ResumeEditorProps) {
               placeholder={t('resumeEditor.summary.placeholder')}
               minHeight={132}
             />
+            <InlineAITools
+              sectionType="professional summary"
+              value={resume.summary}
+              onApply={value => update('summary', value)}
+              aiContext={aiContext}
+              actions={['rewrite', 'concise', 'senior', 'tailor', 'grammar']}
+            />
           </div>
         );
       case 'coreHighlights':
@@ -140,6 +165,17 @@ export default function ResumeEditor({ resume, onChange }: ResumeEditorProps) {
                   minHeight={72}
                   className="flex-1"
                 />
+                <InlineAITools
+                  sectionType="core highlight"
+                  value={hl.text}
+                  onApply={value => {
+                    const next = (resume.coreHighlights ?? []).map(h => h.id === hl.id ? { ...h, text: value } : h);
+                    update('coreHighlights', next);
+                  }}
+                  aiContext={aiContext}
+                  actions={['rewrite', 'concise', 'metrics', 'senior', 'tailor', 'grammar']}
+                  compact
+                />
                 <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 text-red-400"
                   onClick={() => update('coreHighlights', (resume.coreHighlights ?? []).filter(h => h.id !== hl.id))}>
                   <Trash2 className="w-3.5 h-3.5" />
@@ -157,6 +193,7 @@ export default function ResumeEditor({ resume, onChange }: ResumeEditorProps) {
           <div className="pb-4 space-y-4">
             {resume.experience.map((exp, idx) => (
               <ExperienceItem key={exp.id} experience={exp} index={idx}
+                aiContext={aiContext}
                 onChange={updated => update('experience', resume.experience.map(e => e.id === updated.id ? updated : e))}
                 onDelete={() => update('experience', resume.experience.filter(e => e.id !== exp.id))} />
             ))}
@@ -199,6 +236,7 @@ export default function ResumeEditor({ resume, onChange }: ResumeEditorProps) {
           <div className="pb-4 space-y-4">
             {resume.projects.map(project => (
               <ProjectItem key={project.id} project={project}
+                aiContext={aiContext}
                 onChange={updated => update('projects', resume.projects.map(p => p.id === updated.id ? updated : p))}
                 onDelete={() => update('projects', resume.projects.filter(p => p.id !== project.id))} />
             ))}
@@ -265,6 +303,7 @@ export default function ResumeEditor({ resume, onChange }: ResumeEditorProps) {
           <div className="pb-4 space-y-3">
             {(resume.achievements ?? []).map(achievement => (
               <AchievementItem key={achievement.id} achievement={achievement}
+                aiContext={aiContext}
                 onChange={updated => update('achievements', (resume.achievements ?? []).map(a => a.id === updated.id ? updated : a))}
                 onDelete={() => update('achievements', (resume.achievements ?? []).filter(a => a.id !== achievement.id))} />
             ))}
@@ -385,9 +424,116 @@ export default function ResumeEditor({ resume, onChange }: ResumeEditorProps) {
 
 // Sub-components
 
-function ExperienceItem({ experience, onChange, onDelete }: {
+interface InlineAIContext {
+  jobDescription: string;
+}
+
+function InlineAITools({
+  sectionType,
+  value,
+  onApply,
+  aiContext,
+  actions,
+  compact = false,
+}: {
+  sectionType: string;
+  value: string;
+  onApply: (value: string) => void;
+  aiContext: InlineAIContext;
+  actions: InlineAIAction[];
+  compact?: boolean;
+}) {
+  const { getActiveConfig, aiSettings } = useSettingsStore();
+  const [loadingAction, setLoadingAction] = useState<InlineAIAction | null>(null);
+
+  const actionLabels: Record<InlineAIAction, string> = {
+    rewrite: 'Rewrite',
+    concise: 'Concise',
+    metrics: 'Add metrics',
+    senior: 'Senior',
+    tailor: 'Tailor',
+    bullets: 'Bullets',
+    grammar: 'Grammar',
+  };
+
+  const instructions: Record<InlineAIAction, string> = {
+    rewrite: 'Rewrite this content to be stronger, clearer, and resume-ready while preserving the facts.',
+    concise: 'Make this content more concise without removing important accomplishments, keywords, or context.',
+    metrics: 'Improve this content by adding metric placeholders only where a real metric is missing, using bracketed prompts such as [X%], [team size], or [$ amount]. Do not invent numbers.',
+    senior: 'Rewrite this content to sound more senior, strategic, and ownership-oriented while staying truthful.',
+    tailor: 'Tailor this content to the provided job description. Prioritize relevant keywords and requirements without inventing experience.',
+    bullets: 'Convert this paragraph into 2-4 concise resume bullets. Start each bullet with a strong action verb.',
+    grammar: 'Fix grammar, spelling, punctuation, and awkward phrasing. Preserve meaning and facts.',
+  };
+
+  const handleAction = async (action: InlineAIAction) => {
+    const config = getActiveConfig();
+    const currentContent = richTextToPlainText(value);
+    if (!config) {
+      toast.error(`No API key configured for ${aiSettings.activeProvider}.`);
+      return;
+    }
+    if (!currentContent.trim()) {
+      toast.error('Add content before using AI tools.');
+      return;
+    }
+    if (action === 'tailor' && !aiContext.jobDescription.trim()) {
+      toast.error('Add a job description in AI Optimize, Cover Letter, or Job Versions first.');
+      return;
+    }
+
+    setLoadingAction(action);
+    try {
+      const improved = await improveSection(
+        config.provider,
+        config.apiKey,
+        config.model,
+        sectionType,
+        currentContent,
+        aiContext.jobDescription,
+        instructions[action],
+      );
+      onApply(improved.trim());
+      toast.success(`${actionLabels[action]} applied`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'AI action failed');
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
+  return (
+    <div className={cn('flex flex-wrap gap-1.5', compact ? 'items-center shrink-0 max-w-[118px]' : 'mt-2')}>
+      {actions.map(action => (
+        <button
+          key={action}
+          type="button"
+          onClick={() => handleAction(action)}
+          disabled={loadingAction !== null}
+          className={cn(
+            'inline-flex items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 text-[11px] font-medium text-emerald-700 transition-colors',
+            'hover:bg-emerald-100 disabled:pointer-events-none disabled:opacity-50',
+            'dark:border-emerald-900/60 dark:bg-emerald-950/20 dark:text-emerald-300 dark:hover:bg-emerald-900/30',
+            compact && 'px-1.5'
+          )}
+          title={actionLabels[action]}
+        >
+          {loadingAction === action ? (
+            <span className="h-3 w-3 animate-spin rounded-full border border-current border-t-transparent" />
+          ) : (
+            <Wand2 className="w-3 h-3" />
+          )}
+          {!compact && actionLabels[action]}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function ExperienceItem({ experience, aiContext, onChange, onDelete }: {
   experience: Experience;
   index: number;
+  aiContext: InlineAIContext;
   onChange: (e: Experience) => void;
   onDelete: () => void;
 }) {
@@ -441,21 +587,40 @@ function ExperienceItem({ experience, onChange, onDelete }: {
         placeholder={t('resumeEditor.experience.descriptionPlaceholder')}
         minHeight={82}
       />
+      <InlineAITools
+        sectionType="experience description"
+        value={experience.description}
+        onApply={value => up('description', value)}
+        aiContext={aiContext}
+        actions={['rewrite', 'concise', 'senior', 'tailor', 'bullets', 'grammar']}
+      />
       <div>
         <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1.5">{t('resumeEditor.experience.keyAchievements')}</label>
         {experience.highlights.map((h, i) => (
           <div key={i} className="flex mb-1.5">
-            <RichTextEditor
-              value={h}
-              onChange={value => {
-                const next = [...experience.highlights];
-                next[i] = value;
-                up('highlights', next);
-              }}
-              placeholder={t('resumeEditor.experience.achievementPlaceholder')}
-              minHeight={72}
-              className="flex-1"
-            />
+            <div className="flex-1">
+              <RichTextEditor
+                value={h}
+                onChange={value => {
+                  const next = [...experience.highlights];
+                  next[i] = value;
+                  up('highlights', next);
+                }}
+                placeholder={t('resumeEditor.experience.achievementPlaceholder')}
+                minHeight={72}
+              />
+              <InlineAITools
+                sectionType="experience achievement bullet"
+                value={h}
+                onApply={value => {
+                  const next = [...experience.highlights];
+                  next[i] = value;
+                  up('highlights', next);
+                }}
+                aiContext={aiContext}
+                actions={['rewrite', 'concise', 'metrics', 'senior', 'tailor', 'grammar']}
+              />
+            </div>
             <Button
               variant="ghost"
               size="icon"
@@ -551,8 +716,9 @@ function SkillItem({ skill, onChange, onDelete }: {
   );
 }
 
-function ProjectItem({ project, onChange, onDelete }: {
+function ProjectItem({ project, aiContext, onChange, onDelete }: {
   project: Project;
+  aiContext: InlineAIContext;
   onChange: (p: Project) => void;
   onDelete: () => void;
 }) {
@@ -569,6 +735,13 @@ function ProjectItem({ project, onChange, onDelete }: {
       </div>
       <Input label={t('resumeEditor.projects.name')} value={project.name} onChange={e => up('name', e.target.value)} placeholder={t('resumeEditor.projects.namePlaceholder')} />
       <RichTextEditor label={t('resumeEditor.projects.description')} value={project.description} onChange={value => up('description', value)} minHeight={82} placeholder={t('resumeEditor.projects.descriptionPlaceholder')} />
+      <InlineAITools
+        sectionType="project description"
+        value={project.description}
+        onApply={value => up('description', value)}
+        aiContext={aiContext}
+        actions={['rewrite', 'concise', 'senior', 'tailor', 'bullets', 'grammar']}
+      />
       <Input
         label={t('resumeEditor.projects.technologies')}
         value={project.technologies.join(', ')}
@@ -583,17 +756,29 @@ function ProjectItem({ project, onChange, onDelete }: {
         <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1.5">{t('resumeEditor.projects.keyAchievements')}</label>
         {(project.highlights ?? []).map((h, i) => (
           <div key={i} className="flex mb-1.5">
-            <RichTextEditor
-              value={h}
-              onChange={value => {
-                const next = [...(project.highlights ?? [])];
-                next[i] = value;
-                up('highlights', next);
-              }}
-              placeholder={t('resumeEditor.projects.achievementPlaceholder')}
-              minHeight={72}
-              className="flex-1"
-            />
+            <div className="flex-1">
+              <RichTextEditor
+                value={h}
+                onChange={value => {
+                  const next = [...(project.highlights ?? [])];
+                  next[i] = value;
+                  up('highlights', next);
+                }}
+                placeholder={t('resumeEditor.projects.achievementPlaceholder')}
+                minHeight={72}
+              />
+              <InlineAITools
+                sectionType="project achievement bullet"
+                value={h}
+                onApply={value => {
+                  const next = [...(project.highlights ?? [])];
+                  next[i] = value;
+                  up('highlights', next);
+                }}
+                aiContext={aiContext}
+                actions={['rewrite', 'concise', 'metrics', 'senior', 'tailor', 'grammar']}
+              />
+            </div>
             <Button
               variant="ghost"
               size="icon"
@@ -679,8 +864,9 @@ function LanguageItem({ language, onChange, onDelete }: {
   );
 }
 
-function AchievementItem({ achievement, onChange, onDelete }: {
+function AchievementItem({ achievement, aiContext, onChange, onDelete }: {
   achievement: Achievement;
+  aiContext: InlineAIContext;
   onChange: (a: Achievement) => void;
   onDelete: () => void;
 }) {
@@ -706,6 +892,13 @@ function AchievementItem({ achievement, onChange, onDelete }: {
         onChange={value => up('description', value)}
         minHeight={82}
         placeholder={t('resumeEditor.achievements.descriptionPlaceholder')}
+      />
+      <InlineAITools
+        sectionType="achievement description"
+        value={achievement.description ?? ''}
+        onApply={value => up('description', value)}
+        aiContext={aiContext}
+        actions={['rewrite', 'concise', 'metrics', 'senior', 'tailor', 'grammar']}
       />
     </div>
   );

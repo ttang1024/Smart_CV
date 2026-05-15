@@ -101,6 +101,9 @@ export interface Resume {
   name: string;
   createdAt: string;
   updatedAt: string;
+  baseResumeId?: string;
+  jobApplicationId?: string;
+  versionLabel?: string;
   sectionOrder?: ResumeSection[];
   sectionTitles?: Partial<Record<ResumeSection, string>>;
   personalInfo: PersonalInfo;

@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { FileText, Trash2, Copy, Edit3, Clock } from 'lucide-react';
+import { Briefcase, FileText, Trash2, Copy, Edit3, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import type { Resume } from '../../types/resume';
@@ -46,6 +46,12 @@ export default function ResumeCard({ resume, onDelete, onDuplicate }: ResumeCard
             <h3 className="font-semibold text-gray-900 dark:text-white truncate">{resume.name}</h3>
             {resume.personalInfo.title && (
               <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{resume.personalInfo.title}</p>
+            )}
+            {resume.baseResumeId && (
+              <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-medium text-indigo-700 dark:bg-indigo-950/30 dark:text-indigo-300">
+                <Briefcase className="w-3 h-3" />
+                Job version
+              </span>
             )}
           </div>
         </div>

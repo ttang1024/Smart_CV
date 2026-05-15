@@ -16,20 +16,41 @@ interface AIOptimizationPanelProps {
   resume: Resume;
   onApplySuggestion: (suggestion: OptimizationSuggestion) => void;
   onSessionSaved: (session: OptimizationSession) => void;
+  jobContext?: {
+    jobTitle: string;
+    company: string;
+    jobDescription: string;
+  };
+  onJobContextChange?: (updates: Partial<{ jobTitle: string; company: string; jobDescription: string }>) => void;
 }
 
-export default function AIOptimizationPanel({ resume, onApplySuggestion, onSessionSaved }: AIOptimizationPanelProps) {
+export default function AIOptimizationPanel({ resume, onApplySuggestion, onSessionSaved, jobContext, onJobContextChange }: AIOptimizationPanelProps) {
   const { getActiveConfig, aiSettings } = useSettingsStore();
   const { t } = useTranslation();
-  const [jobDescription, setJobDescription] = useState('');
-  const [jobTitle, setJobTitle] = useState('');
-  const [company, setCompany] = useState('');
+  const [jobDescription, setJobDescriptionState] = useState(jobContext?.jobDescription ?? '');
+  const [jobTitle, setJobTitleState] = useState(jobContext?.jobTitle ?? '');
+  const [company, setCompanyState] = useState(jobContext?.company ?? '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<OptimizationResult | null>(null);
 
   const activeProvider = aiSettings.activeProvider;
   const config = getActiveConfig();
+
+  const setJobTitle = (value: string) => {
+    setJobTitleState(value);
+    onJobContextChange?.({ jobTitle: value });
+  };
+
+  const setCompany = (value: string) => {
+    setCompanyState(value);
+    onJobContextChange?.({ company: value });
+  };
+
+  const setJobDescription = (value: string) => {
+    setJobDescriptionState(value);
+    onJobContextChange?.({ jobDescription: value });
+  };
 
   const handleOptimize = async () => {
     if (!config) {
@@ -143,7 +164,7 @@ export default function AIOptimizationPanel({ resume, onApplySuggestion, onSessi
           {error && (
             <div className="flex items-start gap-2 p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-lg text-sm">
               <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-              <span>{error}</span>
+              <span className="break-words min-w-0">{error}</span>
             </div>
           )}
 

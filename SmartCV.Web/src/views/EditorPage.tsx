@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, Save, Sparkles } from 'lucide-react';
+import { ArrowLeft, Briefcase, FileSearch, FileText, Redo2, Save, Sparkles, Undo2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useResumeStore } from '../store/resumeStore';
 import type { Resume } from '../types/resume';
@@ -10,10 +10,17 @@ import type { OptimizationSession, OptimizationSuggestion } from '../types/ai';
 import ResumeEditor from '../components/resume/ResumeEditor';
 import ResumePreview from '../components/resume/ResumePreview';
 import AIOptimizationPanel from '../components/ai/AIOptimizationPanel';
+import ATSCheckerPanel from '../components/ats/ATSCheckerPanel';
+import CoverLetterPanel from '../components/cover/CoverLetterPanel';
+import JobVersionsPanel from '../components/jobs/JobVersionsPanel';
 import PDFImport from '../components/resume/PDFImport';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import { richTextToPlainText } from '../lib/richText';
+import { revisionHistory, type ResumeRevision } from '../services/storage/revisionHistory';
+import { jobApplicationDB } from '../services/storage/jobApplications';
+import { resumeDB } from '../services/storage/indexedDB';
+import type { JobApplication } from '../types/jobApplication';
 import toast from 'react-hot-toast';
 
 function DragDivider({ onMouseDown, active }: { onMouseDown: (e: React.MouseEvent) => void; active: boolean }) {
@@ -34,6 +41,14 @@ function DragDivider({ onMouseDown, active }: { onMouseDown: (e: React.MouseEven
   );
 }
 
+interface ResumeChangeOptions {
+  historyLabel?: string;
+  forceHistory?: boolean;
+  skipHistory?: boolean;
+}
+
+const HISTORY_COALESCE_MS = 1200;
+
 export default function EditorPage() {
   const searchParams = useSearchParams();
   const id = searchParams?.get('id');
@@ -41,11 +56,17 @@ export default function EditorPage() {
   const { t } = useTranslation();
   const { currentResume, loadResume, saveResume, saveOptimization } = useResumeStore();
   const [localResume, setLocalResume] = useState<Resume | null>(null);
-  const [showAI, setShowAI] = useState(false);
+  const [sidePanel, setSidePanel] = useState<'ai' | 'ats' | 'cover' | 'jobs' | null>(null);
+  const [jobContext, setJobContext] = useState({ jobTitle: '', company: '', jobDescription: '', jobUrl: '' });
+  const [jobApplications, setJobApplications] = useState<JobApplication[]>([]);
   const [saving, setSaving] = useState(false);
   const [hasUnsaved, setHasUnsaved] = useState(false);
   const [editingName, setEditingName] = useState(false);
+  const [undoStack, setUndoStack] = useState<ResumeRevision[]>([]);
+  const [redoStack, setRedoStack] = useState<ResumeRevision[]>([]);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
+  const lastHistoryPushRef = useRef(0);
+  const loadedResumeIdRef = useRef<string | null>(null);
 
   // Panel resize state
   const [leftWidthPct, setLeftWidthPct] = useState(40);
@@ -92,12 +113,30 @@ export default function EditorPage() {
     if (id) loadResume(id);
   }, [id, loadResume]);
 
+  const refreshJobApplications = useCallback((resumeId?: string) => {
+    const targetId = resumeId ?? localResume?.id;
+    if (!targetId) return;
+    setJobApplications(jobApplicationDB.getByResume(targetId));
+  }, [localResume?.id]);
+
   useEffect(() => {
-    if (currentResume) setLocalResume(currentResume);
-  }, [currentResume]);
+    if (currentResume) {
+      if (loadedResumeIdRef.current === currentResume.id) return;
+      loadedResumeIdRef.current = currentResume.id;
+      setLocalResume(currentResume);
+      setUndoStack(revisionHistory.get(currentResume.id));
+      setRedoStack([]);
+      lastHistoryPushRef.current = 0;
+      setJobContext(context => ({
+        ...context,
+        jobTitle: context.jobTitle || currentResume.targetJob || '',
+      }));
+      refreshJobApplications(currentResume.id);
+    }
+  }, [currentResume, refreshJobApplications]);
 
   // Autosave with debounce
-  const handleResumeChange = useCallback((updated: Resume) => {
+  const scheduleSave = useCallback((updated: Resume) => {
     setLocalResume(updated);
     setHasUnsaved(true);
 
@@ -111,6 +150,30 @@ export default function EditorPage() {
       }
     }, 1500);
   }, [saveResume]);
+
+  // Autosave with debounce and bounded local revision history
+  const handleResumeChange = useCallback((updated: Resume, options: ResumeChangeOptions = {}) => {
+    setLocalResume(current => {
+      if (!current || options.skipHistory) return updated;
+
+      const now = Date.now();
+      const shouldPush =
+        options.forceHistory ||
+        redoStack.length > 0 ||
+        undoStack.length === 0 ||
+        now - lastHistoryPushRef.current > HISTORY_COALESCE_MS;
+
+      if (shouldPush) {
+        const nextHistory = revisionHistory.push(current, options.historyLabel ?? 'Edit', undoStack);
+        setUndoStack(nextHistory);
+        setRedoStack([]);
+        lastHistoryPushRef.current = now;
+      }
+
+      return updated;
+    });
+    scheduleSave(updated);
+  }, [redoStack.length, scheduleSave, undoStack]);
 
   const handleManualSave = useCallback(async () => {
     if (!localResume) return;
@@ -126,16 +189,110 @@ export default function EditorPage() {
     }
   }, [localResume, saveResume, t]);
 
+  const handleUndo = useCallback(() => {
+    if (!localResume || undoStack.length === 0) return;
+
+    const [revision, ...remaining] = undoStack;
+    const redoRevision: ResumeRevision = {
+      id: crypto.randomUUID(),
+      resumeId: localResume.id,
+      label: 'Redo point',
+      createdAt: new Date().toISOString(),
+      resume: JSON.parse(JSON.stringify(localResume)) as Resume,
+    };
+    setUndoStack(revisionHistory.replace(localResume.id, remaining));
+    setRedoStack(stack => [redoRevision, ...stack].slice(0, 30));
+    lastHistoryPushRef.current = Date.now();
+    scheduleSave(revision.resume);
+    toast.success(`Undid: ${revision.label}`);
+  }, [localResume, undoStack, scheduleSave]);
+
+  const handleRedo = useCallback(() => {
+    if (!localResume || redoStack.length === 0) return;
+
+    const [revision, ...remaining] = redoStack;
+    const nextUndo = revisionHistory.push(localResume, 'Undo point', undoStack);
+    setUndoStack(nextUndo);
+    setRedoStack(remaining);
+    lastHistoryPushRef.current = Date.now();
+    scheduleSave(revision.resume);
+    toast.success('Redid change');
+  }, [localResume, redoStack, scheduleSave, undoStack]);
+
+  const handleCreateJobVersion = useCallback(async () => {
+    if (!localResume) return;
+    const role = jobContext.jobTitle.trim();
+    const company = jobContext.company.trim();
+    if (!role && !company) {
+      toast.error('Add a role or company first.');
+      return;
+    }
+
+    const now = new Date().toISOString();
+    const applicationId = crypto.randomUUID();
+    const versionResumeId = crypto.randomUUID();
+    const baseResumeId = localResume.baseResumeId ?? localResume.id;
+    const versionName = [company, role].filter(Boolean).join(' - ') || 'Job-specific Resume';
+    const version: Resume = {
+      ...JSON.parse(JSON.stringify(localResume)) as Resume,
+      id: versionResumeId,
+      name: versionName,
+      baseResumeId,
+      jobApplicationId: applicationId,
+      versionLabel: versionName,
+      targetJob: role,
+      createdAt: now,
+      updatedAt: now,
+    };
+    const application: JobApplication = {
+      id: applicationId,
+      baseResumeId,
+      versionResumeId,
+      role,
+      company,
+      jobUrl: jobContext.jobUrl.trim() || undefined,
+      jobDescription: jobContext.jobDescription.trim() || undefined,
+      status: 'draft',
+      exportHistory: [],
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    await resumeDB.save(version);
+    jobApplicationDB.save(application);
+    toast.success('Job-specific resume version created');
+    router.push(`/editor?id=${encodeURIComponent(versionResumeId)}`);
+  }, [jobContext, localResume, router]);
+
+  const handleResumeExport = useCallback((filename: string) => {
+    if (!localResume?.jobApplicationId) return;
+    jobApplicationDB.addExport(localResume.jobApplicationId, {
+      id: crypto.randomUUID(),
+      exportedAt: new Date().toISOString(),
+      filename,
+      format: 'pdf',
+    });
+    refreshJobApplications(localResume.id);
+  }, [localResume, refreshJobApplications]);
+
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 's') {
         e.preventDefault();
         handleManualSave();
       }
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        handleUndo();
+      }
+      if ((e.metaKey || e.ctrlKey) && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) {
+        e.preventDefault();
+        handleRedo();
+      }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [handleManualSave]);
+  }, [handleManualSave, handleUndo, handleRedo]);
 
   const handleApplySuggestion = useCallback((suggestion: OptimizationSuggestion) => {
     if (!localResume || !suggestion.improvedText) return;
@@ -202,7 +359,7 @@ export default function EditorPage() {
     }
 
     if (applied) {
-      handleResumeChange(updated);
+      handleResumeChange(updated, { forceHistory: true, historyLabel: 'AI suggestion' });
       toast.success(t('editor.toast.suggestionApplied'));
     }
   }, [localResume, handleResumeChange, t]);
@@ -218,7 +375,7 @@ export default function EditorPage() {
       id: localResume.id,
       name: localResume.name,
       createdAt: localResume.createdAt,
-    });
+    }, { forceHistory: true, historyLabel: 'PDF import' });
     toast.success(t('editor.toast.filledFromPdf'));
   }, [localResume, handleResumeChange, t]);
 
@@ -271,12 +428,57 @@ export default function EditorPage() {
           <PDFImport onFill={handleFillFromPDF} label={t('editor.fillFromPdf')} />
           <Button
             variant="ghost"
+            size="icon"
+            onClick={handleUndo}
+            disabled={undoStack.length === 0}
+            title={undoStack[0] ? `Undo ${undoStack[0].label}` : 'Undo'}
+          >
+            <Undo2 className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleRedo}
+            disabled={redoStack.length === 0}
+            title="Redo"
+          >
+            <Redo2 className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="ghost"
             size="sm"
-            onClick={() => setShowAI(v => !v)}
+            onClick={() => setSidePanel(panel => panel === 'jobs' ? null : 'jobs')}
+            className="gap-1.5"
+          >
+            <Briefcase className="w-3.5 h-3.5 text-indigo-500" />
+            {sidePanel === 'jobs' ? 'Hide Jobs' : 'Job Versions'}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSidePanel(panel => panel === 'ats' ? null : 'ats')}
+            className="gap-1.5"
+          >
+            <FileSearch className="w-3.5 h-3.5 text-teal-500" />
+            {sidePanel === 'ats' ? 'Hide ATS' : 'ATS Check'}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSidePanel(panel => panel === 'cover' ? null : 'cover')}
+            className="gap-1.5"
+          >
+            <FileText className="w-3.5 h-3.5 text-sky-500" />
+            {sidePanel === 'cover' ? 'Hide Letter' : 'Cover Letter'}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSidePanel(panel => panel === 'ai' ? null : 'ai')}
             className="gap-1.5"
           >
             <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
-            {showAI ? t('editor.hideAI') : t('editor.aiOptimize')}
+            {sidePanel === 'ai' ? t('editor.hideAI') : t('editor.aiOptimize')}
           </Button>
           <Button
             size="sm"
@@ -295,7 +497,7 @@ export default function EditorPage() {
         {/* Left: Editor */}
         <div style={{ width: `${leftWidthPct}%` }} className="overflow-y-auto shrink-0">
           <div className="mx-auto px-4 py-6">
-            <ResumeEditor resume={localResume} onChange={handleResumeChange} />
+            <ResumeEditor resume={localResume} onChange={handleResumeChange} jobContext={jobContext} />
           </div>
         </div>
 
@@ -303,19 +505,41 @@ export default function EditorPage() {
 
         {/* Center: Preview */}
         <div className="flex-1 overflow-y-auto min-w-0 bg-gray-50 dark:bg-gray-900">
-          <ResumePreview resume={localResume} onChange={handleResumeChange} />
+          <ResumePreview resume={localResume} onChange={handleResumeChange} onExport={handleResumeExport} />
         </div>
 
-        {/* AI Panel */}
-        {showAI && (
+        {/* Side Panel */}
+        {sidePanel && (
           <>
             <DragDivider onMouseDown={startDrag('ai')} active={draggingPanel === 'ai'} />
             <div style={{ width: `${aiWidthPx}px` }} className="bg-white dark:bg-gray-950 flex flex-col overflow-hidden shrink-0">
-              <AIOptimizationPanel
-                resume={localResume}
-                onApplySuggestion={handleApplySuggestion}
-                onSessionSaved={handleSessionSaved}
-              />
+              {sidePanel === 'ai' ? (
+                <AIOptimizationPanel
+                  resume={localResume}
+                  onApplySuggestion={handleApplySuggestion}
+                  onSessionSaved={handleSessionSaved}
+                  jobContext={jobContext}
+                  onJobContextChange={updates => setJobContext(context => ({ ...context, ...updates }))}
+                />
+              ) : sidePanel === 'cover' ? (
+                <CoverLetterPanel
+                  resume={localResume}
+                  jobContext={jobContext}
+                  onJobContextChange={updates => setJobContext(context => ({ ...context, ...updates }))}
+                />
+              ) : sidePanel === 'jobs' ? (
+                <JobVersionsPanel
+                  resume={localResume}
+                  applications={jobApplications}
+                  jobContext={jobContext}
+                  onJobContextChange={updates => setJobContext(context => ({ ...context, ...updates }))}
+                  onCreateVersion={handleCreateJobVersion}
+                  onRefresh={() => refreshJobApplications(localResume.id)}
+                  onOpenResume={resumeId => router.push(`/editor?id=${encodeURIComponent(resumeId)}`)}
+                />
+              ) : (
+                <ATSCheckerPanel resume={localResume} />
+              )}
             </div>
           </>
         )}
