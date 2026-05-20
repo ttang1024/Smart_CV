@@ -1,32 +1,33 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-RESOURCE_GROUP="smart-cv-rg"
+REGION="${AWS_REGION:-ap-southeast-2}"
 APP_NAME="smart-cv-app"
-ACR_NAME="smartcvappacr"
+STACK_NAME="${APP_NAME}-stack"
 DEFAULT_IMAGE_TAG="$(git rev-parse --short HEAD 2>/dev/null || date +%Y%m%d%H%M%S)-$(date +%Y%m%d%H%M%S)"
 IMAGE_TAG="${1:-$DEFAULT_IMAGE_TAG}"
 DOCKER_PLATFORM="${DOCKER_PLATFORM:-linux/amd64}"
 
-if ! az group show --name "$RESOURCE_GROUP" --output none 2>/dev/null; then
-  echo "Resource group '$RESOURCE_GROUP' does not exist. Run ./deploy.sh first to create infrastructure."
+if ! aws cloudformation describe-stacks \
+     --stack-name "$STACK_NAME" \
+     --region "$REGION" \
+     --output none 2>/dev/null; then
+  echo "Stack '$STACK_NAME' does not exist. Run ./deploy.sh first to create infrastructure."
   exit 1
 fi
 
-ACR_LOGIN_SERVER=$(az acr show \
-  --name "$ACR_NAME" \
-  --resource-group "$RESOURCE_GROUP" \
-  --query loginServer -o tsv)
+ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text --region "$REGION")
+ECR_REGISTRY="${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
+IMAGE="${ECR_REGISTRY}/${APP_NAME}:${IMAGE_TAG}"
 
 if ! command -v docker >/dev/null 2>&1; then
-  echo "Docker is required for deployment because this script builds locally before pushing to ACR."
+  echo "Docker is required for deployment."
   exit 1
 fi
 
-IMAGE="${ACR_LOGIN_SERVER}/${APP_NAME}:${IMAGE_TAG}"
-
-echo "Logging in to ${ACR_LOGIN_SERVER}..."
-az acr login --name "$ACR_NAME"
+echo "Logging in to ${ECR_REGISTRY}..."
+aws ecr get-login-password --region "$REGION" | \
+  docker login --username AWS --password-stdin "$ECR_REGISTRY"
 
 echo "Building ${IMAGE} for ${DOCKER_PLATFORM}..."
 docker build \
@@ -37,11 +38,21 @@ docker build \
 echo "Pushing ${IMAGE}..."
 docker push "$IMAGE"
 
-echo "Updating Container App image..."
-az containerapp update \
-  --name "$APP_NAME" \
-  --resource-group "$RESOURCE_GROUP" \
-  --image "$IMAGE" \
-  --output none
+echo "Updating App Runner service with new image..."
+aws cloudformation deploy \
+  --region "$REGION" \
+  --stack-name "$STACK_NAME" \
+  --template-file aws/cloudformation.yml \
+  --parameter-overrides \
+      AppName="$APP_NAME" \
+      ImageTag="$IMAGE_TAG" \
+  --capabilities CAPABILITY_NAMED_IAM \
+  --no-fail-on-empty-changeset
 
-echo "Done. https://$(az containerapp show --resource-group "$RESOURCE_GROUP" --name "$APP_NAME" --query properties.configuration.ingress.fqdn -o tsv)"
+SERVICE_URL=$(aws cloudformation describe-stacks \
+  --region "$REGION" \
+  --stack-name "$STACK_NAME" \
+  --query "Stacks[0].Outputs[?OutputKey=='ServiceUrl'].OutputValue" \
+  --output text)
+
+echo "Done. ${SERVICE_URL}"

@@ -35,13 +35,13 @@ const zhCN = {
     aiRules: {
       label: '100% 免费与开源',
       title: 'Your AI, Your Rules',
-      subtitle: 'SmartCV 可本地运行、Docker 部署，也可部署到 Azure。随后选择适合您工作流的 AI 服务商与模型。',
+      subtitle: 'SmartCV 可本地运行、Docker 部署，也可部署到 AWS。随后选择适合您工作流的 AI 服务商与模型。',
       deployTitle: '选择 SmartCV 的运行方式',
       deploySubtitle: '从本机到云端使用同一套应用。',
       deployTabs: {
         local: '本地',
         docker: 'Docker',
-        azure: 'Azure',
+        aws: 'AWS',
       },
       deploy: {
         local: {
@@ -52,9 +52,9 @@ const zhCN = {
           title: 'Docker 部署',
           desc: '将应用打包为可重复运行的容器，适合团队、演示和自托管环境。',
         },
-        azure: {
-          title: 'Azure 部署',
-          desc: '使用内置脚本与模板，将完整应用栈部署到 Azure 基础设施。',
+        aws: {
+          title: 'AWS 部署',
+          desc: '使用内置脚本与 CloudFormation 模板，将完整应用栈部署到 AWS App Runner（ap-southeast-2）。',
         },
       },
       configureTitle: '配置 AI 枚举',

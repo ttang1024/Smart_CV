@@ -73,7 +73,7 @@ cd ../SmartCV.API && dotnet publish -c Release -o ./publish
 | PDF import | pdfjs-dist + Tesseract.js OCR + optional AI parsing               |
 | Backend    | .NET 10 Minimal API                                               |
 | i18n       | i18next (en / es / zh-CN / zh-TW)                                 |
-| Deployment | Docker → Azure Container Registry → Azure Container Apps          |
+| Deployment | Docker → Amazon ECR → AWS App Runner (ap-southeast-2)             |
 
 ---
 
@@ -95,32 +95,34 @@ See [`tech/`](tech/) for detailed module documentation.
 
 ## Deployment
 
-The app runs as a Docker container on Azure Container Apps. The image is built locally with Docker, pushed to Azure Container Registry, and served through Container Apps ingress.
+The app runs as a Docker container on AWS App Runner (region `ap-southeast-2`). The image is built locally with Docker, pushed to Amazon ECR, and served through App Runner's managed ingress. Infrastructure is declared in `aws/cloudformation.yml` and applied via the AWS CLI.
 
 **Deploy infrastructure + app (first time or after infra changes):**
 
 ```bash
-./deploy.sh          # deploys with tag "latest"
+./deploy.sh          # deploys with a git-sha tag
 ./deploy.sh v1.2.0   # deploys with a specific tag
 ```
 
 `deploy.sh` does four things in order:
 
-1. `az group create` — creates or reuses the `smart-cv-rg` resource group
-2. `az acr create` — creates or reuses the private Azure Container Registry
-3. `docker build` + `docker push` — builds the Docker image locally and pushes it to the registry
-4. `az deployment group create` — provisions or updates the Container Apps environment and Container App from `azure/main.bicep`
+1. Resolves the ECR registry endpoint from your AWS account ID
+2. Creates the ECR repository if it doesn't exist
+3. `docker build` + `docker push` — builds the Docker image locally and pushes it to ECR
+4. `aws cloudformation deploy` — provisions or updates the App Runner service and IAM role from `aws/cloudformation.yml`
 
 **Deploy app only (after frontend/backend code changes):**
 
 ```bash
-./deploy-app.sh          # builds and deploys with tag "latest"
+./deploy-app.sh          # builds and deploys with a git-sha tag
 ./deploy-app.sh v1.2.0   # builds and deploys with a specific tag
 ```
 
-`deploy-app.sh` skips the Bicep infrastructure step and just runs `docker build`, `docker push`, and `az containerapp update`. Use this for faster iteration when only application code has changed.
+`deploy-app.sh` skips the full infrastructure check and just runs `docker build`, `docker push`, and updates the CloudFormation stack with the new image tag. Use this for faster iteration when only application code has changed.
 
-**Prerequisites:** Docker plus [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) logged in (`az login`) with Contributor access to the resource group.
+**CI/CD:** Pushing to `main` triggers `.github/workflows/deploy.yml`, which builds and deploys automatically via OIDC (no long-lived credentials). Add your IAM role ARN to GitHub Secrets as `AWS_DEPLOY_ROLE_ARN`.
+
+**Prerequisites:** Docker plus [AWS CLI v2](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html) configured (`aws configure` or environment variables) with permissions for ECR, CloudFormation, IAM, and App Runner.
 
 ---
 

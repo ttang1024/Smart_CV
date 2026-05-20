@@ -35,13 +35,13 @@ const es = {
     aiRules: {
       label: '100% gratis y de código abierto',
       title: 'Tu IA, tus reglas',
-      subtitle: 'Ejecuta SmartCV en local, publícalo en contenedores o despliégalo en Azure. Después elige el proveedor y modelo de IA que encajen con tu flujo.',
+      subtitle: 'Ejecuta SmartCV en local, publícalo en contenedores o despliégalo en AWS. Después elige el proveedor y modelo de IA que encajen con tu flujo.',
       deployTitle: 'Elige cómo se ejecuta SmartCV',
       deploySubtitle: 'Usa la misma app del portátil a la nube.',
       deployTabs: {
         local: 'Local',
         docker: 'Docker',
-        azure: 'Azure',
+        aws: 'AWS',
       },
       deploy: {
         local: {
@@ -52,9 +52,9 @@ const es = {
           title: 'Despliegue con Docker',
           desc: 'Empaqueta la app en contenedores repetibles para equipos, demos y entornos autohospedados.',
         },
-        azure: {
-          title: 'Despliegue en Azure',
-          desc: 'Despliega la pila completa en infraestructura de Azure con los scripts y plantillas incluidos.',
+        aws: {
+          title: 'Despliegue en AWS',
+          desc: 'Despliega la pila completa en AWS App Runner (ap-southeast-2) con los scripts y la plantilla CloudFormation incluidos.',
         },
       },
       configureTitle: 'Configura la enumeración de IA',

@@ -37,13 +37,13 @@ const en = {
     aiRules: {
       label: '100% Free & Open Source',
       title: 'Your AI, Your Rules',
-      subtitle: 'Run SmartCV locally, ship it in containers, or deploy it to Azure. Then choose the AI provider and model that match your workflow.',
+      subtitle: 'Run SmartCV locally, ship it in containers, or deploy it to AWS. Then choose the AI provider and model that match your workflow.',
       deployTitle: 'Choose how SmartCV runs',
       deploySubtitle: 'Use the same app from laptop to cloud.',
       deployTabs: {
         local: 'Local',
         docker: 'Docker',
-        azure: 'Azure',
+        aws: 'AWS',
       },
       deploy: {
         local: {
@@ -54,9 +54,9 @@ const en = {
           title: 'Docker deployment',
           desc: 'Package the app into repeatable containers for teams, demos, and self-hosted environments.',
         },
-        azure: {
-          title: 'Azure deployment',
-          desc: 'Deploy the full stack to Azure infrastructure with the included scripts and templates.',
+        aws: {
+          title: 'AWS deployment',
+          desc: 'Deploy the full stack to AWS App Runner (ap-southeast-2) with the included scripts and CloudFormation template.',
         },
       },
       configureTitle: 'Configure AI enumeration',

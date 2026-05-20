@@ -4,11 +4,12 @@ import {
   Sparkles, FileText, Download, Shield, Palette,
   ArrowRight, ExternalLink, Brain, Lock,
   Upload, Wand2, LayoutTemplate,
-  Terminal, KeyRound, SlidersHorizontal,
+  KeyRound, SlidersHorizontal,
 } from 'lucide-react';
 import { GithubFilled } from '@ant-design/icons';
 import LanguageSwitcher from '../components/ui/LanguageSwitcher';
 import ResumeHeroPreview from '../components/landing/ResumeHeroPreview';
+import DeploymentTerminal from '../components/landing/DeploymentTerminal';
 import { getDemoResume } from '../data/demoResume';
 import { AI_PROVIDER_CONFIGS, type AIProviderType } from '../types/ai';
 import {
@@ -43,14 +44,6 @@ const STEP_COLORS = [
 
 const STEP_ICONS = [Upload, Wand2, LayoutTemplate, Download] as const;
 
-const DEPLOYMENT_LINES = [
-  { prompt: '~', cmd: 'git clone https://github.com/ttang1024/Smart_CV', color: '#4ade80' },
-  { prompt: '~', cmd: 'cd Smart_CV', color: '#4ade80' },
-  { prompt: '~/Smart_CV/SmartCV.API', cmd: 'dotnet run', color: '#22d3ee' },
-  { prompt: null, cmd: '✓ API -> http://localhost:5100', color: '#818cf8' },
-  { prompt: '~/Smart_CV/SmartCV.Web', cmd: 'npm install && npm run dev', color: '#4ade80' },
-  { prompt: null, cmd: '✓ Web -> http://localhost:3000', color: '#818cf8' },
-];
 
 const AI_PROVIDER_ORDER: AIProviderType[] = [
   'openai', 'gemini', 'claude', 'grok', 'qianwen', 'deepseek',
@@ -242,38 +235,13 @@ export default function LandingPage({ initialLanguage = 'en' }: { initialLanguag
           <div className="relative grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
             <div className="lg:col-span-2">
               <div className="flex flex-col gap-4">
-                <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(0,0,0,1)', border: '1px solid rgba(74,222,128,0.2)', boxShadow: '0 0 40px rgba(74,222,128,0.06)' }}>
-                  <div className="flex items-center gap-2 px-4 py-3" style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                    <div className="w-3 h-3 rounded-full bg-red-500/70" />
-                    <div className="w-3 h-3 rounded-full bg-yellow-500/70" />
-                    <div className="w-3 h-3 rounded-full bg-green-500/70" />
-                    <Terminal className="w-3.5 h-3.5 text-white/20 ml-2" />
-                    <span className="text-xs text-white/20 ml-1">bash</span>
-                    <div className="ml-auto flex gap-1">
-                      <span className="text-xs px-2.5 py-0.5 rounded-md font-semibold" style={{ background: 'rgba(74,222,128,0.15)', color: '#4ade80', border: '1px solid rgba(74,222,128,0.3)' }}>
-                        {t('landing.aiRules.deployTabs.local')}
-                      </span>
-                      {(['docker', 'azure'] as const).map(tab => (
-                        <span key={tab} className="text-xs px-2.5 py-0.5 rounded-md font-semibold" style={{ background: 'transparent', color: 'rgba(255,255,255,0.25)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                          {t(`landing.aiRules.deployTabs.${tab}`)}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="px-5 py-5 font-mono text-sm space-y-2 min-h-[276px]">
-                    {DEPLOYMENT_LINES.map((line, index) => (
-                      <div key={`${line.cmd}-${index}`} className="flex items-start gap-2">
-                        {line.prompt && <span className="shrink-0 text-white/25">{line.prompt} $</span>}
-                        <span className="break-all" style={{ color: line.color }}>{line.cmd}</span>
-                      </div>
-                    ))}
-                    <div className="flex items-center gap-1 mt-1">
-                      <span className="text-white/25">~ $</span>
-                      <span style={{ color: '#4ade80' }}>|</span>
-                    </div>
-                  </div>
-                </div>
+                <DeploymentTerminal
+                  labels={{
+                    local: t('landing.aiRules.deployTabs.local'),
+                    docker: t('landing.aiRules.deployTabs.docker'),
+                    aws: t('landing.aiRules.deployTabs.aws'),
+                  }}
+                />
 
                 <div className="flex flex-wrap gap-2">
                   {[
@@ -321,9 +289,6 @@ export default function LandingPage({ initialLanguage = 'en' }: { initialLanguag
                             </div>
                             <span className="text-sm font-bold truncate" style={{ color: meta.color }}>{meta.name}</span>
                           </div>
-                          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0" style={{ background: `${meta.color}18`, color: meta.color }}>
-                            {access.free}
-                          </span>
                         </div>
 
                         <div className="font-mono text-xs rounded px-2 py-1" style={{ background: '#f8fafc', color: '#64748b', border: '1px solid #e5e7eb' }}>
