@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DEFAULT_PAGE_MARGINS_MM, type LayoutProps, type CustomOptions, type CustomSectionStyle } from '../resumeTypes';
-import { contactItems, ContactRow, dateRange, EduEntry, ExpEntry, CertList, LangList, HighlightList, AchievementRows, InterestsList, RefereesBlock, sectionTitle } from '../resumeShared';
+import { contactItems, ContactRow, dateRange, EduEntry, ExpEntry, CertList, LangList, HighlightList, AchievementRows, InterestsList, RefereesBlock, ProjectTechnologies, sectionTitle } from '../resumeShared';
 import { isRichTextEmpty } from '../../../lib/richText';
 import { RichTextContent } from '../RichText';
 import { DEFAULT_SECTION_ORDER } from '../../../types/resume';
@@ -108,9 +108,9 @@ export function CustomLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_MM
     <>{projects.map(proj => (
       <div key={proj.id} style={{ marginBottom: '8px' }}>
         <span style={{ fontWeight: 700 }}>{proj.name}</span>
-        {proj.technologies.length > 0 && <span style={{ fontSize: '9pt', color: '#9ca3af', marginLeft: '6px' }}>[{proj.technologies.join(', ')}]</span>}
         <RichTextContent html={proj.description} style={{ color: '#4b5563', marginTop: '2px', whiteSpace: 'pre-wrap' }} />
         <HighlightList highlights={proj.highlights ?? []} color="#4b5563" />
+        <ProjectTechnologies project={proj} color="#4b5563" />
       </div>
     ))}</>
   );

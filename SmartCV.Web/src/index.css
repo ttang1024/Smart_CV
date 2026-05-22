@@ -64,6 +64,23 @@ body {
 	padding-left: 1.35em;
 }
 
+.rich-text-content li {
+	white-space: normal;
+}
+
+.rich-text-content li > div,
+.rich-text-content li > p {
+	display: inline;
+	margin: 0;
+}
+
+.rich-text-content li > div + div::before,
+.rich-text-content li > p + p::before,
+.rich-text-content li > div + p::before,
+.rich-text-content li > p + div::before {
+	content: ' ';
+}
+
 .rich-text-content [data-list-style='disc'] {
 	list-style-type: disc;
 }

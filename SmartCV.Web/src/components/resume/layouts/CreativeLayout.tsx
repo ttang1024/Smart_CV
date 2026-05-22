@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { DEFAULT_PAGE_MARGINS_MM, type LayoutProps } from '../resumeTypes';
-import { contactItems, HighlightList, AchievementRows, InterestsList, RefereesBlock, dateRange, sectionTitle } from '../resumeShared';
+import { contactItems, HighlightList, AchievementRows, InterestsList, RefereesBlock, dateRange, ProjectTechnologies, sectionTitle } from '../resumeShared';
 import { isRichTextEmpty } from '../../../lib/richText';
 import { RichTextContent } from '../RichText';
 
@@ -132,11 +132,9 @@ export function CreativeLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_
             {projects.map(p => (
               <div key={p.id} style={{ marginBottom: '9px' }}>
                 <span style={{ fontWeight: 700, color: '#0f172a' }}>{p.name}</span>
-                {p.technologies.length > 0 && (
-                  <span style={{ fontSize: '8.5pt', color: '#94a3b8', marginLeft: '6px' }}>{p.technologies.join(', ')}</span>
-                )}
                 <RichTextContent html={p.description} style={{ color: '#475569', marginTop: '2px', whiteSpace: 'pre-wrap' }} />
                 <HighlightList highlights={p.highlights ?? []} color="#475569" />
+                <ProjectTechnologies project={p} color="#475569" />
               </div>
             ))}
           </CreativeSection>

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Bold, Italic, Underline, Eraser, Baseline, Rows3, List } from 'lucide-react';
+import { Bold, Italic, Underline, Eraser, Baseline, Rows3 } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { isRichTextEmpty, normalizeListStyle, sanitizeRichText } from '../../lib/richText';
+import { isRichTextEmpty, sanitizeRichText } from '../../lib/richText';
 
 const FONT_SIZE_OPTIONS = [
   { label: '8', value: '8pt' },
@@ -20,29 +20,6 @@ const LINE_HEIGHT_OPTIONS = [
   { label: '1.6', value: '1.6' },
   { label: '1.8', value: '1.8' },
 ];
-
-const BULLET_STYLE_OPTIONS = [
-  { label: 'None', value: 'none', listTag: 'ul' },
-  { label: 'Bullet', value: 'disc', listTag: 'ul' },
-  { label: 'Square', value: 'square', listTag: 'ul' },
-  { label: 'Number', value: 'decimal', listTag: 'ol' },
-  { label: 'A B C', value: 'upper-alpha', listTag: 'ol' },
-  { label: 'I II III', value: 'upper-roman', listTag: 'ol' },
-  { label: 'Dash', value: 'dash', listTag: 'ul' },
-] as const;
-
-type BulletStyleValue = (typeof BULLET_STYLE_OPTIONS)[number]['value'];
-type ListTag = (typeof BULLET_STYLE_OPTIONS)[number]['listTag'];
-
-const CSS_LIST_STYLE_BY_VALUE: Record<BulletStyleValue, string> = {
-  none: 'none',
-  disc: 'disc',
-  square: 'square',
-  decimal: 'decimal',
-  'upper-alpha': 'upper-alpha',
-  'upper-roman': 'upper-roman',
-  dash: 'none',
-};
 
 export function RichTextContent({ html, style }: { html: string; style?: React.CSSProperties }) {
   if (isRichTextEmpty(html)) return null;
@@ -72,7 +49,6 @@ export default function RichTextEditor({ value, onChange, label, placeholder, mi
   const [color, setColor] = useState('#111827');
   const [fontSize, setFontSize] = useState('11pt');
   const [lineHeight, setLineHeight] = useState('1.4');
-  const [bulletStyle, setBulletStyle] = useState<BulletStyleValue>('none');
 
   useEffect(() => {
     const editor = editorRef.current;
@@ -97,16 +73,33 @@ export default function RichTextEditor({ value, onChange, label, placeholder, mi
     }
   };
 
-  const restoreSelection = () => {
+  const restoreSelection = (): boolean => {
+    const editor = editorRef.current;
     const range = savedRangeRef.current;
     const selection = window.getSelection();
-    if (!range || !selection) return;
-    selection.removeAllRanges();
-    selection.addRange(range);
+    if (!editor || !range || !selection) return false;
+
+    const start = range.startContainer;
+    const end = range.endContainer;
+    if (!start.isConnected || !end.isConnected || !editor.contains(range.commonAncestorContainer)) {
+      savedRangeRef.current = null;
+      return false;
+    }
+
+    try {
+      selection.removeAllRanges();
+      selection.addRange(range);
+      return true;
+    } catch {
+      savedRangeRef.current = null;
+      return false;
+    }
   };
 
   const runCommand = (command: string, commandValue?: string) => {
-    editorRef.current?.focus();
+    const editor = editorRef.current;
+    if (!editor) return;
+    editor.focus();
     restoreSelection();
     document.execCommand(command, false, commandValue);
     saveSelection();
@@ -151,63 +144,6 @@ export default function RichTextEditor({ value, onChange, label, placeholder, mi
     emitChange();
   };
 
-  const findClosestList = (node: Node | null): HTMLUListElement | HTMLOListElement | null => {
-    let current = node;
-    while (current && current !== editorRef.current) {
-      if (current instanceof HTMLUListElement || current instanceof HTMLOListElement) return current;
-      current = current.parentNode;
-    }
-    return null;
-  };
-
-  const convertListTag = (list: HTMLUListElement | HTMLOListElement, listTag: ListTag) => {
-    if (list.tagName.toLowerCase() === listTag) return list;
-
-    const replacement = document.createElement(listTag);
-    Array.from(list.attributes).forEach(attribute => {
-      replacement.setAttribute(attribute.name, attribute.value);
-    });
-    while (list.firstChild) replacement.appendChild(list.firstChild);
-    list.replaceWith(replacement);
-
-    return replacement;
-  };
-
-  const applyBulletStyle = (styleValue: BulletStyleValue) => {
-    const editor = editorRef.current;
-    const option = BULLET_STYLE_OPTIONS.find(item => item.value === styleValue);
-    if (!editor || !option) return;
-
-    editor.focus();
-    restoreSelection();
-
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) return;
-
-    const range = selection.getRangeAt(0);
-    if (!editor.contains(range.commonAncestorContainer)) return;
-
-    const command = option.listTag === 'ol' ? 'insertOrderedList' : 'insertUnorderedList';
-    let list = findClosestList(range.commonAncestorContainer);
-
-    if (list) {
-      list = convertListTag(list, option.listTag);
-    } else {
-      document.execCommand(command, false);
-      const nextSelection = window.getSelection();
-      list = nextSelection?.rangeCount ? findClosestList(nextSelection.getRangeAt(0).commonAncestorContainer) : null;
-    }
-
-    if (list) {
-      const normalizedStyle = normalizeListStyle(styleValue);
-      if (normalizedStyle) list.dataset.listStyle = normalizedStyle;
-      list.style.listStyleType = CSS_LIST_STYLE_BY_VALUE[styleValue];
-    }
-
-    saveSelection();
-    emitChange();
-  };
-
   const handlePaste = (event: React.ClipboardEvent<HTMLDivElement>) => {
     event.preventDefault();
     const html = event.clipboardData.getData('text/html');
@@ -246,19 +182,11 @@ export default function RichTextEditor({ value, onChange, label, placeholder, mi
               applyFieldStyle('lineHeight', next);
             }}
           />
-          <ToolbarSelect
-            title="Bullet style"
-            icon={<List className="w-3.5 h-3.5" />}
-            value={bulletStyle}
-            options={BULLET_STYLE_OPTIONS}
+          <label
+            className="h-7 w-7 inline-flex items-center justify-center rounded hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+            title="Text color"
             onMouseDown={saveSelection}
-            onChange={next => {
-              const styleValue = next as BulletStyleValue;
-              setBulletStyle(styleValue);
-              applyBulletStyle(styleValue);
-            }}
-          />
-          <label className="h-7 w-7 inline-flex items-center justify-center rounded hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer" title="Text color">
+          >
             <input
               type="color"
               value={color}

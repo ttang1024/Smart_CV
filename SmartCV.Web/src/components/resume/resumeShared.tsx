@@ -1,6 +1,6 @@
 import { MailOutlined, PhoneOutlined, EnvironmentOutlined, LinkedinOutlined, GithubOutlined, GlobalOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import type { Resume, Experience, Education, Certification, Language, ResumeSection } from '../../types/resume';
+import type { Resume, Experience, Education, Certification, Language, ResumeSection, Project } from '../../types/resume';
 import { isRichTextEmpty } from '../../lib/richText';
 import { RichTextContent } from './RichText';
 
@@ -107,6 +107,29 @@ export function HighlightList({ highlights, color, fontSize }: {
         </li>
       ))}
     </ul>
+  );
+}
+
+export function ProjectTechnologies({ project, color, fontSize, label = 'Tech:' }: {
+  project: Project;
+  color?: string;
+  fontSize?: string;
+  label?: string;
+}) {
+  const hasLinks = Boolean(project.github || project.url);
+  if (!project.technologies.length && !hasLinks) return null;
+  return (
+    <div style={{ ...(color && { color }), ...(fontSize && { fontSize }), marginTop: '2px', overflowWrap: 'anywhere' }}>
+      {project.technologies.length > 0 && (
+        <div><strong>{label}</strong> {project.technologies.join(', ')}</div>
+      )}
+      {hasLinks && (
+        <div>
+          {project.github && <p><strong>GitHub:</strong> {project.github}</p>}
+          {project.url && <p><strong>Live:</strong> {project.url}</p>}
+        </div>
+      )}
+    </div>
   );
 }
 

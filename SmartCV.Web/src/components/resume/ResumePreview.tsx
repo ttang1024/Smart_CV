@@ -4,6 +4,11 @@ import { useTranslation } from 'react-i18next';
 const PAPER_W_PX = 210 * (96 / 25.4); // A4 width in CSS px at 96 dpi ≈ 793.7
 const MIN_PAGE_MARGIN_MM = 6;
 const MAX_PAGE_MARGIN_MM = 24;
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL ??
+  (typeof window !== 'undefined' && window.location.port === '3000'
+    ? 'http://localhost:5167/api'
+    : '/api');
 import { DownloadOutlined } from '@ant-design/icons';
 import { GripVertical } from 'lucide-react';
 import type { Resume, ResumeSection } from '../../types/resume';
@@ -176,13 +181,22 @@ h2{break-after:avoid;page-break-after:avoid;}
 
       const filename = `${r.personalInfo.fullName || 'resume'}.pdf`;
 
-      const res = await fetch('/api/pdf/generate', {
+      const res = await fetch(`${API_BASE}/pdf/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ html, filename }),
       });
 
-      if (!res.ok) throw new Error('PDF generation failed');
+      if (!res.ok) {
+        let detail = '';
+        try {
+          const data = await res.json();
+          detail = typeof data?.error === 'string' ? `: ${data.error}` : '';
+        } catch {
+          detail = res.statusText ? `: ${res.statusText}` : '';
+        }
+        throw new Error(`PDF generation failed${detail}`);
+      }
 
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);

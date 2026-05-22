@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { DEFAULT_PAGE_MARGINS_MM, type LayoutProps, type ThemeColors } from '../resumeTypes';
-import { ContactRow, contactItems, dateRange, EduEntry, CertList, LangList, HighlightList, AchievementRows, InterestsList, RefereesBlock, sectionTitle } from '../resumeShared';
+import { ContactRow, contactItems, dateRange, EduEntry, CertList, LangList, HighlightList, AchievementRows, InterestsList, RefereesBlock, ProjectTechnologies, sectionTitle } from '../resumeShared';
 import { isRichTextEmpty } from '../../../lib/richText';
 import { RichTextContent } from '../RichText';
 import { DEFAULT_SECTION_ORDER } from '../../../types/resume';
@@ -92,12 +92,10 @@ export function TimelineLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_
               <div key={p.id} style={{ marginBottom: '8px' }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
                   <span style={{ fontWeight: 700 }}>{p.name}</span>
-                  {p.technologies.length > 0 && (
-                    <span style={{ fontSize: '9pt', color: '#6b7280' }}>({p.technologies.join(', ')})</span>
-                  )}
                 </div>
                 <RichTextContent html={p.description} style={{ color: '#374151', whiteSpace: 'pre-wrap' }} />
                 <HighlightList highlights={p.highlights ?? []} color="#374151" />
+                <ProjectTechnologies project={p} color="#374151" />
               </div>
             ))}
           </TimelineSection>
