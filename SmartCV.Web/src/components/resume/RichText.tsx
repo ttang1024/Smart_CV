@@ -183,7 +183,7 @@ export default function RichTextEditor({ value, onChange, label, placeholder, mi
             }}
           />
           <label
-            className="h-7 w-7 inline-flex items-center justify-center rounded hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+            className="relative h-7 w-7 inline-flex items-center justify-center rounded hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
             title="Text color"
             onMouseDown={saveSelection}
           >
@@ -194,9 +194,9 @@ export default function RichTextEditor({ value, onChange, label, placeholder, mi
                 setColor(e.target.value);
                 runCommand('foreColor', e.target.value);
               }}
-              className="sr-only"
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             />
-            <span className="w-4 h-4 rounded-full border border-gray-300 dark:border-gray-600" style={{ backgroundColor: color }} />
+            <span className="w-4 h-4 rounded-full border border-gray-300 dark:border-gray-600 pointer-events-none" style={{ backgroundColor: color }} />
           </label>
           <ToolbarButton title="Clear formatting" onClick={() => runCommand('removeFormat')}><Eraser className="w-3.5 h-3.5" /></ToolbarButton>
         </div>
