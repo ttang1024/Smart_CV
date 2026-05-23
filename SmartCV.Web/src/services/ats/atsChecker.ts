@@ -114,6 +114,7 @@ function collectResumeText(resume: Resume): string {
       exp.startDate,
       exp.endDate,
       clean(exp.description),
+      ...(exp.productLinks ?? []),
       ...exp.highlights.map(clean),
     ]),
     ...resume.education.flatMap(edu => [edu.institution, edu.degree, edu.field, edu.location, edu.gpa, edu.honors]),
@@ -353,7 +354,13 @@ export function runAtsCheck(resume: Resume): AtsCheckResult {
     addPass(passed, 'skills-good', 'keywords', 'Skills coverage looks useful', `${skillsCount} skills are listed for keyword matching.`);
   }
 
-  const maybeUrls = [info.website, info.linkedin, info.github, ...resume.projects.flatMap(project => [project.url, project.github])].filter(Boolean) as string[];
+  const maybeUrls = [
+    info.website,
+    info.linkedin,
+    info.github,
+    ...resume.experience.flatMap(exp => exp.productLinks ?? []),
+    ...resume.projects.flatMap(project => [project.url, project.github]),
+  ].filter(Boolean) as string[];
   const malformedUrls = maybeUrls.filter(url => !URL_PATTERN.test(url.trim()));
   if (malformedUrls.length > 0) {
     addIssue(issues, {

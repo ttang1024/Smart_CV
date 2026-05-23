@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 
-export const SITE_URL = 'https://smart-cv-app.victoriousstone-84bd9455.eastus.azurecontainerapps.io'
+export const SITE_URL = 'https://smart-ai-cv.com'
 export const SHARE_IMAGE_PATH = '/share.jpg'
 export const SHARE_IMAGE_URL = `${SITE_URL}${SHARE_IMAGE_PATH}`
 export const SHARE_IMAGE_WIDTH = 512

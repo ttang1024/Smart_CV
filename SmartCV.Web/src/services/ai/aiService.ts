@@ -309,6 +309,7 @@ function formatResumeAsText(resume: Resume): string {
 			lines.push(
 				`${exp.position} at ${exp.company} (${exp.startDate} - ${exp.current ? 'Present' : (exp.endDate ?? '')})`,
 			)
+			;(exp.productLinks ?? []).filter(Boolean).forEach(link => lines.push(`Product: ${link}`))
 			if (exp.description) lines.push(richTextToPlainText(exp.description))
 			exp.highlights.forEach(h => lines.push(`• ${richTextToPlainText(h)}`))
 		})

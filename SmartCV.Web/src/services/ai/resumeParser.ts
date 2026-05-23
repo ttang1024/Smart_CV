@@ -49,7 +49,8 @@ Return this exact JSON structure (omit optional fields if not found):
       "endDate": "YYYY-MM",
       "current": false,
       "description": "",
-      "highlights": [""]
+      "highlights": [""],
+      "productLinks": [""]
     }
   ],
   "education": [
@@ -120,6 +121,7 @@ Rules:
 - If current job/education, set current=true and omit endDate.
 - For skills, group by category (e.g. "Languages", "Frameworks", "Tools", "Databases").
 - highlights should be individual bullet points from the job description.
+- productLinks should contain URLs for products, apps, launches, case studies, or public work tied to that job.
 - interests should be a flat list of interest/hobby names.
 - achievements should capture awards, prizes, recognitions, honours (not per-job bullet points).
 - If the resume says "References available on request", return an empty referees array.
@@ -163,7 +165,8 @@ Rules:
       endDate: e.current ? undefined : String(e.endDate ?? ''),
       current: Boolean(e.current),
       description: String(e.description ?? ''),
-      highlights: Array.isArray(e.highlights) ? e.highlights.map(String) : []
+      highlights: Array.isArray(e.highlights) ? e.highlights.map(String) : [],
+      productLinks: Array.isArray(e.productLinks) ? e.productLinks.map(String) : []
     })),
     education: (parsed.education ?? []).map((e: Record<string, unknown>) => ({
       id: generateId(),

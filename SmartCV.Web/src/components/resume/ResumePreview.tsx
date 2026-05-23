@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 const PAPER_W_PX = 210 * (96 / 25.4); // A4 width in CSS px at 96 dpi ≈ 793.7
 const MIN_PAGE_MARGIN_MM = 6;
-const MAX_PAGE_MARGIN_MM = 24;
+const MAX_PAGE_MARGIN_MM = 50;
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL ??
   (typeof window !== 'undefined' && window.location.port === '3000'
@@ -18,7 +18,7 @@ import { sectionTitle } from './resumeShared';
 import {
   deriveTheme, STYLES,
   type StyleId, type CustomOptions, type CustomHeader, type CustomExp,
-  type CustomSectionStyle, type CustomLayoutMode, type CustomSkillsStyle,
+  type CustomSectionStyle, type CustomSkillsStyle,
   type CustomEduStyle, type CustomSummaryStyle, type ThemeColors, type LayoutProps,
   type PageMarginsMm, DEFAULT_PAGE_MARGINS_MM,
 } from './resumeTypes';
@@ -26,7 +26,6 @@ import { ClassicLayout } from './layouts/ClassicLayout';
 import { ModernLayout } from './layouts/ModernLayout';
 import { ExecutiveLayout } from './layouts/ExecutiveLayout';
 import { MinimalLayout } from './layouts/MinimalLayout';
-import { CreativeLayout } from './layouts/CreativeLayout';
 import { ElegantLayout } from './layouts/ElegantLayout';
 import { AcademicLayout } from './layouts/AcademicLayout';
 import { SplitLayout } from './layouts/SplitLayout';
@@ -76,7 +75,6 @@ export default function ResumePreview({ resume: r, onChange, onExport }: ResumeP
     experience: 'timeline',
     skillsColumns: 1,
     sectionStyle: 'bar',
-    layoutMode: 'single',
     skillsStyle: 'list',
     education: 'standard',
     summary: 'paragraph',
@@ -84,10 +82,8 @@ export default function ResumePreview({ resume: r, onChange, onExport }: ResumeP
   const theme = deriveTheme(mainColor);
   const layoutBackgroundColor = backgroundColor ?? theme.dark;
   const sectionOrder = r.sectionOrder ?? DEFAULT_SECTION_ORDER;
-  const usesDownloadedSidebar =
-    styleId === 'creative' || (styleId === 'custom' && customOptions.layoutMode === 'two-column');
   const supportsBackgroundColor =
-    styleId === 'executive' || styleId === 'creative' || (styleId === 'custom' && customOptions.layoutMode === 'two-column');
+    styleId === 'executive';
   const updatePageMargin = (side: keyof PageMarginsMm, value: string) => {
     const next = Number(value);
     if (Number.isNaN(next)) return;
@@ -120,27 +116,14 @@ export default function ResumePreview({ resume: r, onChange, onExport }: ResumeP
       // 297mm minimum doesn't overflow the margined content area and create
       // a spurious blank trailing page.
       const clone = element.cloneNode(true) as HTMLElement;
+      clone.style.width = 'auto';
       clone.style.minHeight = '';
       const layoutRoot = clone.firstElementChild as HTMLElement | null;
-      if (layoutRoot) layoutRoot.style.minHeight = '';
-      if (usesDownloadedSidebar) {
-        clone.style.position = 'relative';
-        clone.style.minHeight = '297mm';
-        const sidebarBackfill = document.createElement('div');
-        sidebarBackfill.setAttribute('aria-hidden', 'true');
-        sidebarBackfill.style.position = 'absolute';
-        sidebarBackfill.style.top = '0';
-        sidebarBackfill.style.left = '0';
-        sidebarBackfill.style.width = '68mm';
-        sidebarBackfill.style.height = 297 + pageMarginsMm.bottom + 4 + 'mm';
-        sidebarBackfill.style.background = layoutBackgroundColor;
-        sidebarBackfill.style.zIndex = '0';
-        clone.insertBefore(sidebarBackfill, clone.firstChild);
-        Array.from(clone.children).forEach(child => {
-          if (child === sidebarBackfill || !(child instanceof HTMLElement)) return;
-          child.style.position = child.style.position || 'relative';
-          child.style.zIndex = child.style.zIndex || '1';
-        });
+      if (layoutRoot) {
+        layoutRoot.style.minHeight = '';
+        if (styleId !== 'executive') {
+          layoutRoot.style.padding = '0';
+        }
       }
 
       const html = `<!DOCTYPE html>
@@ -166,14 +149,7 @@ h2{break-after:avoid;page-break-after:avoid;}
 .rich-text-content [data-list-style="dash"]>li::before,.rich-text-content [data-list-style="check"]>li::before{position:absolute;left:0;}
 .rich-text-content [data-list-style="dash"]>li::before{content:"-";}
 .rich-text-content [data-list-style="check"]>li::before{content:"✓";}
-/* Breathing room at every page boundary; flush at top of first page
-   so full-bleed coloured headers reach the paper edge.
-   Sidebar layouts manage their own left edge, so left=0. */
-@page{size:A4;margin:${pageMarginsMm.top}mm ${pageMarginsMm.right}mm ${usesDownloadedSidebar ? '0' : pageMarginsMm.bottom + 'mm'} ${usesDownloadedSidebar ? '0' : pageMarginsMm.left + 'mm'};}
-@page :first{margin:${usesDownloadedSidebar
-          ? '0'
-          : `0 ${pageMarginsMm.right}mm ${pageMarginsMm.bottom}mm ${pageMarginsMm.left}mm`
-        };}
+@page{size:A4;margin:${pageMarginsMm.top}mm ${pageMarginsMm.right}mm ${pageMarginsMm.bottom}mm ${pageMarginsMm.left}mm;}
 </style>
 </head>
 <body>${clone.outerHTML}</body>
@@ -289,9 +265,10 @@ h2{break-after:avoid;page-break-after:avoid;}
                 type="number"
                 min={MIN_PAGE_MARGIN_MM}
                 max={MAX_PAGE_MARGIN_MM}
+                step="0.1"
                 value={pageMarginsMm[side]}
                 onChange={e => updatePageMargin(side, e.target.value)}
-                className="w-12 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-1.5 py-0.5 text-xs text-gray-700 dark:text-gray-200"
+                className="w-14 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-1.5 py-0.5 text-xs text-gray-700 dark:text-gray-200"
               />
             </label>
           ))}
@@ -303,7 +280,6 @@ h2{break-after:avoid;page-break-after:avoid;}
           <div className="flex flex-wrap gap-x-4 gap-y-1.5 pt-1 border-t border-gray-200 dark:border-gray-700">
             {(
               [
-                { label: t('resumeLayout.preview.layout'), options: [['single', t('resumeLayout.preview.single')], ['two-column', t('resumeLayout.preview.twoCol')]], value: customOptions.layoutMode, set: (v: string) => setCustomOptions(o => ({ ...o, layoutMode: v as CustomLayoutMode })) },
                 { label: t('resumeLayout.preview.header'), options: [['classic', t('resumeLayout.preview.classic')], ['split', t('resumeLayout.preview.split')]], value: customOptions.header, set: (v: string) => setCustomOptions(o => ({ ...o, header: v as CustomHeader })) },
                 { label: t('resumeLayout.preview.section'), options: [['bar', t('resumeLayout.preview.bar')], ['underline', t('resumeLayout.preview.underline')], ['plain', t('resumeLayout.preview.plain')]], value: customOptions.sectionStyle, set: (v: string) => setCustomOptions(o => ({ ...o, sectionStyle: v as CustomSectionStyle })) },
                 { label: t('resumeLayout.preview.experience'), options: [['list', t('resumeLayout.preview.list')], ['timeline', t('resumeLayout.preview.timeline')]], value: customOptions.experience, set: (v: string) => setCustomOptions(o => ({ ...o, experience: v as CustomExp })) },
@@ -352,7 +328,6 @@ h2{break-after:avoid;page-break-after:avoid;}
                 {styleId === 'modern' && <ModernLayout r={r} theme={theme} pageMarginsMm={pageMarginsMm} />}
                 {styleId === 'executive' && <ExecutiveLayout r={r} theme={theme} pageMarginsMm={pageMarginsMm} backgroundColor={layoutBackgroundColor} fullNameColor={fullNameColor} />}
                 {styleId === 'minimal' && <MinimalLayout r={r} theme={theme} pageMarginsMm={pageMarginsMm} />}
-                {styleId === 'creative' && <CreativeLayout r={r} theme={theme} pageMarginsMm={pageMarginsMm} backgroundColor={layoutBackgroundColor} fullNameColor={fullNameColor} />}
                 {styleId === 'elegant' && <ElegantLayout r={r} theme={theme} pageMarginsMm={pageMarginsMm} />}
                 {styleId === 'academic' && <AcademicLayout r={r} theme={theme} pageMarginsMm={pageMarginsMm} />}
                 {styleId === 'split' && <SplitLayout r={r} theme={theme} pageMarginsMm={pageMarginsMm} />}
@@ -438,7 +413,7 @@ function MiniModuleList({ sectionOrder, dragKey, dragOverKey, onDragStart, onDra
 
 const DEFAULT_CUSTOM: CustomOptions = {
   header: 'split', experience: 'list', skillsColumns: 2,
-  sectionStyle: 'bar', layoutMode: 'single', skillsStyle: 'tags',
+  sectionStyle: 'bar', skillsStyle: 'tags',
   education: 'standard', summary: 'paragraph',
 };
 
@@ -451,7 +426,6 @@ const LAYOUT_MAP: Record<string, React.ComponentType<LayoutProps>> = {
   modern: ModernLayout,
   executive: ExecutiveLayout,
   minimal: MinimalLayout,
-  creative: CreativeLayout,
   elegant: ElegantLayout,
   academic: AcademicLayout,
   split: SplitLayout,

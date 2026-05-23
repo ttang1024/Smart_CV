@@ -22,7 +22,7 @@ export function SplitLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_MM 
       case 'coreHighlights':
         return coreHighlights?.length > 0 ? (
           <SplitSection key="coreHighlights" title={sectionTitle(r, 'coreHighlights', t('resumeLayout.sections.coreHighlights'))} theme={theme}>
-            <ul style={{ paddingLeft: '16px', margin: 0 }}>
+            <ul style={{ paddingLeft: '16px', margin: 0, listStyleType: 'disc' }}>
               {coreHighlights.filter(h => !isRichTextEmpty(h.text)).map(h => (
                 <li key={h.id} style={{ marginBottom: '3px', color: '#374151' }}><RichTextContent html={h.text} /></li>
               ))}

@@ -21,7 +21,7 @@ export function AcademicLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_
       case 'coreHighlights':
         return (coreHighlights ?? []).filter(h => !isRichTextEmpty(h.text)).length > 0 ? (
           <AcademicSection key="coreHighlights" title={sectionTitle(r, 'coreHighlights', t('resumeLayout.sections.selectedAchievements'))} theme={theme}>
-            <ul style={{ paddingLeft: '20px', margin: 0 }}>
+            <ul style={{ paddingLeft: '20px', margin: 0, listStyleType: 'disc' }}>
               {(coreHighlights ?? []).filter(h => !isRichTextEmpty(h.text)).map(h => (
                 <li key={h.id} style={{ marginBottom: '3px', color: '#333333' }}><RichTextContent html={h.text} /></li>
               ))}

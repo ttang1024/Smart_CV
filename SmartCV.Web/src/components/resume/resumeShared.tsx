@@ -189,6 +189,11 @@ export function ExpEntry({ exp, companyColor, locColor, dateColor, descColor,
         )}
       </div>
       {exp.description && <RichTextContent html={exp.description} style={{ marginTop: descMt, color: descColor }} />}
+      {(exp.productLinks ?? []).filter(Boolean).length > 0 && (
+        <p style={{ marginTop: '3px', fontSize: '9pt', color: descColor }}>
+          <strong>Product:</strong> {(exp.productLinks ?? []).filter(Boolean).join(' · ')}
+        </p>
+      )}
       <HighlightList highlights={exp.highlights} color={highlightColor} fontSize={highlightFontSize} />
     </div>
   );

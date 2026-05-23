@@ -21,7 +21,7 @@ export function TimelineLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_
       case 'coreHighlights':
         return coreHighlights?.length > 0 ? (
           <TimelineSection key="coreHighlights" title={sectionTitle(r, 'coreHighlights', t('resumeLayout.sections.coreHighlights'))} theme={theme}>
-            <ul style={{ paddingLeft: '16px', margin: 0 }}>
+            <ul style={{ paddingLeft: '16px', margin: 0, listStyleType: 'disc' }}>
               {coreHighlights.filter(h => !isRichTextEmpty(h.text)).map(h => (
                 <li key={h.id} style={{ marginBottom: '3px', color: '#374151' }}><RichTextContent html={h.text} /></li>
               ))}
@@ -51,7 +51,7 @@ export function TimelineLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_
                     const range = dateRange(exp.startDate, exp.endDate, exp.current, t('resumeLayout.present'));
                     const [start, end] = range.includes('–') ? range.split('–').map(s => s.trim()) : [range, ''];
                     return (
-                      <div style={{ fontSize: '8pt', fontWeight: 600, color: theme.dark, lineHeight: 1.3 }}>{start} - {end}</div>
+                      <div style={{ fontSize: '9pt', fontWeight: 600, color: theme.dark, lineHeight: 1.3 }}>{start} - {end}</div>
                     );
                   })()}
                 </div>
@@ -70,6 +70,11 @@ export function TimelineLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_
                   {exp.company && <span style={{ color: theme.dark, fontWeight: 500 }}>{exp.company}</span>}
                   {exp.location && <span style={{ color: '#6b7280', fontSize: '9pt' }}>{exp.company ? ' · ' : ''}{exp.location}</span>}
                   {exp.description && <RichTextContent html={exp.description} style={{ marginTop: '4px', color: '#374151', fontSize: '9.5pt', whiteSpace: 'pre-wrap' }} />}
+                  {(exp.productLinks ?? []).filter(Boolean).length > 0 && (
+                    <p style={{ marginTop: '3px', fontSize: '9pt', color: '#374151' }}>
+                      <strong>Product:</strong> {(exp.productLinks ?? []).filter(Boolean).join(' · ')}
+                    </p>
+                  )}
                   <HighlightList highlights={exp.highlights} color="#374151" fontSize="9.5pt" />
                 </div>
               </div>

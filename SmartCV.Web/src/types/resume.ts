@@ -19,6 +19,7 @@ export interface Experience {
   current: boolean;
   description: string;
   highlights: string[];
+  productLinks?: string[];
 }
 
 export interface Education {

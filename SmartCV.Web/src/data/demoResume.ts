@@ -80,7 +80,6 @@ const DEMO_RESUMES: Record<DemoLocale, Resume> = {
 			location: 'San Francisco, CA',
 			linkedin: 'https://www.linkedin.com/in/demo',
 			github: 'https://github.com/ttang1024',
-			website: 'https://github.com/ttang1024/Smart_CV',
 		},
 		summary:
 			'Results-driven Full Stack Engineer with 9+ years of end-to-end web and cloud application development, specializing in scalable frontend systems, microservice backends, and AI-integrated platforms. Proven track record delivering production-grade systems at Google, Apple, and Microsoft. Expert in React, Next.js, .NET, TypeScript, AWS/Azure/GCP, and CI/CD automation. Led cross-functional teams to build user-centric products serving millions globally, with consistent improvements in performance, scalability, and developer experience.',
@@ -220,7 +219,6 @@ const DEMO_RESUMES: Record<DemoLocale, Resume> = {
 			location: 'San Francisco, CA',
 			linkedin: 'https://www.linkedin.com/in/demo',
 			github: 'https://github.com/ttang1024',
-			website: 'https://github.com/ttang1024/Smart_CV',
 		},
 		summary:
 			'Ingeniero Full Stack orientado a resultados, con mas de 9 anos de experiencia en desarrollo web y aplicaciones cloud de extremo a extremo. Especializado en frontends escalables, backends de microservicios y plataformas integradas con IA. Historial comprobado entregando sistemas de produccion en Google, Apple y Microsoft. Experto en React, Next.js, .NET, TypeScript, AWS/Azure/GCP y automatizacion CI/CD. Lidero equipos multidisciplinarios para crear productos usados por millones de personas, con mejoras constantes en rendimiento, escalabilidad y experiencia de desarrollo.',
@@ -360,7 +358,6 @@ const DEMO_RESUMES: Record<DemoLocale, Resume> = {
 			location: '旧金山，加州',
 			linkedin: 'https://www.linkedin.com/in/demo',
 			github: 'https://github.com/ttang1024',
-			website: 'https://github.com/ttang1024/Smart_CV',
 		},
 		summary:
 			'结果导向的全栈工程师，拥有 9 年以上端到端 Web 与云应用开发经验，专注于可扩展前端系统、微服务后端和 AI 集成平台。曾在 Google、Apple 和 Microsoft 交付生产级系统。精通 React、Next.js、.NET、TypeScript、AWS/Azure/GCP 与 CI/CD 自动化。带领跨职能团队打造面向全球数百万用户的产品，持续提升性能、可扩展性和开发者体验。',
@@ -500,7 +497,6 @@ const DEMO_RESUMES: Record<DemoLocale, Resume> = {
 			location: '舊金山，加州',
 			linkedin: 'https://www.linkedin.com/in/demo',
 			github: 'https://github.com/ttang1024',
-			website: 'https://github.com/ttang1024/Smart_CV',
 		},
 		summary:
 			'成果導向的全端工程師，具備 9 年以上端到端 Web 與雲端應用開發經驗，專注於可擴充前端系統、微服務後端與 AI 整合平台。曾在 Google、Apple 與 Microsoft 交付生產級系統。精通 React、Next.js、.NET、TypeScript、AWS/Azure/GCP 與 CI/CD 自動化。帶領跨職能團隊打造服務全球數百萬使用者的產品，持續提升效能、可擴充性與開發者體驗。',

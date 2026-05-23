@@ -15,7 +15,6 @@ import { ClassicLayout } from '../resume/layouts/ClassicLayout';
 import { ModernLayout } from '../resume/layouts/ModernLayout';
 import { ExecutiveLayout } from '../resume/layouts/ExecutiveLayout';
 import { MinimalLayout } from '../resume/layouts/MinimalLayout';
-import { CreativeLayout } from '../resume/layouts/CreativeLayout';
 import { ElegantLayout } from '../resume/layouts/ElegantLayout';
 import { AcademicLayout } from '../resume/layouts/AcademicLayout';
 import { SplitLayout } from '../resume/layouts/SplitLayout';
@@ -30,7 +29,6 @@ const RESUME_STYLES: { id: StyleId; name: string; accent: string }[] = [
   { id: 'modern', name: 'Modern', accent: '#0d9488' },
   { id: 'executive', name: 'Executive', accent: '#1e40af' },
   { id: 'minimal', name: 'Minimal', accent: '#6b7280' },
-  { id: 'creative', name: 'Creative', accent: '#f59e0b' },
   { id: 'elegant', name: 'Elegant', accent: '#b5914a' },
   { id: 'academic', name: 'Academic', accent: '#7c3aed' },
   { id: 'split', name: 'Split', accent: '#0891b2' },
@@ -43,7 +41,6 @@ const CUSTOM_OPTIONS = {
   experience: 'timeline',
   skillsColumns: 2,
   sectionStyle: 'bar',
-  layoutMode: 'single',
   skillsStyle: 'tags',
   education: 'compact',
   summary: 'paragraph',
@@ -54,7 +51,6 @@ const LAYOUTS: Record<StyleId, (props: LayoutProps) => ReactNode> = {
   modern: props => <ModernLayout {...props} />,
   executive: props => <ExecutiveLayout {...props} backgroundColor={props.theme.dark} fullNameColor="#ffffff" />,
   minimal: props => <MinimalLayout {...props} />,
-  creative: props => <CreativeLayout {...props} backgroundColor={props.theme.dark} fullNameColor="#ffffff" />,
   elegant: props => <ElegantLayout {...props} />,
   academic: props => <AcademicLayout {...props} />,
   split: props => <SplitLayout {...props} />,

@@ -37,6 +37,7 @@ public class ExperienceModel
     public bool Current { get; set; }
     public string Description { get; set; } = "";
     public List<string> Highlights { get; set; } = [];
+    public List<string> ProductLinks { get; set; } = [];
 }
 
 public class EducationModel

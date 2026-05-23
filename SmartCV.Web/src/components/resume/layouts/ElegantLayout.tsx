@@ -22,7 +22,7 @@ export function ElegantLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_M
       case 'coreHighlights':
         return (coreHighlights ?? []).filter(h => !isRichTextEmpty(h.text)).length > 0 ? (
           <ElegantSection key="coreHighlights" title={sectionTitle(r, 'coreHighlights', t('resumeLayout.sections.coreHighlights'))} gold={gold} light={theme.light}>
-            <ul style={{ paddingLeft: '18px', margin: 0 }}>
+            <ul style={{ paddingLeft: '18px', margin: 0, listStyleType: 'disc' }}>
               {(coreHighlights ?? []).filter(h => !isRichTextEmpty(h.text)).map(h => (
                 <li key={h.id} style={{ marginBottom: '3px', color: '#4a3c28' }}><RichTextContent html={h.text} /></li>
               ))}

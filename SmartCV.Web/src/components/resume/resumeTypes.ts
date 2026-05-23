@@ -1,12 +1,11 @@
 import type { Resume } from '../../types/resume';
 
-export type StyleId = 'classic' | 'modern' | 'executive' | 'minimal' | 'creative'
+export type StyleId = 'classic' | 'modern' | 'executive' | 'minimal'
   | 'elegant' | 'academic' | 'split' | 'timeline' | 'custom';
 
 export type CustomHeader = 'classic' | 'split';
 export type CustomExp = 'list' | 'timeline';
 export type CustomSectionStyle = 'bar' | 'underline' | 'plain';
-export type CustomLayoutMode = 'single' | 'two-column';
 export type CustomSkillsStyle = 'list' | 'tags';
 export type CustomEduStyle = 'standard' | 'compact';
 export type CustomSummaryStyle = 'paragraph' | 'callout';
@@ -16,7 +15,6 @@ export interface CustomOptions {
   experience: CustomExp;
   skillsColumns: 1 | 2;
   sectionStyle: CustomSectionStyle;
-  layoutMode: CustomLayoutMode;
   skillsStyle: CustomSkillsStyle;
   education: CustomEduStyle;
   summary: CustomSummaryStyle;
@@ -27,7 +25,6 @@ export const STYLES: { id: StyleId; label: string }[] = [
   { id: 'modern', label: 'Modern' },
   { id: 'executive', label: 'Executive' },
   { id: 'minimal', label: 'Minimal' },
-  { id: 'creative', label: 'Creative' },
   { id: 'elegant', label: 'Elegant' },
   { id: 'academic', label: 'Academic' },
   { id: 'split', label: 'Split' },
@@ -45,10 +42,10 @@ export interface PageMarginsMm {
 }
 
 export const DEFAULT_PAGE_MARGINS_MM: PageMarginsMm = {
-  top: 10,
-  right: 10,
-  bottom: 10,
-  left: 10,
+  top: 25.4,
+  right: 25.4,
+  bottom: 25.4,
+  left: 25.4,
 };
 
 export type LayoutProps = {

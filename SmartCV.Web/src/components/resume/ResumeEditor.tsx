@@ -23,7 +23,7 @@ interface ResumeEditorProps {
 }
 
 type SectionKey = ResumeSection;
-type InlineAIAction = 'rewrite' | 'concise' | 'metrics' | 'senior' | 'tailor' | 'bullets' | 'grammar';
+type InlineAIAction = 'rewrite' | 'concise' | 'metrics' | 'tailor' | 'grammar';
 
 export default function ResumeEditor({ resume, onChange, jobContext }: ResumeEditorProps) {
   const { t } = useTranslation();
@@ -131,18 +131,15 @@ export default function ResumeEditor({ resume, onChange, jobContext }: ResumeEdi
       case 'summary':
         return (
           <div className="pb-4">
-            <RichTextEditor
+            <AIRichTextEditor
               value={resume.summary}
               onChange={value => update('summary', value)}
               placeholder={t('resumeEditor.summary.placeholder')}
               minHeight={132}
-            />
-            <InlineAITools
               sectionType="professional summary"
-              value={resume.summary}
               onApply={value => update('summary', value)}
               aiContext={aiContext}
-              actions={['rewrite', 'concise', 'senior', 'tailor', 'grammar']}
+              actions={['rewrite', 'concise', 'tailor', 'grammar']}
             />
           </div>
         );
@@ -153,29 +150,26 @@ export default function ResumeEditor({ resume, onChange, jobContext }: ResumeEdi
               {t('resumeEditor.coreHighlights.hint')}
             </p>
             {(resume.coreHighlights ?? []).map((hl, i) => (
-              <div key={hl.id} className="flex gap-2 items-center">
-                <span className="text-gray-400 dark:text-gray-500 text-sm select-none w-4 text-right shrink-0">{i + 1}.</span>
-                <RichTextEditor
-                  value={hl.text}
-                  onChange={value => {
-                    const next = (resume.coreHighlights ?? []).map(h => h.id === hl.id ? { ...h, text: value } : h);
-                    update('coreHighlights', next);
-                  }}
-                  placeholder={t('resumeEditor.coreHighlights.placeholder')}
-                  minHeight={72}
-                  className="flex-1"
-                />
-                <InlineAITools
-                  sectionType="core highlight"
-                  value={hl.text}
-                  onApply={value => {
-                    const next = (resume.coreHighlights ?? []).map(h => h.id === hl.id ? { ...h, text: value } : h);
-                    update('coreHighlights', next);
-                  }}
-                  aiContext={aiContext}
-                  actions={['rewrite', 'concise', 'metrics', 'senior', 'tailor', 'grammar']}
-                  compact
-                />
+              <div key={hl.id} className="flex gap-2 items-start">
+                <span className="text-gray-400 dark:text-gray-500 text-sm select-none w-4 text-right shrink-0 pt-2">{i + 1}.</span>
+                <div className="min-w-0 flex-1">
+                  <AIRichTextEditor
+                    value={hl.text}
+                    onChange={value => {
+                      const next = (resume.coreHighlights ?? []).map(h => h.id === hl.id ? { ...h, text: value } : h);
+                      update('coreHighlights', next);
+                    }}
+                    placeholder={t('resumeEditor.coreHighlights.placeholder')}
+                    minHeight={72}
+                    sectionType="core highlight"
+                    onApply={value => {
+                      const next = (resume.coreHighlights ?? []).map(h => h.id === hl.id ? { ...h, text: value } : h);
+                      update('coreHighlights', next);
+                    }}
+                    aiContext={aiContext}
+                    actions={['rewrite', 'concise', 'metrics', 'tailor', 'grammar']}
+                  />
+                </div>
                 <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 text-red-400"
                   onClick={() => update('coreHighlights', (resume.coreHighlights ?? []).filter(h => h.id !== hl.id))}>
                   <Trash2 className="w-3.5 h-3.5" />
@@ -428,6 +422,53 @@ interface InlineAIContext {
   jobDescription: string;
 }
 
+function AIRichTextEditor({
+  sectionType,
+  value,
+  onChange,
+  onApply,
+  aiContext,
+  actions,
+  label,
+  placeholder,
+  minHeight,
+  className,
+  toolsClassName,
+}: {
+  sectionType: string;
+  value: string;
+  onChange: (value: string) => void;
+  onApply: (value: string) => void;
+  aiContext: InlineAIContext;
+  actions: InlineAIAction[];
+  label?: string;
+  placeholder?: string;
+  minHeight?: number;
+  className?: string;
+  toolsClassName?: string;
+}) {
+  return (
+    <>
+      <RichTextEditor
+        label={label}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        minHeight={minHeight}
+        className={className}
+      />
+      <InlineAITools
+        sectionType={sectionType}
+        value={value}
+        onApply={onApply}
+        aiContext={aiContext}
+        actions={actions}
+        className={toolsClassName}
+      />
+    </>
+  );
+}
+
 function InlineAITools({
   sectionType,
   value,
@@ -435,6 +476,7 @@ function InlineAITools({
   aiContext,
   actions,
   compact = false,
+  className,
 }: {
   sectionType: string;
   value: string;
@@ -442,6 +484,7 @@ function InlineAITools({
   aiContext: InlineAIContext;
   actions: InlineAIAction[];
   compact?: boolean;
+  className?: string;
 }) {
   const { getActiveConfig, aiSettings } = useSettingsStore();
   const [loadingAction, setLoadingAction] = useState<InlineAIAction | null>(null);
@@ -450,20 +493,16 @@ function InlineAITools({
     rewrite: 'Rewrite',
     concise: 'Concise',
     metrics: 'Add metrics',
-    senior: 'Senior',
     tailor: 'Tailor',
-    bullets: 'Bullets',
     grammar: 'Grammar',
   };
 
   const instructions: Record<InlineAIAction, string> = {
-    rewrite: 'Rewrite this content to be stronger, clearer, and resume-ready while preserving the facts.',
-    concise: 'Make this content more concise without removing important accomplishments, keywords, or context.',
-    metrics: 'Improve this content by adding metric placeholders only where a real metric is missing, using bracketed prompts such as [X%], [team size], or [$ amount]. Do not invent numbers.',
-    senior: 'Rewrite this content to sound more senior, strategic, and ownership-oriented while staying truthful.',
-    tailor: 'Tailor this content to the provided job description. Prioritize relevant keywords and requirements without inventing experience.',
-    bullets: 'Convert this paragraph into 2-4 concise resume bullets. Start each bullet with a strong action verb.',
-    grammar: 'Fix grammar, spelling, punctuation, and awkward phrasing. Preserve meaning and facts.',
+    rewrite: 'Rewrite this as polished, ATS-friendly resume content. Use strong action verbs, improve clarity and impact, and preserve all facts.',
+    concise: 'Shorten this while keeping the strongest achievements, role-specific keywords, and measurable context. Remove filler and repetition.',
+    metrics: 'Add bracketed metric prompts only where evidence is missing, such as [X%], [team size], or [$ amount]. Do not invent numbers or outcomes.',
+    tailor: 'Adapt this to the job description by emphasizing relevant skills, keywords, and responsibilities. Preserve truthfulness and do not add unsupported experience.',
+    grammar: 'Correct grammar, spelling, punctuation, tense, and awkward phrasing. Keep the original meaning, facts, and resume tone.',
   };
 
   const handleAction = async (action: InlineAIAction) => {
@@ -503,7 +542,7 @@ function InlineAITools({
   };
 
   return (
-    <div className={cn('flex flex-wrap gap-1.5', compact ? 'items-center shrink-0 max-w-[118px]' : 'mt-2')}>
+    <div className={cn('flex flex-wrap gap-1.5', compact ? 'items-center shrink-0 max-w-[118px]' : 'mt-2', className)}>
       {actions.map(action => (
         <button
           key={action}
@@ -580,26 +619,57 @@ function ExperienceItem({ experience, aiContext, onChange, onDelete }: {
           </label>
         </div>
       </div>
-      <RichTextEditor
+      <div>
+        <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1.5">{t('resumeEditor.experience.productLinks')}</label>
+        {(experience.productLinks ?? []).map((link, i) => (
+          <div key={i} className="flex gap-2 mb-1.5">
+            <div className="flex-1">
+              <Input
+                value={link}
+                onChange={e => {
+                  const next = [...(experience.productLinks ?? [])];
+                  next[i] = e.target.value;
+                  up('productLinks', next);
+                }}
+                placeholder={t('resumeEditor.experience.productLinkPlaceholder')}
+              />
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 shrink-0 text-red-400"
+              onClick={() => up('productLinks', (experience.productLinks ?? []).filter((_, j) => j !== i))}
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </Button>
+          </div>
+        ))}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => up('productLinks', [...(experience.productLinks ?? []), ''])}
+          className="mt-1 text-xs"
+        >
+          <Plus className="w-3 h-3" /> {t('resumeEditor.experience.addProductLink')}
+        </Button>
+      </div>
+      <AIRichTextEditor
         label={t('resumeEditor.experience.description')}
         value={experience.description}
         onChange={value => up('description', value)}
         placeholder={t('resumeEditor.experience.descriptionPlaceholder')}
         minHeight={82}
-      />
-      <InlineAITools
         sectionType="experience description"
-        value={experience.description}
         onApply={value => up('description', value)}
         aiContext={aiContext}
-        actions={['rewrite', 'concise', 'senior', 'tailor', 'bullets', 'grammar']}
+        actions={['rewrite', 'concise', 'tailor', 'grammar']}
       />
       <div>
         <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1.5">{t('resumeEditor.experience.keyAchievements')}</label>
         {experience.highlights.map((h, i) => (
           <div key={i} className="flex mb-1.5">
             <div className="flex-1">
-              <RichTextEditor
+              <AIRichTextEditor
                 value={h}
                 onChange={value => {
                   const next = [...experience.highlights];
@@ -608,17 +678,14 @@ function ExperienceItem({ experience, aiContext, onChange, onDelete }: {
                 }}
                 placeholder={t('resumeEditor.experience.achievementPlaceholder')}
                 minHeight={72}
-              />
-              <InlineAITools
                 sectionType="experience achievement bullet"
-                value={h}
                 onApply={value => {
                   const next = [...experience.highlights];
                   next[i] = value;
                   up('highlights', next);
                 }}
                 aiContext={aiContext}
-                actions={['rewrite', 'concise', 'metrics', 'senior', 'tailor', 'grammar']}
+                actions={['rewrite', 'concise', 'metrics', 'tailor', 'grammar']}
               />
             </div>
             <Button
@@ -734,13 +801,16 @@ function ProjectItem({ project, aiContext, onChange, onDelete }: {
         </Button>
       </div>
       <Input label={t('resumeEditor.projects.name')} value={project.name} onChange={e => up('name', e.target.value)} placeholder={t('resumeEditor.projects.namePlaceholder')} />
-      <RichTextEditor label={t('resumeEditor.projects.description')} value={project.description} onChange={value => up('description', value)} minHeight={82} placeholder={t('resumeEditor.projects.descriptionPlaceholder')} />
-      <InlineAITools
-        sectionType="project description"
+      <AIRichTextEditor
+        label={t('resumeEditor.projects.description')}
         value={project.description}
+        onChange={value => up('description', value)}
+        minHeight={82}
+        placeholder={t('resumeEditor.projects.descriptionPlaceholder')}
+        sectionType="project description"
         onApply={value => up('description', value)}
         aiContext={aiContext}
-        actions={['rewrite', 'concise', 'senior', 'tailor', 'bullets', 'grammar']}
+        actions={['rewrite', 'concise', 'tailor', 'grammar']}
       />
       <Input
         label={t('resumeEditor.projects.technologies')}
@@ -757,7 +827,7 @@ function ProjectItem({ project, aiContext, onChange, onDelete }: {
         {(project.highlights ?? []).map((h, i) => (
           <div key={i} className="flex mb-1.5">
             <div className="flex-1">
-              <RichTextEditor
+              <AIRichTextEditor
                 value={h}
                 onChange={value => {
                   const next = [...(project.highlights ?? [])];
@@ -766,17 +836,14 @@ function ProjectItem({ project, aiContext, onChange, onDelete }: {
                 }}
                 placeholder={t('resumeEditor.projects.achievementPlaceholder')}
                 minHeight={72}
-              />
-              <InlineAITools
                 sectionType="project achievement bullet"
-                value={h}
                 onApply={value => {
                   const next = [...(project.highlights ?? [])];
                   next[i] = value;
                   up('highlights', next);
                 }}
                 aiContext={aiContext}
-                actions={['rewrite', 'concise', 'metrics', 'senior', 'tailor', 'grammar']}
+                actions={['rewrite', 'concise', 'metrics', 'tailor', 'grammar']}
               />
             </div>
             <Button
@@ -833,11 +900,11 @@ function LanguageItem({ language, onChange, onDelete }: {
   const { t } = useTranslation();
 
   const PROFICIENCY_OPTIONS: { value: Language['proficiency']; label: string }[] = [
-    { value: 'Native',       label: t('resumeEditor.languages.proficiency.native') },
-    { value: 'Fluent',       label: t('resumeEditor.languages.proficiency.fluent') },
-    { value: 'Advanced',     label: t('resumeEditor.languages.proficiency.advanced') },
+    { value: 'Native', label: t('resumeEditor.languages.proficiency.native') },
+    { value: 'Fluent', label: t('resumeEditor.languages.proficiency.fluent') },
+    { value: 'Advanced', label: t('resumeEditor.languages.proficiency.advanced') },
     { value: 'Intermediate', label: t('resumeEditor.languages.proficiency.intermediate') },
-    { value: 'Basic',        label: t('resumeEditor.languages.proficiency.basic') },
+    { value: 'Basic', label: t('resumeEditor.languages.proficiency.basic') },
   ];
 
   return (
@@ -886,19 +953,16 @@ function AchievementItem({ achievement, aiContext, onChange, onDelete }: {
         <Input label={t('resumeEditor.achievements.issuer')} value={achievement.issuer ?? ''} onChange={e => up('issuer', e.target.value)} placeholder={t('resumeEditor.achievements.issuerPlaceholder')} />
         <Input label={t('resumeEditor.achievements.date')} type="month" value={achievement.date ?? ''} onChange={e => up('date', e.target.value)} />
       </div>
-      <RichTextEditor
+      <AIRichTextEditor
         label={t('resumeEditor.achievements.description')}
         value={achievement.description ?? ''}
         onChange={value => up('description', value)}
         minHeight={82}
         placeholder={t('resumeEditor.achievements.descriptionPlaceholder')}
-      />
-      <InlineAITools
         sectionType="achievement description"
-        value={achievement.description ?? ''}
         onApply={value => up('description', value)}
         aiContext={aiContext}
-        actions={['rewrite', 'concise', 'metrics', 'senior', 'tailor', 'grammar']}
+        actions={['rewrite', 'concise', 'metrics', 'tailor', 'grammar']}
       />
     </div>
   );
@@ -935,7 +999,7 @@ function RefereeItem({ referee, onChange, onDelete }: {
 
 // Factories
 const createEmptyExperience = (): Experience => ({
-  id: generateId(), company: '', position: '', location: '', startDate: '', endDate: '', current: false, description: '', highlights: []
+  id: generateId(), company: '', position: '', location: '', startDate: '', endDate: '', current: false, description: '', highlights: [], productLinks: []
 });
 
 const createEmptyEducation = (): Education => ({

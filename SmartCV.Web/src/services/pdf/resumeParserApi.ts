@@ -136,6 +136,7 @@ function mapServerData(data: Record<string, unknown>, fileName: string): Resume 
       current:     Boolean(e.current),
       description: String(e.description ?? ''),
       highlights:  Array.isArray(e.highlights) ? e.highlights.map(String) : [],
+      productLinks: Array.isArray(e.productLinks) ? e.productLinks.map(String) : [],
     })),
     education: ((data.education ?? []) as Record<string, unknown>[]).map((e) => ({
       id:          generateId(),

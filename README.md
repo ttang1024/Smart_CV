@@ -21,7 +21,7 @@ AI-powered resume builder. Runs entirely in your browser — no account, no clou
 - **Cover letter generator** — AI writes a tailored cover letter from your resume and job description, with tone selection
 - **Job versions** — fork your resume for a specific role, track application status (draft → offer), and compare the tailored copy against the original
 - **Undo / redo** — bounded revision history persisted in localStorage; coalesced so fast typing creates one snapshot
-- **10 resume styles** — Classic, Modern, Executive, Minimal, Creative, Elegant, Academic, Split, Timeline, and a fully configurable **Custom** style
+- **9 resume styles** — Classic, Modern, Executive, Minimal, Elegant, Academic, Split, Timeline, and a fully configurable **Custom** style
 - **Live theme colour** — change the accent colour and the preview updates instantly
 - **PDF import** — upload an existing resume; enable AI-powered parsing in Settings for higher accuracy
 - **One-click PDF export** — pixel-perfect A4 PDF powered by Puppeteer
