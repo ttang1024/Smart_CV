@@ -24,7 +24,7 @@ export function ElegantLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_M
           <ElegantSection key="coreHighlights" title={sectionTitle(r, 'coreHighlights', t('resumeLayout.sections.coreHighlights'))} gold={gold} light={theme.light}>
             <ul style={{ paddingLeft: '18px', margin: 0, listStyleType: 'disc' }}>
               {(coreHighlights ?? []).filter(h => !isRichTextEmpty(h.text)).map(h => (
-                <li key={h.id} style={{ marginBottom: '3px', color: '#4a3c28' }}><RichTextContent html={h.text} /></li>
+                <li key={h.id} style={{ marginBottom: '3px', color: '#4a3c28', fontSize: '11.5pt' }}><RichTextContent html={h.text} /></li>
               ))}
             </ul>
           </ElegantSection>
@@ -32,7 +32,7 @@ export function ElegantLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_M
       case 'skills':
         return skills.length > 0 ? (
           <ElegantSection key="skills" title={sectionTitle(r, 'skills', t('resumeLayout.sections.skills'))} gold={gold} light={theme.light}>
-            <div style={{ columns: 2, columnGap: '16px' }}>
+            <div>
               {skills.map(s => (
                 <div key={s.id} style={{ breakInside: 'avoid', marginBottom: '4px' }}>
                   <span style={{ fontWeight: 700 }}>{s.category}: </span>
@@ -49,8 +49,8 @@ export function ElegantLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_M
               <ExpEntry key={exp.id} exp={exp}
                 companyColor={gold} locColor="#7a6a50" locFontSize="9.5pt"
                 dateColor="#7a6a50" dateFontSize="9.5pt" dateItalic
-                descColor="#4a3c28" descMt="3px"
-                positionFontSize="11.5pt" highlightColor="#4a3c28" mb="11px" />
+                descColor="#4a3c28" descMt="3px" descFontSize="11.5pt"
+                positionFontSize="11.5pt" highlightColor="#4a3c28" highlightFontSize="11.5pt" mb="11px" />
             ))}
           </ElegantSection>
         ) : null;
@@ -70,8 +70,8 @@ export function ElegantLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_M
             {projects.map(p => (
               <div key={p.id} style={{ marginBottom: '8px' }}>
                 <span style={{ fontWeight: 700 }}>{p.name}</span>
-                <RichTextContent html={p.description} style={{ color: '#4a3c28', marginTop: '2px', whiteSpace: 'pre-wrap' }} />
-                <HighlightList highlights={p.highlights ?? []} color="#4a3c28" />
+                <RichTextContent html={p.description} style={{ color: '#4a3c28', marginTop: '2px', whiteSpace: 'pre-wrap', fontSize: '11.5pt' }} />
+                <HighlightList highlights={p.highlights ?? []} color="#4a3c28" fontSize="11.5pt" />
                 <ProjectTechnologies project={p} color="#4a3c28" />
               </div>
             ))}
@@ -113,7 +113,7 @@ export function ElegantLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_M
   };
 
   return (
-    <div style={{ padding: `${pageMarginsMm.top}mm ${pageMarginsMm.right}mm ${pageMarginsMm.bottom}mm ${pageMarginsMm.left}mm`, fontFamily: 'Calibri, Arial, Helvetica, "Times New Roman", sans-serif', fontSize: '11pt', lineHeight: '1.55', color: '#2c2416' }}>
+    <div style={{ padding: `${pageMarginsMm.top}mm ${pageMarginsMm.right}mm ${pageMarginsMm.bottom}mm ${pageMarginsMm.left}mm`, fontFamily: 'Arial, Helvetica, sans-serif', fontSize: '11pt', lineHeight: '1.55', color: '#2c2416' }}>
       <div style={{ textAlign: 'center', marginBottom: '16px' }}>
         <h1 style={{ fontSize: '26pt', fontWeight: 700, letterSpacing: '0.06em', color: '#1a1208', marginBottom: '4px' }}>
           {p.fullName || 'Your Name'}
@@ -139,7 +139,7 @@ function ElegantSection({ title, gold, light, children }: { title: string; gold:
   return (
     <div style={{ marginBottom: '14px' }}>
       <h2 style={{
-        fontSize: '10.5pt', fontWeight: 700, color: '#2c2416',
+        fontSize: '11.5pt', fontWeight: 700, color: '#2c2416',
         textTransform: 'uppercase', letterSpacing: '0.14em',
         display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px',
       }}>

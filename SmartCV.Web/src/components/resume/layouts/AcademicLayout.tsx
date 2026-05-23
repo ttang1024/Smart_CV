@@ -23,7 +23,7 @@ export function AcademicLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_
           <AcademicSection key="coreHighlights" title={sectionTitle(r, 'coreHighlights', t('resumeLayout.sections.selectedAchievements'))} theme={theme}>
             <ul style={{ paddingLeft: '20px', margin: 0, listStyleType: 'disc' }}>
               {(coreHighlights ?? []).filter(h => !isRichTextEmpty(h.text)).map(h => (
-                <li key={h.id} style={{ marginBottom: '3px', color: '#333333' }}><RichTextContent html={h.text} /></li>
+                <li key={h.id} style={{ marginBottom: '3px', color: '#333333', fontSize: '11.5pt' }}><RichTextContent html={h.text} /></li>
               ))}
             </ul>
           </AcademicSection>
@@ -47,8 +47,8 @@ export function AcademicLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_
                 companyColor="#1a1a1a" companyItalic
                 locColor="#555555" locSep=", "
                 dateColor="#555555" dateFontSize="9.5pt"
-                descColor="#333333" descMt="3px"
-                positionFontSize="11.5pt" highlightColor="#333333" />
+                descColor="#333333" descMt="3px" descFontSize="11.5pt"
+                positionFontSize="11.5pt" highlightColor="#333333" highlightFontSize="11.5pt" />
             ))}
           </AcademicSection>
         ) : null;
@@ -69,8 +69,8 @@ export function AcademicLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_
             {projects.map(p => (
               <div key={p.id} style={{ marginBottom: '8px' }}>
                 <span style={{ fontWeight: 700 }}>{p.name}</span>
-                <RichTextContent html={p.description} style={{ color: '#333333', marginTop: '2px', whiteSpace: 'pre-wrap' }} />
-                <HighlightList highlights={p.highlights ?? []} color="#333333" />
+                <RichTextContent html={p.description} style={{ color: '#333333', marginTop: '2px', whiteSpace: 'pre-wrap', fontSize: '11.5pt' }} />
+                <HighlightList highlights={p.highlights ?? []} color="#333333" fontSize="11.5pt" />
                 <ProjectTechnologies project={p} color="#333333" />
               </div>
             ))}
@@ -112,7 +112,7 @@ export function AcademicLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_
   };
 
   return (
-    <div style={{ padding: `${pageMarginsMm.top}mm ${pageMarginsMm.right}mm ${pageMarginsMm.bottom}mm ${pageMarginsMm.left}mm`, fontFamily: 'Calibri, Arial, Helvetica, "Times New Roman", sans-serif', fontSize: '11pt', lineHeight: '1.55', color: '#1a1a1a' }}>
+    <div style={{ padding: `${pageMarginsMm.top}mm ${pageMarginsMm.right}mm ${pageMarginsMm.bottom}mm ${pageMarginsMm.left}mm`, fontFamily: 'Arial, Helvetica, sans-serif', fontSize: '11pt', lineHeight: '1.55', color: '#1a1a1a' }}>
       <div style={{ textAlign: 'center', marginBottom: '16px' }}>
         <h1 style={{ fontSize: '20pt', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#1a1a1a', marginBottom: '4px' }}>
           {p.fullName || 'Your Name'}

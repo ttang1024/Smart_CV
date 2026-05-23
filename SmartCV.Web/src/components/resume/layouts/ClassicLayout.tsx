@@ -23,7 +23,7 @@ export function ClassicLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_M
           <ClassicSection key="coreHighlights" title={sectionTitle(r, 'coreHighlights', t('resumeLayout.sections.coreHighlights'))} theme={theme}>
             <ul style={{ paddingLeft: '16px', margin: 0, listStyleType: 'disc' }}>
               {coreHighlights.filter(h => !isRichTextEmpty(h.text)).map(h => (
-                <li key={h.id} style={{ marginBottom: '3px', color: '#374151' }}><RichTextContent html={h.text} /></li>
+                <li key={h.id} style={{ marginBottom: '3px', color: '#374151', fontSize: '11.5pt' }}><RichTextContent html={h.text} /></li>
               ))}
             </ul>
           </ClassicSection>
@@ -31,7 +31,7 @@ export function ClassicLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_M
       case 'skills':
         return skills.length > 0 ? (
           <ClassicSection key="skills" title={sectionTitle(r, 'skills', t('resumeLayout.sections.skills'))} theme={theme}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '4px' }}>
               {skills.map(s => (
                 <div key={s.id}>
                   <span style={{ fontWeight: 600 }}>{s.category}: </span>
@@ -48,7 +48,7 @@ export function ClassicLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_M
               <ExpEntry key={exp.id} exp={exp}
                 companyColor={theme.main} companySep=" · "
                 locColor="#6b7280" dateColor="#6b7280" descColor="#374151"
-                descMt="3px" mb="10px" />
+                descMt="3px" descFontSize="11.5pt" highlightFontSize="11.5pt" mb="10px" />
             ))}
           </ClassicSection>
         ) : null;
@@ -69,8 +69,8 @@ export function ClassicLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_M
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
                   <span style={{ fontWeight: 700 }}>{p.name}</span>
                 </div>
-                <RichTextContent html={p.description} style={{ color: '#374151', whiteSpace: 'pre-wrap' }} />
-                <HighlightList highlights={p.highlights ?? []} color="#374151" />
+                <RichTextContent html={p.description} style={{ color: '#374151', whiteSpace: 'pre-wrap', fontSize: '11.5pt' }} />
+                <HighlightList highlights={p.highlights ?? []} color="#374151" fontSize="11.5pt" />
                 <ProjectTechnologies project={p} color="#374151" />
               </div>
             ))}
@@ -112,7 +112,7 @@ export function ClassicLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_M
   };
 
   return (
-    <div style={{ padding: `${pageMarginsMm.top}mm ${pageMarginsMm.right}mm ${pageMarginsMm.bottom}mm ${pageMarginsMm.left}mm`, fontFamily: 'Calibri, Arial, Helvetica, "Times New Roman", sans-serif', fontSize: '11pt', lineHeight: '1.4', color: '#1a1a1a' }}>
+    <div style={{ padding: `${pageMarginsMm.top}mm ${pageMarginsMm.right}mm ${pageMarginsMm.bottom}mm ${pageMarginsMm.left}mm`, fontFamily: 'Arial, Helvetica, sans-serif', fontSize: '11pt', lineHeight: '1.4', color: '#1a1a1a' }}>
       <div style={{ borderBottom: `2px solid ${theme.main}`, paddingBottom: '10px', marginBottom: '14px' }}>
         <h1 style={{ fontSize: '22pt', fontWeight: 700, color: theme.dark, marginBottom: '2px' }}>
           {p.fullName || 'Your Name'}
@@ -131,7 +131,7 @@ function ClassicSection({ title, theme, children }: { title: string; theme: Them
   return (
     <div style={{ marginBottom: '12px' }}>
       <h2 style={{
-        fontSize: '11pt', fontWeight: 700, color: theme.dark,
+        fontSize: '12pt', fontWeight: 700, color: theme.dark,
         textTransform: 'uppercase', letterSpacing: '0.08em',
         borderBottom: `1px solid ${theme.light}`, paddingBottom: '3px', marginBottom: '8px',
       }}>

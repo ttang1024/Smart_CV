@@ -23,6 +23,8 @@ import { CustomLayout } from '../resume/layouts/CustomLayout';
 
 const PAPER_WIDTH_PX = 210 * (96 / 25.4);
 const HERO_PREVIEW_SCALE = 0.5;
+const CAROUSEL_INTERVAL_MS = 2800;
+const INTERACTION_PAUSE_MS = 9000;
 
 const RESUME_STYLES: { id: StyleId; name: string; accent: string }[] = [
   { id: 'classic', name: 'Classic', accent: '#059669' },
@@ -67,6 +69,8 @@ export default function ResumeHeroPreview({
 }) {
   const { i18n } = useTranslation();
   const frameRef = useRef<HTMLDivElement>(null);
+  const carouselPausedRef = useRef(false);
+  const carouselPauseTimeoutRef = useRef<number | null>(null);
   const [activeStyle, setActiveStyle] = useState<StyleId>('classic');
   const [accentColor, setAccentColor] = useState(RESUME_STYLES[0].accent);
   const [scale, setScale] = useState(HERO_PREVIEW_SCALE);
@@ -92,6 +96,46 @@ export default function ResumeHeroPreview({
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      if (carouselPausedRef.current) return;
+
+      setActiveStyle(currentStyle => {
+        const currentIndex = RESUME_STYLES.findIndex(style => style.id === currentStyle);
+        const nextStyle = RESUME_STYLES[(currentIndex + 1) % RESUME_STYLES.length];
+        return nextStyle.id;
+      });
+    }, CAROUSEL_INTERVAL_MS);
+
+    return () => {
+      window.clearInterval(intervalId);
+      if (carouselPauseTimeoutRef.current !== null) {
+        window.clearTimeout(carouselPauseTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const pauseCarousel = () => {
+    carouselPausedRef.current = true;
+    if (carouselPauseTimeoutRef.current !== null) {
+      window.clearTimeout(carouselPauseTimeoutRef.current);
+    }
+    carouselPauseTimeoutRef.current = window.setTimeout(() => {
+      carouselPausedRef.current = false;
+      carouselPauseTimeoutRef.current = null;
+    }, INTERACTION_PAUSE_MS);
+  };
+
+  const selectStyle = (style: { id: StyleId; accent: string }) => {
+    pauseCarousel();
+    setActiveStyle(style.id);
+  };
+
+  const updateAccentColor = (color: string) => {
+    pauseCarousel();
+    setAccentColor(color);
+  };
+
   return (
     <div className="w-full">
       <div className="relative rounded-2xl overflow-hidden border border-gray-200/80 shadow-[0_32px_80px_-12px_rgba(5,150,105,0.18)] bg-white">
@@ -107,7 +151,7 @@ export default function ResumeHeroPreview({
                   <button
                     type="button"
                     key={style.id}
-                    onClick={() => setActiveStyle(style.id)}
+                    onClick={() => selectStyle(style)}
                     className="text-[8px] font-semibold px-1.5 py-0.5 rounded text-left transition-all truncate"
                     style={style.id === activeStyle ? { background: accentColor, color: '#fff' } : { color: '#6b7280' }}
                   >
@@ -126,7 +170,7 @@ export default function ResumeHeroPreview({
                 <input
                   type="color"
                   value={accentColor}
-                  onChange={event => setAccentColor(event.target.value)}
+                  onChange={event => updateAccentColor(event.target.value)}
                   className="w-7 h-7 rounded border border-gray-200 bg-transparent p-0.5 cursor-pointer"
                   aria-label="Pick preview color"
                 />
@@ -137,7 +181,7 @@ export default function ResumeHeroPreview({
 
           <div ref={frameRef} className="relative overflow-hidden bg-gray-50/40" style={{ aspectRatio: '210/297' }}>
             <div
-              className="absolute left-1/2 top-0 bg-white shadow-sm"
+              className="absolute left-1/2 top-0 bg-white shadow-sm transition-opacity duration-500"
               style={{
                 width: '210mm',
                 minHeight: '297mm',

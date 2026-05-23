@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { SUPPORTED_LANGUAGES, type LangCode } from '../../i18n';
@@ -12,6 +13,7 @@ interface LanguageSwitcherProps {
 
 export default function LanguageSwitcher({ variant = 'light' }: LanguageSwitcherProps) {
   const { i18n } = useTranslation();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const languageLinks: Record<LangCode, string> = {
@@ -24,6 +26,7 @@ export default function LanguageSwitcher({ variant = 'light' }: LanguageSwitcher
   const currentLanguage = i18n.resolvedLanguage ?? i18n.language;
   const current = SUPPORTED_LANGUAGES.find(l => l.code === currentLanguage)
     ?? SUPPORTED_LANGUAGES[0];
+  const isLandingRoute = ['/', '/es', '/zh-cn', '/zh-tw'].includes(pathname ?? '/');
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -52,20 +55,37 @@ export default function LanguageSwitcher({ variant = 'light' }: LanguageSwitcher
 
       {open && (
         <div className="absolute right-0 mt-1 w-40 bg-white border border-gray-200 rounded-xl shadow-lg py-1 z-50">
-          {SUPPORTED_LANGUAGES.map(lang => (
-            <Link
-              key={lang.code}
-              href={languageLinks[lang.code]}
-              onClick={() => { i18n.changeLanguage(lang.code as LangCode); setOpen(false); }}
-              className={`block w-full text-left px-3 py-2 text-sm transition-colors ${
-                lang.code === currentLanguage
-                  ? 'text-emerald-600 font-semibold bg-emerald-50'
-                  : 'text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              {lang.label}
-            </Link>
-          ))}
+          {SUPPORTED_LANGUAGES.map(lang => {
+            const className = `block w-full text-left px-3 py-2 text-sm transition-colors ${
+              lang.code === currentLanguage
+                ? 'text-emerald-600 font-semibold bg-emerald-50'
+                : 'text-gray-700 hover:bg-gray-50'
+            }`;
+            const changeLanguage = () => {
+              void i18n.changeLanguage(lang.code as LangCode);
+              setOpen(false);
+            };
+
+            return isLandingRoute ? (
+              <Link
+                key={lang.code}
+                href={languageLinks[lang.code]}
+                onClick={changeLanguage}
+                className={className}
+              >
+                {lang.label}
+              </Link>
+            ) : (
+              <button
+                key={lang.code}
+                type="button"
+                onClick={changeLanguage}
+                className={className}
+              >
+                {lang.label}
+              </button>
+            );
+          })}
         </div>
       )}
     </div>

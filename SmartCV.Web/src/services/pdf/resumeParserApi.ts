@@ -136,6 +136,16 @@ function mapServerData(data: Record<string, unknown>, fileName: string): Resume 
       current:     Boolean(e.current),
       description: String(e.description ?? ''),
       highlights:  Array.isArray(e.highlights) ? e.highlights.map(String) : [],
+      projects: Array.isArray(e.projects) ? e.projects.map((project) => {
+        const item = project as Record<string, unknown>;
+        return {
+          id: generateId(),
+          name: String(item.name ?? ''),
+          url: item.url ? String(item.url) : undefined,
+          description: item.description ? String(item.description) : undefined,
+          highlights: Array.isArray(item.highlights) ? item.highlights.map(String) : [],
+        };
+      }) : [],
       productLinks: Array.isArray(e.productLinks) ? e.productLinks.map(String) : [],
     })),
     education: ((data.education ?? []) as Record<string, unknown>[]).map((e) => ({

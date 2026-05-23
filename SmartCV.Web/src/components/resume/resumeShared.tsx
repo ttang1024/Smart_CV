@@ -133,12 +133,42 @@ export function ProjectTechnologies({ project, color, fontSize, label = 'Tech:' 
   );
 }
 
+export function ExperienceProjectRows({ projects, color, fontSize = '10pt' }: {
+  projects?: Experience['projects'];
+  color: string;
+  fontSize?: string;
+}) {
+  const visibleProjects = (projects ?? []).filter(project =>
+    project.name || project.url || project.description || (project.highlights ?? []).some(Boolean)
+  );
+  if (visibleProjects.length === 0) return null;
+
+  return (
+    <div style={{ marginTop: '3px', fontSize, color }}>
+      {visibleProjects.map(project => (
+        <div key={project.id} style={{ marginBottom: '4px' }}>
+          {(project.name || project.url) && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'baseline' }}>
+              <span style={{ fontWeight: 700, color: '#111827' }}>{project.name}</span>
+              {project.url && <span style={{ color, textAlign: 'right', overflowWrap: 'anywhere' }}>{project.url}</span>}
+            </div>
+          )}
+          {project.description && (
+            <RichTextContent html={project.description} style={{ marginTop: '2px', color, fontSize: '9.5pt', whiteSpace: 'pre-wrap' }} />
+          )}
+          <HighlightList highlights={project.highlights ?? []} color={color} fontSize="9.5pt" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function ExpEntry({ exp, companyColor, locColor, dateColor, descColor,
   companySep = ' · ', companyFontSize, companyWeight,
   locFontSize = '9.5pt', locSep = ' · ',
   dateFontSize = '9pt', dateBadge,
   positionFontSize, positionWeight = 700, positionColor,
-  descMt = '4px', highlightColor, highlightFontSize, mb = '12px',
+  descMt = '4px', descFontSize, highlightColor, highlightFontSize, mb = '12px',
 }: {
   exp: Experience;
   companyColor: string;
@@ -158,6 +188,7 @@ export function ExpEntry({ exp, companyColor, locColor, dateColor, descColor,
   positionWeight?: number;
   positionColor?: string;
   descMt?: string;
+  descFontSize?: string;
   highlightColor?: string;
   highlightFontSize?: string;
   mb?: string;
@@ -188,9 +219,10 @@ export function ExpEntry({ exp, companyColor, locColor, dateColor, descColor,
           </span>
         )}
       </div>
-      {exp.description && <RichTextContent html={exp.description} style={{ marginTop: descMt, color: descColor }} />}
+      {exp.description && <RichTextContent html={exp.description} style={{ marginTop: descMt, color: descColor, ...(descFontSize && { fontSize: descFontSize }) }} />}
+      <ExperienceProjectRows projects={exp.projects} color={descColor} />
       {(exp.productLinks ?? []).filter(Boolean).length > 0 && (
-        <p style={{ marginTop: '3px', fontSize: '9pt', color: descColor }}>
+        <p style={{ marginTop: '3px', fontSize: '9pt', color: descColor, overflowWrap: 'anywhere' }}>
           <strong>Product:</strong> {(exp.productLinks ?? []).filter(Boolean).join(' · ')}
         </p>
       )}

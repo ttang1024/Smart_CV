@@ -20,6 +20,15 @@ export interface Experience {
   description: string;
   highlights: string[];
   productLinks?: string[];
+  projects?: ExperienceProject[];
+}
+
+export interface ExperienceProject {
+  id: string;
+  name: string;
+  url?: string;
+  description?: string;
+  highlights?: string[];
 }
 
 export interface Education {

@@ -114,6 +114,7 @@ function collectResumeText(resume: Resume): string {
       exp.startDate,
       exp.endDate,
       clean(exp.description),
+      ...(exp.projects ?? []).flatMap(project => [project.name, project.url, clean(project.description), ...(project.highlights ?? []).map(clean)]),
       ...(exp.productLinks ?? []),
       ...exp.highlights.map(clean),
     ]),
@@ -358,6 +359,7 @@ export function runAtsCheck(resume: Resume): AtsCheckResult {
     info.website,
     info.linkedin,
     info.github,
+    ...resume.experience.flatMap(exp => (exp.projects ?? []).map(project => project.url)),
     ...resume.experience.flatMap(exp => exp.productLinks ?? []),
     ...resume.projects.flatMap(project => [project.url, project.github]),
   ].filter(Boolean) as string[];

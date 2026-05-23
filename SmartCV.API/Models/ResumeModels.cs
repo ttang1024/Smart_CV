@@ -38,6 +38,15 @@ public class ExperienceModel
     public string Description { get; set; } = "";
     public List<string> Highlights { get; set; } = [];
     public List<string> ProductLinks { get; set; } = [];
+    public List<ExperienceProjectModel> Projects { get; set; } = [];
+}
+
+public class ExperienceProjectModel
+{
+    public string Name { get; set; } = "";
+    public string? Url { get; set; }
+    public string? Description { get; set; }
+    public List<string> Highlights { get; set; } = [];
 }
 
 public class EducationModel

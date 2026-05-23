@@ -309,6 +309,13 @@ function formatResumeAsText(resume: Resume): string {
 			lines.push(
 				`${exp.position} at ${exp.company} (${exp.startDate} - ${exp.current ? 'Present' : (exp.endDate ?? '')})`,
 			)
+			;(exp.projects ?? [])
+				.filter(project => project.name || project.url || project.description || (project.highlights ?? []).some(Boolean))
+				.forEach(project => {
+					lines.push(`Project: ${project.name}${project.url ? ` (${project.url})` : ''}`)
+					if (project.description) lines.push(richTextToPlainText(project.description))
+					;(project.highlights ?? []).forEach(h => lines.push(`• ${richTextToPlainText(h)}`))
+				})
 			;(exp.productLinks ?? []).filter(Boolean).forEach(link => lines.push(`Product: ${link}`))
 			if (exp.description) lines.push(richTextToPlainText(exp.description))
 			exp.highlights.forEach(h => lines.push(`• ${richTextToPlainText(h)}`))

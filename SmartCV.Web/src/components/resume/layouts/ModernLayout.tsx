@@ -26,7 +26,7 @@ export function ModernLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_MM
               {coreHighlights.filter(h => !isRichTextEmpty(h.text)).map(h => (
                 <div key={h.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
                   <span style={{ color: accent, fontWeight: 700, fontSize: '13pt', lineHeight: '1.1', flexShrink: 0 }}>›</span>
-                  <span style={{ color: '#374151' }}><RichTextContent html={h.text} /></span>
+                  <span style={{ color: '#374151', fontSize: '11pt' }}><RichTextContent html={h.text} /></span>
                 </div>
               ))}
             </div>
@@ -40,7 +40,7 @@ export function ModernLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_MM
                 companyColor={accent} companyWeight={500}
                 locColor="#9ca3af" locFontSize="9pt"
                 dateColor="#9ca3af" dateBadge descColor="#4b5563"
-                positionFontSize="11pt" />
+                positionFontSize="11pt" descFontSize="11pt" highlightFontSize="11pt" />
             ))}
           </ModernSection>
         ) : null;
@@ -72,8 +72,8 @@ export function ModernLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_MM
             {projects.map(p => (
               <div key={p.id} style={{ marginBottom: '8px' }}>
                 <span style={{ fontWeight: 700 }}>{p.name}</span>
-                <RichTextContent html={p.description} style={{ color: '#4b5563', marginTop: '2px', whiteSpace: 'pre-wrap' }} />
-                <HighlightList highlights={p.highlights ?? []} color="#4b5563" />
+                <RichTextContent html={p.description} style={{ color: '#4b5563', marginTop: '2px', whiteSpace: 'pre-wrap', fontSize: '11pt' }} />
+                <HighlightList highlights={p.highlights ?? []} color="#4b5563" fontSize="11pt" />
                 <ProjectTechnologies project={p} color="#4b5563" />
               </div>
             ))}
@@ -115,7 +115,7 @@ export function ModernLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_MM
   };
 
   return (
-    <div style={{ padding: `${pageMarginsMm.top}mm ${pageMarginsMm.right}mm ${pageMarginsMm.bottom}mm ${pageMarginsMm.left}mm`, fontFamily: 'Calibri, Arial, Helvetica, "Times New Roman", sans-serif', fontSize: '10.5pt', lineHeight: '1.45', color: '#111827' }}>
+    <div style={{ padding: `${pageMarginsMm.top}mm ${pageMarginsMm.right}mm ${pageMarginsMm.bottom}mm ${pageMarginsMm.left}mm`, fontFamily: 'Arial, Helvetica, sans-serif', fontSize: '10.5pt', lineHeight: '1.45', color: '#111827' }}>
       <div style={{ marginBottom: '16px' }}>
         <h1 style={{ fontSize: '24pt', fontWeight: 800, color: '#111827', letterSpacing: '-0.02em', marginBottom: '2px' }}>
           {p.fullName || 'Your Name'}

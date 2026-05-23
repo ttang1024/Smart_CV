@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { DEFAULT_PAGE_MARGINS_MM, type LayoutProps, type ThemeColors } from '../resumeTypes';
-import { ContactRow, contactItems, dateRange, EduEntry, CertList, LangList, HighlightList, AchievementRows, InterestsList, RefereesBlock, ProjectTechnologies, sectionTitle } from '../resumeShared';
+import { ContactRow, contactItems, dateRange, EduEntry, CertList, LangList, HighlightList, AchievementRows, InterestsList, RefereesBlock, ProjectTechnologies, ExperienceProjectRows, sectionTitle } from '../resumeShared';
 import { isRichTextEmpty } from '../../../lib/richText';
 import { RichTextContent } from '../RichText';
 import { DEFAULT_SECTION_ORDER } from '../../../types/resume';
@@ -23,7 +23,7 @@ export function TimelineLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_
           <TimelineSection key="coreHighlights" title={sectionTitle(r, 'coreHighlights', t('resumeLayout.sections.coreHighlights'))} theme={theme}>
             <ul style={{ paddingLeft: '16px', margin: 0, listStyleType: 'disc' }}>
               {coreHighlights.filter(h => !isRichTextEmpty(h.text)).map(h => (
-                <li key={h.id} style={{ marginBottom: '3px', color: '#374151' }}><RichTextContent html={h.text} /></li>
+                <li key={h.id} style={{ marginBottom: '3px', color: '#374151', fontSize: '11pt' }}><RichTextContent html={h.text} /></li>
               ))}
             </ul>
           </TimelineSection>
@@ -31,7 +31,7 @@ export function TimelineLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_
       case 'skills':
         return skills.length > 0 ? (
           <TimelineSection key="skills" title={sectionTitle(r, 'skills', t('resumeLayout.sections.skills'))} theme={theme}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '4px' }}>
               {skills.map(s => (
                 <div key={s.id}>
                   <span style={{ fontWeight: 600 }}>{s.category}: </span>
@@ -51,7 +51,7 @@ export function TimelineLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_
                     const range = dateRange(exp.startDate, exp.endDate, exp.current, t('resumeLayout.present'));
                     const [start, end] = range.includes('–') ? range.split('–').map(s => s.trim()) : [range, ''];
                     return (
-                      <div style={{ fontSize: '9pt', fontWeight: 600, color: theme.dark, lineHeight: 1.3 }}>{start} - {end}</div>
+                      <div style={{ fontSize: '10pt', fontWeight: 600, color: theme.dark, lineHeight: 1.3 }}>{start} - {end}</div>
                     );
                   })()}
                 </div>
@@ -66,16 +66,19 @@ export function TimelineLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_
                   )}
                 </div>
                 <div style={{ flex: 1, paddingLeft: '10px', paddingBottom: '16px' }}>
-                  <div style={{ fontWeight: 700 }}>{exp.position}</div>
-                  {exp.company && <span style={{ color: theme.dark, fontWeight: 500 }}>{exp.company}</span>}
-                  {exp.location && <span style={{ color: '#6b7280', fontSize: '9pt' }}>{exp.company ? ' · ' : ''}{exp.location}</span>}
-                  {exp.description && <RichTextContent html={exp.description} style={{ marginTop: '4px', color: '#374151', fontSize: '9.5pt', whiteSpace: 'pre-wrap' }} />}
+                  <div>
+                    <span style={{ fontWeight: 700 }}>{exp.position}</span>
+                    {exp.company && <span style={{ color: theme.dark, fontWeight: 500 }}>{exp.position ? ' · ' : ''}{exp.company}</span>}
+                    {exp.location && <span style={{ color: '#6b7280', fontSize: '9pt' }}>{(exp.position || exp.company) ? ' · ' : ''}{exp.location}</span>}
+                  </div>
+                  {exp.description && <RichTextContent html={exp.description} style={{ marginTop: '4px', color: '#374151', fontSize: '10pt', whiteSpace: 'pre-wrap' }} />}
+                  <ExperienceProjectRows projects={exp.projects} color="#374151" />
                   {(exp.productLinks ?? []).filter(Boolean).length > 0 && (
-                    <p style={{ marginTop: '3px', fontSize: '9pt', color: '#374151' }}>
+                    <p style={{ marginTop: '3px', fontSize: '9pt', color: '#374151', overflowWrap: 'anywhere' }}>
                       <strong>Product:</strong> {(exp.productLinks ?? []).filter(Boolean).join(' · ')}
                     </p>
                   )}
-                  <HighlightList highlights={exp.highlights} color="#374151" fontSize="9.5pt" />
+                  <HighlightList highlights={exp.highlights} color="#374151" fontSize="10pt" />
                 </div>
               </div>
             ))}
@@ -98,8 +101,8 @@ export function TimelineLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
                   <span style={{ fontWeight: 700 }}>{p.name}</span>
                 </div>
-                <RichTextContent html={p.description} style={{ color: '#374151', whiteSpace: 'pre-wrap' }} />
-                <HighlightList highlights={p.highlights ?? []} color="#374151" />
+                <RichTextContent html={p.description} style={{ color: '#374151', whiteSpace: 'pre-wrap', fontSize: '11pt' }} />
+                <HighlightList highlights={p.highlights ?? []} color="#374151" fontSize="11pt" />
                 <ProjectTechnologies project={p} color="#374151" />
               </div>
             ))}
@@ -141,7 +144,7 @@ export function TimelineLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_
   };
 
   return (
-    <div style={{ padding: `${pageMarginsMm.top}mm ${pageMarginsMm.right}mm ${pageMarginsMm.bottom}mm ${pageMarginsMm.left}mm`, fontFamily: 'Calibri, Arial, Helvetica, "Times New Roman", sans-serif', fontSize: '10.5pt', lineHeight: '1.45', color: '#1a1a1a' }}>
+    <div style={{ padding: `${pageMarginsMm.top}mm ${pageMarginsMm.right}mm ${pageMarginsMm.bottom}mm ${pageMarginsMm.left}mm`, fontFamily: 'Arial, Helvetica, sans-serif', fontSize: '10.5pt', lineHeight: '1.45', color: '#1a1a1a' }}>
       <div style={{ marginBottom: '16px' }}>
         <h1 style={{ fontSize: '24pt', fontWeight: 800, color: theme.dark, letterSpacing: '-0.02em', marginBottom: '3px' }}>
           {p.fullName || 'Your Name'}
@@ -160,7 +163,7 @@ function TimelineSection({ title, theme, children }: { title: string; theme: The
   return (
     <div style={{ marginBottom: '14px' }}>
       <h2 style={{
-        fontSize: '10.5pt', fontWeight: 700, color: theme.dark,
+        fontSize: '11.5pt', fontWeight: 700, color: theme.dark,
         textTransform: 'uppercase', letterSpacing: '0.08em',
         borderBottom: `2px solid ${theme.main}`, paddingBottom: '3px', marginBottom: '10px',
       }}>

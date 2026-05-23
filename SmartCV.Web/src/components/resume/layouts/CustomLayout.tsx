@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DEFAULT_PAGE_MARGINS_MM, type LayoutProps, type CustomOptions, type CustomSectionStyle } from '../resumeTypes';
-import { contactItems, ContactRow, dateRange, EduEntry, ExpEntry, CertList, LangList, HighlightList, AchievementRows, InterestsList, RefereesBlock, ProjectTechnologies, sectionTitle } from '../resumeShared';
+import { contactItems, ContactRow, dateRange, EduEntry, ExpEntry, CertList, LangList, HighlightList, AchievementRows, InterestsList, RefereesBlock, ProjectTechnologies, ExperienceProjectRows, sectionTitle } from '../resumeShared';
 import { isRichTextEmpty } from '../../../lib/richText';
 import { RichTextContent } from '../RichText';
 import { DEFAULT_SECTION_ORDER } from '../../../types/resume';
@@ -84,27 +84,30 @@ export function CustomLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_MM
 
   const renderExperience = () =>
     options.experience === 'list'
-      ? <>{experience.map(exp => <ExpEntry key={exp.id} exp={exp} companyColor={accent} companyWeight={500} locColor="#9ca3af" locFontSize="9pt" dateColor="#9ca3af" dateBadge descColor="#4b5563" positionFontSize="11pt" />)}</>
+      ? <>{experience.map(exp => <ExpEntry key={exp.id} exp={exp} companyColor={accent} companyWeight={500} locColor="#9ca3af" locFontSize="9pt" dateColor="#9ca3af" dateBadge descColor="#4b5563" positionFontSize="11pt" descFontSize="11pt" highlightFontSize="11pt" />)}</>
       : <>{experience.map((exp, idx) => (
         <div key={exp.id} style={{ display: 'flex' }}>
-          <div style={{ width: '108px', flexShrink: 0, paddingTop: '3px', fontSize: '9pt', fontWeight: 600, color: theme.dark, lineHeight: 1.4 }}>
+          <div style={{ width: '108px', flexShrink: 0, paddingTop: '3px', fontSize: '9.5pt', fontWeight: 600, color: theme.dark, lineHeight: 1.4 }}>
             {(() => { const range = dateRange(exp.startDate, exp.endDate, exp.current, presentLabel); const [a, b] = range.includes('–') ? range.split('–').map(s => s.trim()) : [range, '']; return <>{a}{b && <> - {b}</>}</>; })()}
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '20px', flexShrink: 0 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '18px', flexShrink: 0 }}>
             <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: accent, border: '2px solid white', boxShadow: `0 0 0 2px ${accent}`, marginTop: '4px', flexShrink: 0 }} />
             {idx < experience.length - 1 && <div style={{ flex: 1, width: '2px', background: theme.light, minHeight: '20px' }} />}
           </div>
           <div style={{ flex: 1, paddingLeft: '10px', paddingBottom: '14px' }}>
-            <div style={{ fontWeight: 700 }}>{exp.position}</div>
-            {exp.company && <span style={{ color: accent, fontWeight: 500 }}>{exp.company}</span>}
-            {exp.location && <span style={{ color: '#9ca3af', fontSize: '9pt' }}> · {exp.location}</span>}
-            {exp.description && <RichTextContent html={exp.description} style={{ marginTop: '3px', color: '#4b5563', fontSize: '9.5pt', whiteSpace: 'pre-wrap' }} />}
+            <div>
+              <span style={{ fontWeight: 700 }}>{exp.position}</span>
+              {exp.company && <span style={{ color: accent, fontWeight: 500 }}>{exp.position ? ' · ' : ''}{exp.company}</span>}
+              {exp.location && <span style={{ color: '#9ca3af', fontSize: '9pt' }}>{(exp.position || exp.company) ? ' · ' : ''}{exp.location}</span>}
+            </div>
+            {exp.description && <RichTextContent html={exp.description} style={{ marginTop: '3px', color: '#4b5563', fontSize: '10pt', whiteSpace: 'pre-wrap' }} />}
+            <ExperienceProjectRows projects={exp.projects} color="#4b5563" />
             {(exp.productLinks ?? []).filter(Boolean).length > 0 && (
-              <p style={{ marginTop: '3px', fontSize: '9pt', color: '#4b5563' }}>
+              <p style={{ marginTop: '3px', fontSize: '9pt', color: '#4b5563', overflowWrap: 'anywhere' }}>
                 <strong>Product:</strong> {(exp.productLinks ?? []).filter(Boolean).join(' · ')}
               </p>
             )}
-            <HighlightList highlights={exp.highlights} color="#4b5563" fontSize="9.5pt" />
+            <HighlightList highlights={exp.highlights} color="#4b5563" fontSize="10pt" />
           </div>
         </div>
       ))}</>;
@@ -113,21 +116,21 @@ export function CustomLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_MM
     <>{projects.map(proj => (
       <div key={proj.id} style={{ marginBottom: '8px' }}>
         <span style={{ fontWeight: 700 }}>{proj.name}</span>
-        <RichTextContent html={proj.description} style={{ color: '#4b5563', marginTop: '2px', whiteSpace: 'pre-wrap' }} />
-        <HighlightList highlights={proj.highlights ?? []} color="#4b5563" />
+        <RichTextContent html={proj.description} style={{ color: '#4b5563', marginTop: '2px', whiteSpace: 'pre-wrap', fontSize: '11pt' }} />
+        <HighlightList highlights={proj.highlights ?? []} color="#4b5563" fontSize="11pt" />
         <ProjectTechnologies project={proj} color="#4b5563" />
       </div>
     ))}</>
   );
 
-  const baseStyle: CSSProperties = { fontFamily: 'Calibri, Arial, Helvetica, "Times New Roman", sans-serif', fontSize: '10.5pt', lineHeight: '1.45', color: '#1a1a1a' };
+  const baseStyle: CSSProperties = { fontFamily: 'Arial, Helvetica, sans-serif', fontSize: '10.5pt', lineHeight: '1.45', color: '#1a1a1a' };
 
   const renderCustomSection = (key: string) => {
     switch (key) {
       case 'summary': return summary ? <Sec key="summary" title={sectionTitle(r, 'summary', t('resumeLayout.sections.summary'))}>{renderSummary()}</Sec> : null;
       case 'coreHighlights': return (coreHighlights ?? []).filter(h => !isRichTextEmpty(h.text)).length > 0 ? (
         <Sec key="coreHighlights" title={sectionTitle(r, 'coreHighlights', t('resumeLayout.sections.coreHighlights'))}>
-          <ul style={{ paddingLeft: '16px', margin: 0, listStyleType: 'disc' }}>{coreHighlights.filter(h => !isRichTextEmpty(h.text)).map(h => <li key={h.id} style={{ marginBottom: '3px', color: '#374151' }}><RichTextContent html={h.text} /></li>)}</ul>
+          <ul style={{ paddingLeft: '16px', margin: 0, listStyleType: 'disc' }}>{coreHighlights.filter(h => !isRichTextEmpty(h.text)).map(h => <li key={h.id} style={{ marginBottom: '3px', color: '#374151', fontSize: '11pt' }}><RichTextContent html={h.text} /></li>)}</ul>
         </Sec>
       ) : null;
       case 'skills': return skills.length > 0 ? <Sec key="skills" title={sectionTitle(r, 'skills', t('resumeLayout.sections.skills'))}>{renderSkills(options.skillsColumns)}</Sec> : null;
@@ -155,7 +158,7 @@ function CustomSection({ title, accent, sectionStyle, children }: { title: strin
   if (sectionStyle === 'underline') {
     return (
       <div style={{ marginBottom: '14px' }}>
-        <h2 style={{ fontSize: '11pt', fontWeight: 700, color: accent, textTransform: 'uppercase', letterSpacing: '0.08em', borderBottom: `1.5px solid ${accent}`, paddingBottom: '3px', marginBottom: '8px' }}>{title}</h2>
+        <h2 style={{ fontSize: '12pt', fontWeight: 700, color: accent, textTransform: 'uppercase', letterSpacing: '0.08em', borderBottom: `1.5px solid ${accent}`, paddingBottom: '3px', marginBottom: '8px' }}>{title}</h2>
         {children}
       </div>
     );
@@ -163,7 +166,7 @@ function CustomSection({ title, accent, sectionStyle, children }: { title: strin
   if (sectionStyle === 'plain') {
     return (
       <div style={{ marginBottom: '14px' }}>
-        <h2 style={{ fontSize: '9.5pt', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: '8px' }}>{title}</h2>
+        <h2 style={{ fontSize: '10.5pt', fontWeight: 700, color: '#111827', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: '8px' }}>{title}</h2>
         {children}
       </div>
     );
@@ -172,7 +175,7 @@ function CustomSection({ title, accent, sectionStyle, children }: { title: strin
     <div style={{ marginBottom: '14px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
         <div style={{ width: '4px', height: '18px', background: accent, borderRadius: '2px', flexShrink: 0 }} />
-        <h2 style={{ fontSize: '11pt', fontWeight: 700, color: '#111827', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{title}</h2>
+        <h2 style={{ fontSize: '12pt', fontWeight: 700, color: '#111827', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{title}</h2>
       </div>
       {children}
     </div>

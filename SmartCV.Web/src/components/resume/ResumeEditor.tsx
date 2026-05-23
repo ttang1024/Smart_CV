@@ -620,37 +620,133 @@ function ExperienceItem({ experience, aiContext, onChange, onDelete }: {
         </div>
       </div>
       <div>
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1.5">{t('resumeEditor.experience.productLinks')}</label>
-        {(experience.productLinks ?? []).map((link, i) => (
-          <div key={i} className="flex gap-2 mb-1.5">
-            <div className="flex-1">
-              <Input
-                value={link}
-                onChange={e => {
-                  const next = [...(experience.productLinks ?? [])];
-                  next[i] = e.target.value;
-                  up('productLinks', next);
+        <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1.5">{t('resumeEditor.experience.projects')}</label>
+        {(experience.projects ?? []).map(project => (
+          <div key={project.id} className="mb-2 rounded-lg border border-gray-200 bg-white p-2 dark:border-gray-700 dark:bg-gray-900/40">
+            <div className="flex items-start gap-2">
+              <div className="grid grid-cols-2 gap-2 flex-1">
+                <Input
+                  value={project.name}
+                  onChange={e => {
+                    const next = (experience.projects ?? []).map(item =>
+                      item.id === project.id ? { ...item, name: e.target.value } : item
+                    );
+                    up('projects', next);
+                  }}
+                  placeholder={t('resumeEditor.experience.projectNamePlaceholder')}
+                />
+                <Input
+                  value={project.url ?? ''}
+                  onChange={e => {
+                    const next = (experience.projects ?? []).map(item =>
+                      item.id === project.id ? { ...item, url: e.target.value } : item
+                    );
+                    up('projects', next);
+                  }}
+                  placeholder={t('resumeEditor.experience.projectUrlPlaceholder')}
+                />
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 shrink-0 text-red-400"
+                onClick={() => up('projects', (experience.projects ?? []).filter(item => item.id !== project.id))}
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+            <div className="mt-2">
+              <AIRichTextEditor
+                value={project.description ?? ''}
+                onChange={value => {
+                  const next = (experience.projects ?? []).map(item =>
+                    item.id === project.id ? { ...item, description: value } : item
+                  );
+                  up('projects', next);
                 }}
-                placeholder={t('resumeEditor.experience.productLinkPlaceholder')}
+                placeholder={t('resumeEditor.experience.projectDescriptionPlaceholder')}
+                minHeight={72}
+                sectionType="work experience project description"
+                onApply={value => {
+                  const next = (experience.projects ?? []).map(item =>
+                    item.id === project.id ? { ...item, description: value } : item
+                  );
+                  up('projects', next);
+                }}
+                aiContext={aiContext}
+                actions={['rewrite', 'concise', 'tailor', 'grammar']}
               />
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 shrink-0 text-red-400"
-              onClick={() => up('productLinks', (experience.productLinks ?? []).filter((_, j) => j !== i))}
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </Button>
+            <div className="mt-2">
+              <label className="text-xs font-medium text-gray-600 dark:text-gray-400 block mb-1.5">{t('resumeEditor.experience.projectKeyAchievements')}</label>
+              {(project.highlights ?? []).map((highlight, i) => (
+                <div key={i} className="flex gap-2 mb-1.5">
+                  <div className="flex-1">
+                    <AIRichTextEditor
+                      value={highlight}
+                      onChange={value => {
+                        const highlights = [...(project.highlights ?? [])];
+                        highlights[i] = value;
+                        const next = (experience.projects ?? []).map(item =>
+                          item.id === project.id ? { ...item, highlights } : item
+                        );
+                        up('projects', next);
+                      }}
+                      placeholder={t('resumeEditor.experience.projectAchievementPlaceholder')}
+                      minHeight={64}
+                      sectionType="work experience project achievement"
+                      onApply={value => {
+                        const highlights = [...(project.highlights ?? [])];
+                        highlights[i] = value;
+                        const next = (experience.projects ?? []).map(item =>
+                          item.id === project.id ? { ...item, highlights } : item
+                        );
+                        up('projects', next);
+                      }}
+                      aiContext={aiContext}
+                      actions={['rewrite', 'concise', 'metrics', 'tailor', 'grammar']}
+                    />
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 shrink-0 text-red-400"
+                    onClick={() => {
+                      const highlights = (project.highlights ?? []).filter((_, j) => j !== i);
+                      const next = (experience.projects ?? []).map(item =>
+                        item.id === project.id ? { ...item, highlights } : item
+                      );
+                      up('projects', next);
+                    }}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              ))}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  const highlights = [...(project.highlights ?? []), ''];
+                  const next = (experience.projects ?? []).map(item =>
+                    item.id === project.id ? { ...item, highlights } : item
+                  );
+                  up('projects', next);
+                }}
+                className="mt-1 text-xs"
+              >
+                <Plus className="w-3 h-3" /> {t('resumeEditor.experience.addProjectAchievement')}
+              </Button>
+            </div>
           </div>
         ))}
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => up('productLinks', [...(experience.productLinks ?? []), ''])}
+          onClick={() => up('projects', [...(experience.projects ?? []), { id: generateId(), name: '', url: '', description: '', highlights: [] }])}
           className="mt-1 text-xs"
         >
-          <Plus className="w-3 h-3" /> {t('resumeEditor.experience.addProductLink')}
+          <Plus className="w-3 h-3" /> {t('resumeEditor.experience.addProject')}
         </Button>
       </div>
       <AIRichTextEditor
@@ -999,7 +1095,7 @@ function RefereeItem({ referee, onChange, onDelete }: {
 
 // Factories
 const createEmptyExperience = (): Experience => ({
-  id: generateId(), company: '', position: '', location: '', startDate: '', endDate: '', current: false, description: '', highlights: [], productLinks: []
+  id: generateId(), company: '', position: '', location: '', startDate: '', endDate: '', current: false, description: '', highlights: [], productLinks: [], projects: []
 });
 
 const createEmptyEducation = (): Education => ({

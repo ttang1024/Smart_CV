@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, Briefcase, FileSearch, FileText, Redo2, Save, Sparkles, Undo2 } from 'lucide-react';
+import { ArrowLeft, Briefcase, Download, FileSearch, FileText, Redo2, Save, Sparkles, Undo2, Upload } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useResumeStore } from '../store/resumeStore';
 import type { Resume } from '../types/resume';
@@ -60,7 +60,10 @@ export default function EditorPage() {
   const [jobContext, setJobContext] = useState({ jobTitle: '', company: '', jobDescription: '', jobUrl: '' });
   const [jobApplications, setJobApplications] = useState<JobApplication[]>([]);
   const [saving, setSaving] = useState(false);
+  const [exportingData, setExportingData] = useState(false);
+  const [importingData, setImportingData] = useState(false);
   const [hasUnsaved, setHasUnsaved] = useState(false);
+  const importFileRef = useRef<HTMLInputElement>(null);
   const [editingName, setEditingName] = useState(false);
   const [undoStack, setUndoStack] = useState<ResumeRevision[]>([]);
   const [redoStack, setRedoStack] = useState<ResumeRevision[]>([]);
@@ -188,6 +191,60 @@ export default function EditorPage() {
       setSaving(false);
     }
   }, [localResume, saveResume, t]);
+
+  const handleExportIndexedDBData = useCallback(async () => {
+    setExportingData(true);
+    try {
+      if (localResume && hasUnsaved) {
+        await saveResume(localResume);
+        setHasUnsaved(false);
+      }
+
+      const resumes = await resumeDB.getAll();
+      const exportedAt = new Date().toISOString();
+      const payload = {
+        app: 'SmartCV',
+        schemaVersion: 1,
+        exportedAt,
+        source: 'indexeddb',
+        resumes,
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `smartcv-indexeddb-resumes-${exportedAt.slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success(`Exported ${resumes.length} resume${resumes.length === 1 ? '' : 's'}`);
+    } catch {
+      toast.error('Failed to export IndexedDB resume data');
+    } finally {
+      setExportingData(false);
+    }
+  }, [hasUnsaved, localResume, saveResume]);
+
+  const handleImportData = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = '';
+    setImportingData(true);
+    try {
+      const text = await file.text();
+      const payload = JSON.parse(text);
+      if (payload.app !== 'SmartCV' || !Array.isArray(payload.resumes)) {
+        toast.error('Invalid SmartCV export file');
+        return;
+      }
+      const resumes: Resume[] = payload.resumes;
+      await Promise.all(resumes.map(r => resumeDB.save(r)));
+      toast.success(`Imported ${resumes.length} resume${resumes.length === 1 ? '' : 's'}`);
+    } catch {
+      toast.error('Failed to import data');
+    } finally {
+      setImportingData(false);
+    }
+  }, []);
 
   const handleUndo = useCallback(() => {
     if (!localResume || undoStack.length === 0) return;
@@ -479,6 +536,35 @@ export default function EditorPage() {
           >
             <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
             {sidePanel === 'ai' ? t('editor.hideAI') : t('editor.aiOptimize')}
+          </Button>
+          <input
+            ref={importFileRef}
+            type="file"
+            accept=".json,application/json"
+            className="hidden"
+            onChange={handleImportData}
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => importFileRef.current?.click()}
+            loading={importingData}
+            className="gap-1.5"
+            title="Import resume data from a SmartCV export file"
+          >
+            {!importingData && <Upload className="w-3.5 h-3.5 text-emerald-500" />}
+            Import Data
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleExportIndexedDBData}
+            loading={exportingData}
+            className="gap-1.5"
+            title="Export all resume data from IndexedDB"
+          >
+            {!exportingData && <Download className="w-3.5 h-3.5 text-amber-500" />}
+            Export Data
           </Button>
           <Button
             size="sm"

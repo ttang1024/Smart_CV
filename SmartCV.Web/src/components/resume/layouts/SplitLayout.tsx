@@ -24,7 +24,7 @@ export function SplitLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_MM 
           <SplitSection key="coreHighlights" title={sectionTitle(r, 'coreHighlights', t('resumeLayout.sections.coreHighlights'))} theme={theme}>
             <ul style={{ paddingLeft: '16px', margin: 0, listStyleType: 'disc' }}>
               {coreHighlights.filter(h => !isRichTextEmpty(h.text)).map(h => (
-                <li key={h.id} style={{ marginBottom: '3px', color: '#374151' }}><RichTextContent html={h.text} /></li>
+                <li key={h.id} style={{ marginBottom: '3px', color: '#374151', fontSize: '11pt' }}><RichTextContent html={h.text} /></li>
               ))}
             </ul>
           </SplitSection>
@@ -32,7 +32,7 @@ export function SplitLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_MM 
       case 'skills':
         return skills.length > 0 ? (
           <SplitSection key="skills" title={sectionTitle(r, 'skills', t('resumeLayout.sections.skills'))} theme={theme}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '4px' }}>
               {skills.map(s => (
                 <div key={s.id}>
                   <span style={{ fontWeight: 600 }}>{s.category}: </span>
@@ -50,7 +50,7 @@ export function SplitLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_MM 
                 companyColor={theme.main} companySep=" · "
                 locColor="#6b7280" locFontSize="9.5pt"
                 dateColor="#6b7280" descColor="#374151"
-                descMt="3px" mb="10px" />
+                descMt="3px" descFontSize="11pt" highlightFontSize="11pt" mb="10px" />
             ))}
           </SplitSection>
         ) : null;
@@ -71,8 +71,8 @@ export function SplitLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_MM 
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
                   <span style={{ fontWeight: 700 }}>{p.name}</span>
                 </div>
-                <RichTextContent html={p.description} style={{ color: '#374151', whiteSpace: 'pre-wrap' }} />
-                <HighlightList highlights={p.highlights ?? []} color="#374151" />
+                <RichTextContent html={p.description} style={{ color: '#374151', whiteSpace: 'pre-wrap', fontSize: '11pt' }} />
+                <HighlightList highlights={p.highlights ?? []} color="#374151" fontSize="11pt" />
                 <ProjectTechnologies project={p} color="#374151" />
               </div>
             ))}
@@ -114,7 +114,7 @@ export function SplitLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_MM 
   };
 
   return (
-    <div style={{ padding: `${pageMarginsMm.top}mm ${pageMarginsMm.right}mm ${pageMarginsMm.bottom}mm ${pageMarginsMm.left}mm`, fontFamily: 'Calibri, Arial, Helvetica, "Times New Roman", sans-serif', fontSize: '10.5pt', lineHeight: '1.45', color: '#1a1a1a' }}>
+    <div style={{ padding: `${pageMarginsMm.top}mm ${pageMarginsMm.right}mm ${pageMarginsMm.bottom}mm ${pageMarginsMm.left}mm`, fontFamily: 'Arial, Helvetica, sans-serif', fontSize: '10.5pt', lineHeight: '1.45', color: '#1a1a1a' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: `3px solid ${theme.main}`, paddingBottom: '10px', marginBottom: '14px' }}>
         <div>
           <h1 style={{ fontSize: '26pt', fontWeight: 800, color: theme.dark, letterSpacing: '-0.02em', lineHeight: 1.1, marginBottom: '3px' }}>
@@ -139,7 +139,7 @@ function SplitSection({ title, theme, children }: { title: string; theme: ThemeC
   return (
     <div style={{ marginBottom: '12px' }}>
       <h2 style={{
-        fontSize: '10.5pt', fontWeight: 700, color: theme.dark,
+        fontSize: '11.5pt', fontWeight: 700, color: theme.dark,
         textTransform: 'uppercase', letterSpacing: '0.08em',
         borderBottom: `1px solid ${theme.light}`, paddingBottom: '3px', marginBottom: '8px',
       }}>

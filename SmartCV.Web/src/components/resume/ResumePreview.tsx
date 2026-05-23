@@ -52,6 +52,10 @@ export default function ResumePreview({ resume: r, onChange, onExport }: ResumeP
   const [scale, setScale] = useState(1);
   const [paperHeight, setPaperHeight] = useState(297 * (96 / 25.4)); // A4 height px
   const [pageMarginsMm, setPageMarginsMm] = useState<PageMarginsMm>(DEFAULT_PAGE_MARGINS_MM);
+  const [marginDraft, setMarginDraft] = useState<Record<keyof PageMarginsMm, string>>(() => {
+    const d = DEFAULT_PAGE_MARGINS_MM;
+    return { top: String(d.top), bottom: String(d.bottom), left: String(d.left), right: String(d.right) };
+  });
 
   // Recompute scale whenever the clip wrapper resizes
   useEffect(() => {
@@ -84,13 +88,18 @@ export default function ResumePreview({ resume: r, onChange, onExport }: ResumeP
   const sectionOrder = r.sectionOrder ?? DEFAULT_SECTION_ORDER;
   const supportsBackgroundColor =
     styleId === 'executive';
-  const updatePageMargin = (side: keyof PageMarginsMm, value: string) => {
-    const next = Number(value);
-    if (Number.isNaN(next)) return;
-    setPageMarginsMm(margins => ({
-      ...margins,
-      [side]: Math.min(MAX_PAGE_MARGIN_MM, Math.max(MIN_PAGE_MARGIN_MM, next)),
-    }));
+  const updatePageMarginDraft = (side: keyof PageMarginsMm, value: string) => {
+    setMarginDraft(d => ({ ...d, [side]: value }));
+  };
+
+  const commitPageMargin = (side: keyof PageMarginsMm) => {
+    const raw = marginDraft[side];
+    const next = parseFloat(raw);
+    const clamped = Number.isNaN(next)
+      ? pageMarginsMm[side]
+      : Math.min(MAX_PAGE_MARGIN_MM, Math.max(MIN_PAGE_MARGIN_MM, next));
+    setPageMarginsMm(margins => ({ ...margins, [side]: clamped }));
+    setMarginDraft(d => ({ ...d, [side]: String(clamped) }));
   };
 
   const handleSectionDrop = (targetKey: ResumeSection) => {
@@ -266,8 +275,9 @@ h2{break-after:avoid;page-break-after:avoid;}
                 min={MIN_PAGE_MARGIN_MM}
                 max={MAX_PAGE_MARGIN_MM}
                 step="0.1"
-                value={pageMarginsMm[side]}
-                onChange={e => updatePageMargin(side, e.target.value)}
+                value={marginDraft[side]}
+                onChange={e => updatePageMarginDraft(side, e.target.value)}
+                onBlur={() => commitPageMargin(side)}
                 className="w-14 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-1.5 py-0.5 text-xs text-gray-700 dark:text-gray-200"
               />
             </label>

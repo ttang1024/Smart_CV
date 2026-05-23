@@ -50,6 +50,7 @@ Return this exact JSON structure (omit optional fields if not found):
       "current": false,
       "description": "",
       "highlights": [""],
+      "projects": [{ "name": "", "url": "", "description": "", "highlights": [""] }],
       "productLinks": [""]
     }
   ],
@@ -121,6 +122,7 @@ Rules:
 - If current job/education, set current=true and omit endDate.
 - For skills, group by category (e.g. "Languages", "Frameworks", "Tools", "Databases").
 - highlights should be individual bullet points from the job description.
+- projects should contain named products, launches, apps, client projects, case studies, or public work tied to that job. Include url, description, and highlights when present.
 - productLinks should contain URLs for products, apps, launches, case studies, or public work tied to that job.
 - interests should be a flat list of interest/hobby names.
 - achievements should capture awards, prizes, recognitions, honours (not per-job bullet points).
@@ -166,6 +168,13 @@ Rules:
       current: Boolean(e.current),
       description: String(e.description ?? ''),
       highlights: Array.isArray(e.highlights) ? e.highlights.map(String) : [],
+      projects: Array.isArray(e.projects) ? e.projects.map((project: Record<string, unknown>) => ({
+        id: generateId(),
+        name: String(project.name ?? ''),
+        url: project.url ? String(project.url) : undefined,
+        description: project.description ? String(project.description) : undefined,
+        highlights: Array.isArray(project.highlights) ? project.highlights.map(String) : []
+      })) : [],
       productLinks: Array.isArray(e.productLinks) ? e.productLinks.map(String) : []
     })),
     education: (parsed.education ?? []).map((e: Record<string, unknown>) => ({

@@ -21,14 +21,11 @@ export function MinimalLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_M
       case 'coreHighlights':
         return coreHighlights?.length > 0 ? (
           <MinimalSection key="coreHighlights" title={sectionTitle(r, 'coreHighlights', t('resumeLayout.sections.highlightsMinimal'))} theme={theme}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+            <ul style={{ paddingLeft: '18px', margin: 0, listStyleType: 'disc' }}>
               {coreHighlights.filter(h => !isRichTextEmpty(h.text)).map(h => (
-                <div key={h.id} style={{ color: '#444444', paddingLeft: '12px', position: 'relative' }}>
-                  <span style={{ position: 'absolute', left: 0, color: '#aaaaaa' }}>—</span>
-                  <RichTextContent html={h.text} />
-                </div>
+                <li key={h.id} style={{ marginBottom: '3px', color: '#444444', fontSize: '11pt' }}><RichTextContent html={h.text} /></li>
               ))}
-            </div>
+            </ul>
           </MinimalSection>
         ) : null;
       case 'skills':
@@ -51,7 +48,7 @@ export function MinimalLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_M
               <ExpEntry key={exp.id} exp={exp}
                 companyColor="#888888" locColor="#aaaaaa" locSep=", "
                 dateColor="#aaaaaa" descColor="#555555"
-                positionWeight={600} />
+                positionWeight={600} descFontSize="11pt" highlightFontSize="11pt" />
             ))}
           </MinimalSection>
         ) : null;
@@ -71,8 +68,8 @@ export function MinimalLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_M
             {projects.map(p => (
               <div key={p.id} style={{ marginBottom: '8px' }}>
                 <span style={{ fontWeight: 600 }}>{p.name}</span>
-                <RichTextContent html={p.description} style={{ color: '#555555', marginTop: '2px', whiteSpace: 'pre-wrap' }} />
-                <HighlightList highlights={p.highlights ?? []} color="#555555" />
+                <RichTextContent html={p.description} style={{ color: '#555555', marginTop: '2px', whiteSpace: 'pre-wrap', fontSize: '11pt' }} />
+                <HighlightList highlights={p.highlights ?? []} color="#555555" fontSize="11pt" />
                 <ProjectTechnologies project={p} color="#555555" />
               </div>
             ))}
@@ -114,7 +111,7 @@ export function MinimalLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_M
   };
 
   return (
-    <div style={{ padding: `${pageMarginsMm.top}mm ${pageMarginsMm.right}mm ${pageMarginsMm.bottom}mm ${pageMarginsMm.left}mm`, fontFamily: 'Calibri, Arial, Helvetica, "Times New Roman", sans-serif', fontSize: '10.5pt', lineHeight: '1.5', color: '#222222' }}>
+    <div style={{ padding: `${pageMarginsMm.top}mm ${pageMarginsMm.right}mm ${pageMarginsMm.bottom}mm ${pageMarginsMm.left}mm`, fontFamily: 'Arial, Helvetica, sans-serif', fontSize: '10.5pt', lineHeight: '1.5', color: '#222222' }}>
       <div style={{ marginBottom: '18px' }}>
         <h1 style={{ fontSize: '20pt', fontWeight: 300, letterSpacing: '0.1em', color: '#111111', marginBottom: '2px' }}>
           {(p.fullName || 'Your Name').toUpperCase()}
@@ -137,7 +134,7 @@ function MinimalSection({ title, theme, children }: { title: string; theme: Them
   return (
     <div style={{ marginBottom: '14px' }}>
       <h2 style={{
-        fontSize: '8.5pt', fontWeight: 600, color: theme.main,
+        fontSize: '9.5pt', fontWeight: 600, color: theme.main,
         textTransform: 'uppercase', letterSpacing: '0.14em',
         borderBottom: `1px dotted ${theme.light}`, paddingBottom: '4px', marginBottom: '8px',
       }}>

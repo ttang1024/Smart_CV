@@ -21,9 +21,9 @@ export function ExecutiveLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS
       case 'coreHighlights':
         return coreHighlights?.length > 0 ? (
           <ExecSection key="coreHighlights" title={sectionTitle(r, 'coreHighlights', t('resumeLayout.sections.coreHighlights'))} theme={theme}>
-            <div style={{ columns: 2, columnGap: '20px' }}>
+            <div>
               {coreHighlights.filter(h => !isRichTextEmpty(h.text)).map(h => (
-                <div key={h.id} style={{ breakInside: 'avoid', marginBottom: '4px', paddingLeft: '12px', position: 'relative', color: '#374151' }}>
+                <div key={h.id} style={{ breakInside: 'avoid', marginBottom: '4px', paddingLeft: '12px', position: 'relative', color: '#374151', fontSize: '11.5pt' }}>
                   <span style={{ position: 'absolute', left: 0, color: theme.main, fontWeight: 700 }}>▸</span>
                   <RichTextContent html={h.text} />
                 </div>
@@ -52,7 +52,7 @@ export function ExecutiveLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS
                 companyColor={theme.main} companyFontSize="11pt"
                 locColor="#6b7280" locFontSize="9.5pt" locSep=", "
                 dateColor="#6b7280" dateFontSize="9.5pt" dateItalic
-                descColor="#374151"
+                descColor="#374151" descFontSize="11.5pt" highlightFontSize="11.5pt"
                 positionFontSize="11.5pt" positionColor="#1a1a2e" />
             ))}
           </ExecSection>
@@ -73,8 +73,8 @@ export function ExecutiveLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS
             {projects.map(p => (
               <div key={p.id} style={{ marginBottom: '8px' }}>
                 <span style={{ fontWeight: 700 }}>{p.name}</span>
-                <RichTextContent html={p.description} style={{ color: '#374151', marginTop: '2px', whiteSpace: 'pre-wrap' }} />
-                <HighlightList highlights={p.highlights ?? []} color="#374151" />
+                <RichTextContent html={p.description} style={{ color: '#374151', marginTop: '2px', whiteSpace: 'pre-wrap', fontSize: '11.5pt' }} />
+                <HighlightList highlights={p.highlights ?? []} color="#374151" fontSize="11.5pt" />
                 <ProjectTechnologies project={p} color="#374151" />
               </div>
             ))}
@@ -116,7 +116,7 @@ export function ExecutiveLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS
   };
 
   return (
-    <div style={{ fontFamily: 'Calibri, Arial, Helvetica, "Times New Roman", sans-serif', fontSize: '11pt', lineHeight: '1.45', color: theme.dark }}>
+    <div style={{ fontFamily: 'Arial, Helvetica, sans-serif', fontSize: '11pt', lineHeight: '1.45', color: theme.dark }}>
       <div style={{ background: backgroundColor, padding: `${pageMarginsMm.top}mm ${pageMarginsMm.right}mm 10mm ${pageMarginsMm.left}mm`, color: '#ffffff' }}>
         <h1 style={{ fontSize: '26pt', fontWeight: 700, letterSpacing: '0.04em', marginBottom: '4px', color: fullNameColor }}>
           {p.fullName || 'Your Name'}
@@ -142,7 +142,7 @@ function ExecSection({ title, theme, children }: { title: string; theme: ThemeCo
   return (
     <div style={{ marginBottom: '14px' }}>
       <h2 style={{
-        fontSize: '11pt', fontWeight: 700, color: theme.dark,
+        fontSize: '12pt', fontWeight: 700, color: theme.dark,
         textTransform: 'uppercase', letterSpacing: '0.1em',
         borderBottom: `2px solid ${theme.dark}`, paddingBottom: '3px', marginBottom: '8px',
       }}>
