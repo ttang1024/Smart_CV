@@ -13,6 +13,8 @@ export const LANGUAGE_ALTERNATES = {
 	'zh-TW': '/zh-tw',
 } as const
 
+export const INDEXABLE_PATHS = ['/', '/es', '/zh-cn', '/zh-tw'] as const
+
 export const ROUTE_LOCALES = {
 	'zh-cn': 'zh-CN',
 	'zh-tw': 'zh-TW',

@@ -16,6 +16,7 @@ import {
   OpenAILogo, GeminiLogo, ClaudeLogo, GrokLogo,
   DeepSeekLogo, QianwenLogo, KimiLogo, DoubaoLogo, WenyanyixinLogo,
 } from '../components/ui/AIProviderLogos';
+import { SITE_URL } from './metadata';
 import en from '../i18n/locales/en';
 import es from '../i18n/locales/es';
 import zhCN from '../i18n/locales/zh-CN';
@@ -102,6 +103,29 @@ export default function LandingPage({ initialLanguage = 'en' }: { initialLanguag
   const demoResume = getDemoResume(initialLanguage);
   const aiRulesTitle = t('landing.aiRules.title');
   const [aiRulesTitleLead, ...aiRulesTitleRest] = aiRulesTitle.split(',');
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'SmartCV',
+    alternateName: 'SmartCV AI Resume Builder',
+    applicationCategory: 'BusinessApplication',
+    operatingSystem: 'Web',
+    url: SITE_URL,
+    description: t('landing.hero.subheadline'),
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
+    },
+    featureList: [
+      t('landing.hero.features.styles'),
+      t('landing.hero.features.aiProviders'),
+      t('landing.hero.features.private'),
+      t('landing.hero.features.noSignup'),
+      t('landing.hero.features.downloads'),
+      t('landing.hero.features.ats'),
+    ],
+  };
 
   const steps = [
     { icon: STEP_ICONS[0], n: '1', title: t('landing.howItWorks.steps.step1.title'), desc: t('landing.howItWorks.steps.step1.desc'), color: STEP_COLORS[0] },
@@ -121,6 +145,11 @@ export default function LandingPage({ initialLanguage = 'en' }: { initialLanguag
 
   return (
     <div className="min-h-screen bg-white text-gray-900 overflow-x-clip">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       <div
         className="fixed inset-0 -z-20 pointer-events-none"
         style={{ backgroundImage: 'radial-gradient(circle, #d1fae5 1px, transparent 1px)', backgroundSize: '32px 32px', opacity: 0.4 }}
