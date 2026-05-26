@@ -4,7 +4,7 @@ import {
   Sparkles, FileText, Download, Shield, Palette,
   ArrowRight, ExternalLink, Brain, Lock,
   Upload, Wand2, LayoutTemplate,
-  KeyRound, SlidersHorizontal,
+  KeyRound, SlidersHorizontal, Files, Mail, MessageSquareText,
 } from 'lucide-react';
 import { GithubFilled } from '@ant-design/icons';
 import LanguageSwitcher from '../components/ui/LanguageSwitcher';
@@ -143,6 +143,69 @@ export default function LandingPage({ initialLanguage = 'en' }: { initialLanguag
     { icon: FileText, text: t('landing.hero.features.ats') },
   ];
 
+  const functions = [
+    {
+      type: 'pdf',
+      icon: Upload,
+      title: t('landing.functions.items.pdfImport.title'),
+      desc: t('landing.functions.items.pdfImport.desc'),
+      iconGrad: 'from-rose-400 to-rose-600',
+      border: '#fecdd3',
+      shadow: '0 18px 60px -42px rgba(225,29,72,0.7)',
+      tint: 'from-white via-white to-rose-50/60',
+    },
+    {
+      type: 'ats',
+      icon: Shield,
+      title: t('landing.functions.items.atsCheck.title'),
+      desc: t('landing.functions.items.atsCheck.desc'),
+      iconGrad: 'from-cyan-400 to-cyan-600',
+      border: '#a5f3fc',
+      shadow: '0 18px 60px -42px rgba(8,145,178,0.8)',
+      tint: 'from-white via-white to-cyan-50/60',
+    },
+    {
+      type: 'optimize',
+      icon: Wand2,
+      title: t('landing.functions.items.aiOptimize.title'),
+      desc: t('landing.functions.items.aiOptimize.desc'),
+      iconGrad: 'from-teal-400 to-teal-600',
+      border: '#99f6e4',
+      shadow: '0 18px 60px -42px rgba(13,148,136,0.8)',
+      tint: 'from-white via-white to-teal-50/60',
+    },
+    {
+      type: 'cover',
+      icon: Mail,
+      title: t('landing.functions.items.coverLetter.title'),
+      desc: t('landing.functions.items.coverLetter.desc'),
+      iconGrad: 'from-indigo-400 to-indigo-600',
+      border: '#c7d2fe',
+      shadow: '0 18px 60px -42px rgba(79,70,229,0.8)',
+      tint: 'from-white via-white to-indigo-50/60',
+    },
+    {
+      type: 'interview',
+      icon: MessageSquareText,
+      title: t('landing.functions.items.interviewPrep.title'),
+      desc: t('landing.functions.items.interviewPrep.desc'),
+      iconGrad: 'from-amber-400 to-amber-600',
+      border: '#fde68a',
+      shadow: '0 18px 60px -42px rgba(217,119,6,0.75)',
+      tint: 'from-white via-white to-amber-50/60',
+    },
+    {
+      type: 'versions',
+      icon: Files,
+      title: t('landing.functions.items.jobVersions.title'),
+      desc: t('landing.functions.items.jobVersions.desc'),
+      iconGrad: 'from-emerald-400 to-emerald-600',
+      border: '#a7f3d0',
+      shadow: '0 18px 60px -42px rgba(5,150,105,0.8)',
+      tint: 'from-white via-white to-emerald-50/60',
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-white text-gray-900 overflow-x-clip">
       <script
@@ -238,6 +301,198 @@ export default function LandingPage({ initialLanguage = 'en' }: { initialLanguag
           </div>
 
           <ResumeHeroPreview resume={demoResume} language={initialLanguage} />
+        </div>
+      </section>
+
+      <section id="how-it-works" className="py-24 px-6 bg-gradient-to-b from-white to-slate-50 overflow-x-clip">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-20">
+            <span className="inline-block text-xs font-bold text-emerald-600 tracking-[0.2em] uppercase mb-3 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">{t('landing.howItWorks.label')}</span>
+            <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight mt-2 mb-4">{t('landing.howItWorks.title')}</h2>
+            <p className="text-gray-500 text-lg max-w-xl mx-auto">{t('landing.howItWorks.subtitle')}</p>
+          </div>
+
+          <div className="relative">
+            <div className="hidden lg:block absolute top-11 left-[12.5%] right-[12.5%] h-px bg-gradient-to-r from-emerald-300 via-green-300 to-teal-300" />
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
+              {steps.map(step => (
+                <div key={step.n} className="flex flex-col items-center text-center">
+                  <div className="relative z-10 cursor-pointer mb-5">
+                    <div className={`w-[88px] h-[88px] rounded-3xl bg-gradient-to-br ${step.color} flex items-center justify-center shadow-xl`}>
+                      <step.icon className="w-9 h-9 text-white" strokeWidth={1.8} />
+                    </div>
+                    <div className={`absolute inset-0 rounded-3xl bg-gradient-to-br ${step.color} blur-xl -z-10 opacity-20`} />
+                  </div>
+
+                  <h3 className="font-bold text-gray-900 mb-2 leading-snug">{step.title}</h3>
+                  <p className="text-sm text-gray-500 leading-relaxed">{step.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="relative py-24 px-6 overflow-x-clip text-gray-900">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-24" style={{ background: 'linear-gradient(to bottom, transparent, rgba(16,185,129,0.35), transparent)' }} />
+
+        <div className="relative max-w-6xl mx-auto">
+          <div className="text-center mb-14">
+            <span className="inline-flex items-center gap-2 text-xs font-bold tracking-[0.18em] uppercase mb-3 px-3 py-1 rounded-full" style={{ background: '#ecfdf5', border: '1px solid #d1fae5', color: '#059669' }}>
+              <Sparkles className="w-3.5 h-3.5" />
+              {t('landing.functions.label')}
+            </span>
+            <h2 className="text-4xl sm:text-5xl font-extrabold leading-tight mt-2 mb-4">
+              <span style={{ background: 'linear-gradient(135deg, #047857, #0891b2)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                {t('landing.functions.title')}
+              </span>
+            </h2>
+            <p className="text-gray-500 text-lg leading-relaxed max-w-2xl mx-auto">{t('landing.functions.subtitle')}</p>
+          </div>
+
+          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
+            {functions.map(({ type, icon: Icon, title, desc, iconGrad, border, shadow, tint }) => (
+              <div
+                key={title}
+                className={`group relative flex flex-col overflow-hidden rounded-2xl cursor-default transition-all duration-300 hover:-translate-y-2 bg-gradient-to-br ${tint}`}
+                style={{ border: `1.5px solid ${border}`, boxShadow: shadow }}
+              >
+                <div className="p-6 pb-4">
+                  <div className="flex items-center gap-3 mb-2.5">
+                    <div className="relative shrink-0">
+                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${iconGrad} flex items-center justify-center shadow-md`}>
+                        <Icon className="w-5 h-5 text-white" strokeWidth={1.8} />
+                      </div>
+                      <div className={`absolute inset-0 rounded-xl bg-gradient-to-br ${iconGrad} blur-lg -z-10 opacity-30`} />
+                    </div>
+                    <h3 className="text-base font-extrabold text-gray-900 leading-snug">{title}</h3>
+                  </div>
+                  <p className="text-[13px] text-gray-500 leading-relaxed">{desc}</p>
+                </div>
+
+                <div className="px-5 pb-5 flex-1 flex flex-col">
+                  <div className="relative flex-1 overflow-hidden rounded-xl border border-gray-100 bg-white/80 p-3.5 shadow-sm transition-all duration-300 group-hover:shadow-md group-hover:border-gray-200 group-hover:bg-white" style={{ minHeight: '168px' }}>
+                    {type === 'versions' && (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-bold text-gray-700">{t('landing.functions.preview.versions.role')}</span>
+                          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">{t('landing.functions.preview.versions.active')}</span>
+                        </div>
+                        {[
+                          [t('landing.functions.preview.versions.master'), t('landing.functions.preview.versions.base'), '72%'],
+                          [t('landing.functions.preview.versions.frontend'), t('landing.functions.preview.versions.tailored'), '91%'],
+                          [t('landing.functions.preview.versions.platform'), t('landing.functions.preview.versions.draft'), '84%'],
+                        ].map(([name, status, score]) => (
+                          <div key={name} className="rounded-lg border border-gray-200 bg-white p-2 shadow-sm">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="truncate text-[11px] font-semibold text-gray-700">{name}</span>
+                              <span className="text-[10px] font-bold text-emerald-600">{score}</span>
+                            </div>
+                            <div className="mt-2 flex items-center gap-2">
+                              <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[9px] text-gray-500">{status}</span>
+                              <div className="h-1 flex-1 rounded-full bg-gray-100">
+                                <div className="h-full rounded-full bg-emerald-500" style={{ width: score }} />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {type === 'ats' && (
+                      <div className="grid h-full grid-cols-[92px_1fr] gap-3">
+                        <div className="flex flex-col items-center justify-center rounded-lg bg-white border border-gray-200">
+                          <div className="flex h-16 w-16 items-center justify-center rounded-full border-[6px] border-emerald-500 text-lg font-extrabold text-gray-900">92</div>
+                          <span className="mt-2 text-[10px] font-semibold text-gray-500">{t('landing.functions.preview.ats.score')}</span>
+                        </div>
+                        <div className="space-y-2.5 self-center">
+                          {[
+                            [t('landing.functions.preview.ats.keywords'), '88%'],
+                            [t('landing.functions.preview.ats.format'), '96%'],
+                            [t('landing.functions.preview.ats.sections'), '90%'],
+                            [t('landing.functions.preview.ats.readability'), '86%'],
+                          ].map(([label, width]) => (
+                            <div key={label}>
+                              <div className="mb-1 flex justify-between text-[10px] font-semibold text-gray-500">
+                                <span>{label}</span>
+                                <span>{width}</span>
+                              </div>
+                              <div className="h-1.5 rounded-full bg-gray-200">
+                                <div className="h-full rounded-full bg-cyan-500" style={{ width }} />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {type === 'cover' && (
+                      <div className="h-full rounded-lg border border-indigo-100 bg-white p-3 shadow-sm">
+                        <div className="mb-3 flex items-center justify-between">
+                          <div>
+                            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-indigo-500">{t('landing.functions.preview.cover.label')}</p>
+                            <p className="text-xs font-bold text-gray-800">{t('landing.functions.preview.cover.role')}</p>
+                          </div>
+                          <span className="rounded-full bg-indigo-50 px-2 py-1 text-[10px] font-semibold text-indigo-600">{t('landing.functions.preview.cover.tone')}</span>
+                        </div>
+                        <div className="space-y-2 text-[10px] leading-relaxed text-gray-500">
+                          <p>{t('landing.functions.preview.cover.greeting')}</p>
+                          <p>{t('landing.functions.preview.cover.body')}</p>
+                          <div className="h-2 w-full rounded bg-gray-100" />
+                          <div className="h-2 w-5/6 rounded bg-gray-100" />
+                        </div>
+                        <div className="absolute bottom-6 right-6 rounded-lg bg-indigo-600 px-2.5 py-1.5 text-[10px] font-bold text-white shadow-lg shadow-indigo-200">
+                          {t('landing.functions.preview.cover.generate')}
+                        </div>
+                      </div>
+                    )}
+
+                    {type === 'interview' && (
+                      <div className="space-y-2">
+                        {[
+                          [t('landing.functions.preview.interview.behavioral'), t('landing.functions.preview.interview.behavioralQuestion')],
+                          [t('landing.functions.preview.interview.technical'), t('landing.functions.preview.interview.technicalQuestion')],
+                          [t('landing.functions.preview.interview.fit'), t('landing.functions.preview.interview.fitQuestion')],
+                        ].map(([tag, question]) => (
+                          <div key={tag} className="rounded-lg border border-gray-200 bg-white p-2.5 shadow-sm">
+                            <span className="rounded bg-amber-50 px-1.5 py-0.5 text-[9px] font-bold text-amber-700">{tag}</span>
+                            <p className="mt-1.5 text-[11px] font-medium leading-snug text-gray-700">{question}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {type === 'optimize' && (
+                      <div className="grid h-full grid-rows-2 gap-2">
+                        <div className="rounded-lg border border-red-100 bg-white p-2.5">
+                          <span className="text-[9px] font-bold uppercase tracking-[0.14em] text-red-500">{t('landing.functions.preview.optimize.before')}</span>
+                          <p className="mt-1 text-[11px] leading-snug text-gray-500">{t('landing.functions.preview.optimize.beforeText')}</p>
+                        </div>
+                        <div className="rounded-lg border border-teal-100 bg-white p-2.5 shadow-sm">
+                          <span className="text-[9px] font-bold uppercase tracking-[0.14em] text-teal-600">{t('landing.functions.preview.optimize.after')}</span>
+                          <p className="mt-1 text-[11px] leading-snug text-gray-700">{t('landing.functions.preview.optimize.afterText')}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {type === 'pdf' && (
+                      <div className="flex h-full flex-col justify-between">
+                        <div className="rounded-lg border border-dashed border-rose-200 bg-white p-4 text-center">
+                          <Upload className="mx-auto h-6 w-6 text-rose-500" />
+                          <p className="mt-2 text-[11px] font-bold text-gray-700">{t('landing.functions.preview.pdf.file')}</p>
+                          <p className="mt-1 text-[10px] text-gray-400">{t('landing.functions.preview.pdf.parsed')}</p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="rounded-lg bg-white p-2 text-center text-[10px] font-bold text-gray-600 border border-gray-200">{t('landing.functions.preview.pdf.import')}</div>
+                          <div className="rounded-lg bg-rose-600 p-2 text-center text-[10px] font-bold text-white">{t('landing.functions.preview.pdf.export')}</div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -341,40 +596,11 @@ export default function LandingPage({ initialLanguage = 'en' }: { initialLanguag
         </div>
       </section>
 
-      <section id="how-it-works" className="py-24 px-6 bg-gradient-to-b from-white to-slate-50 overflow-x-clip">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-20">
-            <span className="inline-block text-xs font-bold text-emerald-600 tracking-[0.2em] uppercase mb-3 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">{t('landing.howItWorks.label')}</span>
-            <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight mt-2 mb-4">{t('landing.howItWorks.title')}</h2>
-            <p className="text-gray-500 text-lg max-w-xl mx-auto">{t('landing.howItWorks.subtitle')}</p>
-          </div>
-
-          <div className="relative">
-            <div className="hidden lg:block absolute top-11 left-[12.5%] right-[12.5%] h-px bg-gradient-to-r from-emerald-300 via-green-300 to-teal-300" />
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
-              {steps.map(step => (
-                <div key={step.n} className="flex flex-col items-center text-center">
-                  <div className="relative z-10 cursor-pointer mb-5">
-                    <div className={`w-[88px] h-[88px] rounded-3xl bg-gradient-to-br ${step.color} flex items-center justify-center shadow-xl`}>
-                      <step.icon className="w-9 h-9 text-white" strokeWidth={1.8} />
-                    </div>
-                    <div className={`absolute inset-0 rounded-3xl bg-gradient-to-br ${step.color} blur-xl -z-10 opacity-20`} />
-                  </div>
-
-                  <h3 className="font-bold text-gray-900 mb-2 leading-snug">{step.title}</h3>
-                  <p className="text-sm text-gray-500 leading-relaxed">{step.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <footer className="border-t border-white/5 bg-[#0f0c29] px-26 py-8">
-        <div className="border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white">
+      <footer className="border-t border-gray-200 bg-white px-6 py-8">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500">
           <p>{t('landing.footer.copy', { year: new Date().getFullYear() })}</p>
-          <p>{t('landing.footer.tagline')}</p>
-          <Link href="/app" className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
+          <p className="text-gray-400">{t('landing.footer.tagline')}</p>
+          <Link href="/app" className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-sm shadow-emerald-200 transition-colors">
             {t('landing.footer.openApp')} <ArrowRight className="w-3 h-3" />
           </Link>
         </div>

@@ -77,6 +77,84 @@ const zhTW = {
       },
       privacy: '您的 API Key 會保存在本地，並直接傳送給所選服務商。',
     },
+    functions: {
+      label: '專案功能',
+      title: '涵蓋每一次投遞所需的核心能力',
+      subtitle: 'SmartCV 幫助您從一份主履歷出發，生成客製化投遞材料，並更好地準備面試。',
+      items: {
+        jobVersions: {
+          title: '職位版本',
+          desc: '為每個職位建立客製化履歷版本，保留原始履歷，並記錄每次修改對應的職位描述。',
+        },
+        atsCheck: {
+          title: 'ATS 檢查',
+          desc: '匯出前檢查結構、聯絡方式、章節品質、關鍵字覆蓋與可讀性。',
+        },
+        coverLetter: {
+          title: '求職信',
+          desc: '根據您的履歷與職位描述生成針對性的求職信，並調整語氣與內容。',
+        },
+        interviewPrep: {
+          title: '面試準備',
+          desc: '將職位描述轉化為可能的面試問題、回答要點和基於履歷的答題建議。',
+        },
+        aiOptimize: {
+          title: 'AI 優化',
+          desc: '用更強的動作動詞、可量化成果和職位關鍵字重寫摘要與項目符號。',
+        },
+        pdfImport: {
+          title: 'PDF 匯入與匯出',
+          desc: '匯入現有 PDF 履歷，在結構化章節中編輯，並匯出清晰的 ATS 友善型 PDF。',
+        },
+      },
+      preview: {
+        versions: {
+          role: '軟體工程師',
+          active: '目前版本',
+          master: '主履歷',
+          base: '基礎',
+          frontend: '前端負責人',
+          tailored: '已客製',
+          platform: '平台工程師',
+          draft: '草稿',
+        },
+        ats: {
+          score: 'ATS 分數',
+          keywords: '關鍵字',
+          format: '格式',
+          sections: '章節',
+          readability: '可讀性',
+        },
+        cover: {
+          label: '求職信',
+          role: '產品設計師',
+          tone: '自信',
+          greeting: '尊敬的招聘負責人：',
+          body: '我很期待申請這個職位。我在交付面向使用者產品方面的經驗，與貴團隊目標高度匹配。',
+          generate: '生成',
+        },
+        interview: {
+          behavioral: '行為面試',
+          behavioralQuestion: '請分享一次您改進流程的經歷。',
+          technical: '技術問題',
+          technicalQuestion: '您會如何設計 ATS 友善的 PDF 匯出？',
+          fit: '團隊匹配',
+          fitQuestion: '為什麼選擇這個職位和團隊？',
+        },
+        optimize: {
+          before: '優化前',
+          beforeText: '負責報表，並協助團隊改進工作流程。',
+          after: 'AI 優化後',
+          afterText: '自動化週報流程，使 4 個團隊的人工審核時間減少 35%。',
+        },
+        pdf: {
+          file: '履歷.pdf',
+          parsed: '已解析為可編輯章節',
+          import: '匯入',
+          export: '匯出 PDF',
+        },
+      },
+    },
     howItWorks: {
       label: '使用流程',
       title: '從空白頁到 offer',

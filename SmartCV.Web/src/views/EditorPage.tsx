@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, Briefcase, Download, FileSearch, FileText, Redo2, Save, Sparkles, Undo2, Upload } from 'lucide-react';
+import { ArrowLeft, Briefcase, FileSearch, FileText, MessageSquareText, Redo2, Save, Sparkles, Undo2, Upload } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useResumeStore } from '../store/resumeStore';
 import type { Resume } from '../types/resume';
@@ -12,6 +12,7 @@ import ResumePreview from '../components/resume/ResumePreview';
 import AIOptimizationPanel from '../components/ai/AIOptimizationPanel';
 import ATSCheckerPanel from '../components/ats/ATSCheckerPanel';
 import CoverLetterPanel from '../components/cover/CoverLetterPanel';
+import InterviewPrepPanel from '../components/interview/InterviewPrepPanel';
 import JobVersionsPanel from '../components/jobs/JobVersionsPanel';
 import PDFImport from '../components/resume/PDFImport';
 import Button from '../components/ui/Button';
@@ -56,7 +57,7 @@ export default function EditorPage() {
   const { t } = useTranslation();
   const { currentResume, loadResume, saveResume, saveOptimization } = useResumeStore();
   const [localResume, setLocalResume] = useState<Resume | null>(null);
-  const [sidePanel, setSidePanel] = useState<'ai' | 'ats' | 'cover' | 'jobs' | null>(null);
+  const [sidePanel, setSidePanel] = useState<'ai' | 'ats' | 'cover' | 'interview' | 'jobs' | null>(null);
   const [jobContext, setJobContext] = useState({ jobTitle: '', company: '', jobDescription: '', jobUrl: '' });
   const [jobApplications, setJobApplications] = useState<JobApplication[]>([]);
   const [saving, setSaving] = useState(false);
@@ -483,6 +484,24 @@ export default function EditorPage() {
 
         <div className="ml-auto flex items-center gap-2">
           <PDFImport onFill={handleFillFromPDF} label={t('editor.fillFromPdf')} />
+          <input
+            ref={importFileRef}
+            type="file"
+            accept=".json,application/json"
+            className="hidden"
+            onChange={handleImportData}
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => importFileRef.current?.click()}
+            loading={importingData}
+            className="gap-1.5"
+            title="Import resume data from a SmartCV export file"
+          >
+            {!importingData && <Upload className="w-3.5 h-3.5 text-emerald-500" />}
+            Import Data
+          </Button>
           <Button
             variant="ghost"
             size="icon"
@@ -531,40 +550,20 @@ export default function EditorPage() {
           <Button
             variant="ghost"
             size="sm"
+            onClick={() => setSidePanel(panel => panel === 'interview' ? null : 'interview')}
+            className="gap-1.5"
+          >
+            <MessageSquareText className="w-3.5 h-3.5 text-violet-500" />
+            {sidePanel === 'interview' ? 'Hide Interview' : 'Interview Prep'}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setSidePanel(panel => panel === 'ai' ? null : 'ai')}
             className="gap-1.5"
           >
             <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
             {sidePanel === 'ai' ? t('editor.hideAI') : t('editor.aiOptimize')}
-          </Button>
-          <input
-            ref={importFileRef}
-            type="file"
-            accept=".json,application/json"
-            className="hidden"
-            onChange={handleImportData}
-          />
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => importFileRef.current?.click()}
-            loading={importingData}
-            className="gap-1.5"
-            title="Import resume data from a SmartCV export file"
-          >
-            {!importingData && <Upload className="w-3.5 h-3.5 text-emerald-500" />}
-            Import Data
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleExportIndexedDBData}
-            loading={exportingData}
-            className="gap-1.5"
-            title="Export all resume data from IndexedDB"
-          >
-            {!exportingData && <Download className="w-3.5 h-3.5 text-amber-500" />}
-            Export Data
           </Button>
           <Button
             size="sm"
@@ -591,7 +590,13 @@ export default function EditorPage() {
 
         {/* Center: Preview */}
         <div className="flex-1 overflow-y-auto min-w-0 bg-gray-50 dark:bg-gray-900">
-          <ResumePreview resume={localResume} onChange={handleResumeChange} onExport={handleResumeExport} />
+          <ResumePreview
+            resume={localResume}
+            onChange={handleResumeChange}
+            onExport={handleResumeExport}
+            onExportData={handleExportIndexedDBData}
+            exportingData={exportingData}
+          />
         </div>
 
         {/* Side Panel */}
@@ -609,6 +614,12 @@ export default function EditorPage() {
                 />
               ) : sidePanel === 'cover' ? (
                 <CoverLetterPanel
+                  resume={localResume}
+                  jobContext={jobContext}
+                  onJobContextChange={updates => setJobContext(context => ({ ...context, ...updates }))}
+                />
+              ) : sidePanel === 'interview' ? (
+                <InterviewPrepPanel
                   resume={localResume}
                   jobContext={jobContext}
                   onJobContextChange={updates => setJobContext(context => ({ ...context, ...updates }))}

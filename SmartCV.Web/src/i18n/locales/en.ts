@@ -82,6 +82,85 @@ const en = {
 			},
 			privacy: 'Your API key is stored locally and sent directly to the provider.',
 		},
+		functions: {
+			label: 'Project features',
+			title: 'Everything you need for each application',
+			subtitle:
+				'SmartCV helps you move from one master resume to targeted applications, stronger documents, and better interview preparation.',
+			items: {
+				jobVersions: {
+					title: 'Job Versions',
+					desc: 'Create a tailored resume version for each job, keep the original intact, and track the job description behind every edit.',
+				},
+				atsCheck: {
+					title: 'ATS Check',
+					desc: 'Audit structure, contact details, section quality, keyword coverage, and readability before you export.',
+				},
+				coverLetter: {
+					title: 'Cover Letter',
+					desc: 'Generate a role-specific cover letter from your resume and job description, then adjust tone and content.',
+				},
+				interviewPrep: {
+					title: 'Interview Prep',
+					desc: 'Turn a job description into likely interview questions, talking points, and answer guidance based on your resume.',
+				},
+				aiOptimize: {
+					title: 'AI Optimize',
+					desc: 'Rewrite summaries and bullet points with stronger action verbs, measurable impact, and job-specific keywords.',
+				},
+				pdfImport: {
+					title: 'PDF Import & Export',
+					desc: 'Import an existing PDF resume, edit it in structured sections, and export a clean ATS-friendly PDF.',
+				},
+			},
+			preview: {
+				versions: {
+					role: 'Software Engineer',
+					active: 'Active',
+					master: 'Master Resume',
+					base: 'Base',
+					frontend: 'Frontend Lead',
+					tailored: 'Tailored',
+					platform: 'Platform Engineer',
+					draft: 'Draft',
+				},
+				ats: {
+					score: 'ATS Score',
+					keywords: 'Keywords',
+					format: 'Format',
+					sections: 'Sections',
+					readability: 'Readability',
+				},
+				cover: {
+					label: 'Cover Letter',
+					role: 'Product Designer',
+					tone: 'Confident',
+					greeting: 'Dear Hiring Manager,',
+					body: "I am excited to apply for this role. My experience shipping customer-facing products aligns closely with your team's goals.",
+					generate: 'Generate',
+				},
+				interview: {
+					behavioral: 'Behavioral',
+					behavioralQuestion: 'Tell me about a time you improved a process.',
+					technical: 'Technical',
+					technicalQuestion: 'How would you design an ATS-safe PDF export?',
+					fit: 'Company Fit',
+					fitQuestion: 'Why this role and team?',
+				},
+				optimize: {
+					before: 'Before',
+					beforeText: 'Responsible for reports and helped improve team workflow.',
+					after: 'After AI Optimize',
+					afterText: 'Automated weekly reporting, reducing manual review time by 35% across 4 teams.',
+				},
+				pdf: {
+					file: 'Resume.pdf',
+					parsed: 'Parsed into editable sections',
+					import: 'Import',
+					export: 'Export PDF',
+				},
+			},
+		},
 		howItWorks: {
 			label: 'How it works',
 			title: 'From blank page to offer letter',

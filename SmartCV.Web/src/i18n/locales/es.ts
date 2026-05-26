@@ -77,6 +77,84 @@ const es = {
       },
       privacy: 'Tu clave API se guarda localmente y se envía directamente al proveedor.',
     },
+    functions: {
+      label: 'Funciones del proyecto',
+      title: 'Todo lo que necesitas para cada candidatura',
+      subtitle: 'SmartCV te ayuda a pasar de un CV principal a candidaturas adaptadas, mejores documentos y preparación de entrevistas.',
+      items: {
+        jobVersions: {
+          title: 'Versiones por trabajo',
+          desc: 'Crea una versión del CV para cada oferta, conserva el original y guarda la descripción del puesto detrás de cada edición.',
+        },
+        atsCheck: {
+          title: 'Revisión ATS',
+          desc: 'Audita estructura, datos de contacto, calidad de secciones, cobertura de palabras clave y legibilidad antes de exportar.',
+        },
+        coverLetter: {
+          title: 'Carta de presentación',
+          desc: 'Genera una carta específica para el puesto desde tu CV y la descripción de trabajo, y ajusta tono y contenido.',
+        },
+        interviewPrep: {
+          title: 'Preparación de entrevista',
+          desc: 'Convierte una descripción de trabajo en posibles preguntas, puntos de conversación y guía de respuestas según tu CV.',
+        },
+        aiOptimize: {
+          title: 'Optimización con IA',
+          desc: 'Reescribe resúmenes y puntos con verbos de acción, impacto medible y palabras clave específicas del puesto.',
+        },
+        pdfImport: {
+          title: 'Importar y exportar PDF',
+          desc: 'Importa un CV en PDF, edítalo en secciones estructuradas y exporta un PDF limpio compatible con ATS.',
+        },
+      },
+      preview: {
+        versions: {
+          role: 'Ingeniero de software',
+          active: 'Activo',
+          master: 'CV principal',
+          base: 'Base',
+          frontend: 'Líder frontend',
+          tailored: 'Adaptado',
+          platform: 'Ingeniero de plataforma',
+          draft: 'Borrador',
+        },
+        ats: {
+          score: 'Puntuación ATS',
+          keywords: 'Palabras clave',
+          format: 'Formato',
+          sections: 'Secciones',
+          readability: 'Legibilidad',
+        },
+        cover: {
+          label: 'Carta',
+          role: 'Diseñador de producto',
+          tone: 'Seguro',
+          greeting: 'Estimado equipo de selección:',
+          body: 'Me entusiasma postularme a este puesto. Mi experiencia creando productos para clientes encaja con los objetivos de su equipo.',
+          generate: 'Generar',
+        },
+        interview: {
+          behavioral: 'Conductual',
+          behavioralQuestion: 'Cuéntame sobre una vez que mejoraste un proceso.',
+          technical: 'Técnica',
+          technicalQuestion: '¿Cómo diseñarías una exportación PDF compatible con ATS?',
+          fit: 'Afinidad',
+          fitQuestion: '¿Por qué este puesto y este equipo?',
+        },
+        optimize: {
+          before: 'Antes',
+          beforeText: 'Responsable de informes y apoyo a la mejora del flujo de trabajo del equipo.',
+          after: 'Después de IA',
+          afterText: 'Automaticé informes semanales, reduciendo el tiempo de revisión manual un 35% en 4 equipos.',
+        },
+        pdf: {
+          file: 'CV.pdf',
+          parsed: 'Convertido en secciones editables',
+          import: 'Importar',
+          export: 'Exportar PDF',
+        },
+      },
+    },
     howItWorks: {
       label: 'Cómo funciona',
       title: 'De la página en blanco a la oferta de trabajo',

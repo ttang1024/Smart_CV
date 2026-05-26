@@ -77,6 +77,84 @@ const zhCN = {
       },
       privacy: '您的 API Key 会保存在本地，并直接发送给所选服务商。',
     },
+    functions: {
+      label: '项目功能',
+      title: '覆盖每一次投递所需的核心能力',
+      subtitle: 'SmartCV 帮助您从一份主简历出发，生成定制化投递材料，并更好地准备面试。',
+      items: {
+        jobVersions: {
+          title: '职位版本',
+          desc: '为每个职位创建定制简历版本，保留原始简历，并记录每次修改对应的职位描述。',
+        },
+        atsCheck: {
+          title: 'ATS 检查',
+          desc: '导出前检查结构、联系方式、章节质量、关键词覆盖和可读性。',
+        },
+        coverLetter: {
+          title: '求职信',
+          desc: '根据您的简历和职位描述生成针对性的求职信，并调整语气与内容。',
+        },
+        interviewPrep: {
+          title: '面试准备',
+          desc: '将职位描述转化为可能的面试问题、回答要点和基于简历的答题建议。',
+        },
+        aiOptimize: {
+          title: 'AI 优化',
+          desc: '用更强的动作动词、可量化成果和职位关键词重写摘要与项目符号。',
+        },
+        pdfImport: {
+          title: 'PDF 导入与导出',
+          desc: '导入现有 PDF 简历，在结构化章节中编辑，并导出清晰的 ATS 友好型 PDF。',
+        },
+      },
+      preview: {
+        versions: {
+          role: '软件工程师',
+          active: '当前版本',
+          master: '主简历',
+          base: '基础',
+          frontend: '前端负责人',
+          tailored: '已定制',
+          platform: '平台工程师',
+          draft: '草稿',
+        },
+        ats: {
+          score: 'ATS 分数',
+          keywords: '关键词',
+          format: '格式',
+          sections: '章节',
+          readability: '可读性',
+        },
+        cover: {
+          label: '求职信',
+          role: '产品设计师',
+          tone: '自信',
+          greeting: '尊敬的招聘负责人：',
+          body: '我很期待申请这个职位。我在交付面向用户产品方面的经验，与贵团队目标高度匹配。',
+          generate: '生成',
+        },
+        interview: {
+          behavioral: '行为面试',
+          behavioralQuestion: '请分享一次您改进流程的经历。',
+          technical: '技术问题',
+          technicalQuestion: '您会如何设计 ATS 友好的 PDF 导出？',
+          fit: '团队匹配',
+          fitQuestion: '为什么选择这个职位和团队？',
+        },
+        optimize: {
+          before: '优化前',
+          beforeText: '负责报表，并帮助团队改进工作流程。',
+          after: 'AI 优化后',
+          afterText: '自动化周报流程，使 4 个团队的人工审核时间减少 35%。',
+        },
+        pdf: {
+          file: '简历.pdf',
+          parsed: '已解析为可编辑章节',
+          import: '导入',
+          export: '导出 PDF',
+        },
+      },
+    },
     howItWorks: {
       label: '使用流程',
       title: '从空白页到 offer',

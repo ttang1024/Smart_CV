@@ -10,7 +10,7 @@ const API_BASE =
     ? 'http://localhost:5167/api'
     : '/api');
 import { DownloadOutlined } from '@ant-design/icons';
-import { GripVertical } from 'lucide-react';
+import { Download, GripVertical } from 'lucide-react';
 import type { Resume, ResumeSection } from '../../types/resume';
 import { DEFAULT_SECTION_ORDER } from '../../types/resume';
 import Button from '../ui/Button';
@@ -36,9 +36,17 @@ interface ResumePreviewProps {
   resume: Resume;
   onChange?: (resume: Resume) => void;
   onExport?: (filename: string) => void;
+  onExportData?: () => void;
+  exportingData?: boolean;
 }
 
-export default function ResumePreview({ resume: r, onChange, onExport }: ResumePreviewProps) {
+export default function ResumePreview({
+  resume: r,
+  onChange,
+  onExport,
+  onExportData,
+  exportingData,
+}: ResumePreviewProps) {
   const { t } = useTranslation();
   const printRef = useRef<HTMLDivElement>(null);
   const scaleWrapRef = useRef<HTMLDivElement>(null);
@@ -216,10 +224,24 @@ h2{break-after:avoid;page-break-after:avoid;}
               </button>
             ))}
           </div>
-          <Button size="sm" variant="secondary" onClick={handleDownloadPDF} loading={downloading} className="shrink-0">
-            {!downloading && <DownloadOutlined style={{ fontSize: '16px' }} />}
-            {downloading ? t('resumeLayout.preview.generating') : t('resumeLayout.preview.downloadPdf')}
-          </Button>
+          <div className="flex flex-col items-stretch gap-2 shrink-0">
+            <Button size="sm" variant="secondary" onClick={handleDownloadPDF} loading={downloading}>
+              {!downloading && <DownloadOutlined style={{ fontSize: '16px' }} />}
+              {downloading ? t('resumeLayout.preview.generating') : t('resumeLayout.preview.downloadPdf')}
+            </Button>
+            {onExportData && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={onExportData}
+                loading={exportingData}
+                title="Export all resume data from IndexedDB"
+              >
+                {!exportingData && <Download className="w-3.5 h-3.5 text-amber-500" />}
+                Export Data
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Theme colour picker */}
