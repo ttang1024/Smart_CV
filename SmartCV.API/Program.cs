@@ -113,13 +113,15 @@ app.UseStaticFiles(new StaticFileOptions
     }
 });
 
-app.MapGet("/", () => FrontendPage("index.html"));
-app.MapGet("/es", () => FrontendPage("es.html"));
-app.MapGet("/zh-cn", () => FrontendPage("zh-cn.html"));
-app.MapGet("/zh-tw", () => FrontendPage("zh-tw.html"));
-app.MapGet("/app", () => FrontendPage("app.html"));
-app.MapGet("/editor", () => FrontendPage("editor.html"));
-app.MapGet("/settings", () => FrontendPage("settings.html"));
+string[] getAndHead = ["GET", "HEAD"];
+
+app.MapMethods("/", getAndHead, () => FrontendPage("index.html"));
+app.MapMethods("/es", getAndHead, () => FrontendPage("es.html"));
+app.MapMethods("/zh-cn", getAndHead, () => FrontendPage("zh-cn.html"));
+app.MapMethods("/zh-tw", getAndHead, () => FrontendPage("zh-tw.html"));
+app.MapMethods("/app", getAndHead, () => FrontendPage("app.html"));
+app.MapMethods("/editor", getAndHead, () => FrontendPage("editor.html"));
+app.MapMethods("/settings", getAndHead, () => FrontendPage("settings.html"));
 
 // Compatibility for pre-static-export editor URLs.
 app.MapGet("/editor/{id}", (string id) =>
