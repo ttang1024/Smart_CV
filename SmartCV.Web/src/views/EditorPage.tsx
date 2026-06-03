@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, Briefcase, FileSearch, FileText, MessageSquareText, Redo2, Save, Sparkles, Undo2, Upload } from 'lucide-react';
+import { ArrowLeft, Briefcase, ChevronDown, Database, FileJson, FileSearch, FileText, MessageSquareText, Mic, PanelRight, Redo2, Save, Sparkles, Undo2, Upload } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useResumeStore } from '../store/resumeStore';
 import type { Resume } from '../types/resume';
@@ -13,14 +13,17 @@ import AIOptimizationPanel from '../components/ai/AIOptimizationPanel';
 import ATSCheckerPanel from '../components/ats/ATSCheckerPanel';
 import CoverLetterPanel from '../components/cover/CoverLetterPanel';
 import InterviewPrepPanel from '../components/interview/InterviewPrepPanel';
+import MockInterviewPanel from '../components/interview/MockInterviewPanel';
 import JobVersionsPanel from '../components/jobs/JobVersionsPanel';
-import PDFImport from '../components/resume/PDFImport';
+import PDFImport, { type PDFImportHandle } from '../components/resume/PDFImport';
 import Button from '../components/ui/Button';
+import HoverMenu from '../components/ui/HoverMenu';
 import Input from '../components/ui/Input';
 import { richTextToPlainText } from '../lib/richText';
 import { revisionHistory, type ResumeRevision } from '../services/storage/revisionHistory';
 import { jobApplicationDB } from '../services/storage/jobApplications';
 import { resumeDB } from '../services/storage/indexedDB';
+import { fromJsonResume, isJsonResume, toJsonResume } from '../services/jsonResume';
 import type { JobApplication } from '../types/jobApplication';
 import toast from 'react-hot-toast';
 
@@ -42,6 +45,19 @@ function DragDivider({ onMouseDown, active }: { onMouseDown: (e: React.MouseEven
   );
 }
 
+type PanelId = 'ai' | 'ats' | 'cover' | 'interview' | 'mock' | 'jobs';
+
+// Single source of truth for the side-panel tab strip. Full Tailwind class
+// strings (no runtime interpolation) so the active colours survive purge.
+const PANEL_TABS: { id: PanelId; label: string; Icon: typeof Sparkles; activeClass: string }[] = [
+  { id: 'ai', label: 'AI Optimize', Icon: Sparkles, activeClass: 'bg-emerald-500' },
+  { id: 'ats', label: 'ATS', Icon: FileSearch, activeClass: 'bg-teal-500' },
+  { id: 'cover', label: 'Cover Letter', Icon: FileText, activeClass: 'bg-sky-500' },
+  { id: 'interview', label: 'Interview', Icon: MessageSquareText, activeClass: 'bg-violet-500' },
+  { id: 'mock', label: 'Mock', Icon: Mic, activeClass: 'bg-rose-500' },
+  { id: 'jobs', label: 'Jobs', Icon: Briefcase, activeClass: 'bg-indigo-500' },
+];
+
 interface ResumeChangeOptions {
   historyLabel?: string;
   forceHistory?: boolean;
@@ -57,12 +73,14 @@ export default function EditorPage() {
   const { t } = useTranslation();
   const { currentResume, loadResume, saveResume, saveOptimization } = useResumeStore();
   const [localResume, setLocalResume] = useState<Resume | null>(null);
-  const [sidePanel, setSidePanel] = useState<'ai' | 'ats' | 'cover' | 'interview' | 'jobs' | null>(null);
+  const [sidePanel, setSidePanel] = useState<PanelId | null>(null);
+  const [lastPanel, setLastPanel] = useState<PanelId>('ai');
   const [jobContext, setJobContext] = useState({ jobTitle: '', company: '', jobDescription: '', jobUrl: '' });
   const [jobApplications, setJobApplications] = useState<JobApplication[]>([]);
   const [saving, setSaving] = useState(false);
   const [exportingData, setExportingData] = useState(false);
   const [importingData, setImportingData] = useState(false);
+  const pdfImportRef = useRef<PDFImportHandle>(null);
   const [hasUnsaved, setHasUnsaved] = useState(false);
   const importFileRef = useRef<HTMLInputElement>(null);
   const [editingName, setEditingName] = useState(false);
@@ -233,19 +251,45 @@ export default function EditorPage() {
     try {
       const text = await file.text();
       const payload = JSON.parse(text);
-      if (payload.app !== 'SmartCV' || !Array.isArray(payload.resumes)) {
-        toast.error('Invalid SmartCV export file');
+
+      // SmartCV native backup (array of resumes)
+      if (payload?.app === 'SmartCV' && Array.isArray(payload.resumes)) {
+        const resumes: Resume[] = payload.resumes;
+        await Promise.all(resumes.map(r => resumeDB.save(r)));
+        toast.success(`Imported ${resumes.length} resume${resumes.length === 1 ? '' : 's'}`);
         return;
       }
-      const resumes: Resume[] = payload.resumes;
-      await Promise.all(resumes.map(r => resumeDB.save(r)));
-      toast.success(`Imported ${resumes.length} resume${resumes.length === 1 ? '' : 's'}`);
+
+      // JSON Resume standard (jsonresume.org)
+      if (isJsonResume(payload)) {
+        const importedName = payload.basics?.name ? `${payload.basics.name} (JSON Resume)` : file.name.replace(/\.json$/i, '');
+        const converted = fromJsonResume(payload, importedName);
+        await resumeDB.save(converted);
+        toast.success('JSON Resume imported');
+        router.push(`/editor?id=${encodeURIComponent(converted.id)}`);
+        return;
+      }
+
+      toast.error('Unrecognised file — expected a SmartCV export or JSON Resume');
     } catch {
       toast.error('Failed to import data');
     } finally {
       setImportingData(false);
     }
-  }, []);
+  }, [router]);
+
+  const handleExportJsonResume = useCallback(() => {
+    if (!localResume) return;
+    const payload = toJsonResume(localResume);
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${(localResume.name || 'resume').replace(/[^\w.-]+/g, '-')}.jsonresume.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('Exported JSON Resume');
+  }, [localResume]);
 
   const handleUndo = useCallback(() => {
     if (!localResume || undoStack.length === 0) return;
@@ -437,6 +481,15 @@ export default function EditorPage() {
     toast.success(t('editor.toast.filledFromPdf'));
   }, [localResume, handleResumeChange, t]);
 
+  const openPanel = useCallback((panel: PanelId) => {
+    setSidePanel(panel);
+    setLastPanel(panel);
+  }, []);
+
+  const togglePanel = useCallback(() => {
+    setSidePanel(current => (current ? null : lastPanel));
+  }, [lastPanel]);
+
   if (!localResume) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -483,7 +536,12 @@ export default function EditorPage() {
         )}
 
         <div className="ml-auto flex items-center gap-2">
-          <PDFImport onFill={handleFillFromPDF} label={t('editor.fillFromPdf')} />
+          <PDFImport
+            ref={pdfImportRef}
+            onFill={handleFillFromPDF}
+            label={t('editor.fillFromPdf')}
+            hideTrigger
+          />
           <input
             ref={importFileRef}
             type="file"
@@ -491,17 +549,41 @@ export default function EditorPage() {
             className="hidden"
             onChange={handleImportData}
           />
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => importFileRef.current?.click()}
-            loading={importingData}
-            className="gap-1.5"
-            title="Import resume data from a SmartCV export file"
-          >
-            {!importingData && <Upload className="w-3.5 h-3.5 text-emerald-500" />}
-            Import Data
-          </Button>
+          <HoverMenu
+            align="right"
+            triggerClassName="bg-transparent hover:bg-gray-100 dark:bg-transparent dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
+            trigger={
+              <>
+                {importingData
+                  ? <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                  : <Upload className="w-3.5 h-3.5 text-emerald-500" />}
+                {t('editor.import')}
+                <ChevronDown className="w-3.5 h-3.5 opacity-60" />
+              </>
+            }
+            items={[
+              {
+                label: t('editor.importFromPdf'),
+                icon: <FileText className="w-3.5 h-3.5 text-emerald-500" />,
+                onClick: () => pdfImportRef.current?.open(),
+                title: 'Extract resume content from a PDF into this resume',
+              },
+              {
+                label: t('editor.importAllData'),
+                icon: <Database className="w-3.5 h-3.5 text-amber-500" />,
+                onClick: () => importFileRef.current?.click(),
+                loading: importingData,
+                title: 'Restore resumes from a SmartCV export (.json)',
+              },
+              {
+                label: t('editor.importJsonResume'),
+                icon: <FileJson className="w-3.5 h-3.5 text-sky-500" />,
+                onClick: () => importFileRef.current?.click(),
+                loading: importingData,
+                title: 'Import a resume in the JSON Resume standard (.json)',
+              },
+            ]}
+          />
           <Button
             variant="ghost"
             size="icon"
@@ -521,49 +603,14 @@ export default function EditorPage() {
             <Redo2 className="w-4 h-4" />
           </Button>
           <Button
-            variant="ghost"
+            variant={sidePanel ? 'secondary' : 'ghost'}
             size="sm"
-            onClick={() => setSidePanel(panel => panel === 'jobs' ? null : 'jobs')}
+            onClick={togglePanel}
             className="gap-1.5"
+            title="AI tools: optimize, ATS, cover letter, interview prep, mock interview, job versions"
           >
-            <Briefcase className="w-3.5 h-3.5 text-indigo-500" />
-            {sidePanel === 'jobs' ? 'Hide Jobs' : 'Job Versions'}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setSidePanel(panel => panel === 'ats' ? null : 'ats')}
-            className="gap-1.5"
-          >
-            <FileSearch className="w-3.5 h-3.5 text-teal-500" />
-            {sidePanel === 'ats' ? 'Hide ATS' : 'ATS Check'}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setSidePanel(panel => panel === 'cover' ? null : 'cover')}
-            className="gap-1.5"
-          >
-            <FileText className="w-3.5 h-3.5 text-sky-500" />
-            {sidePanel === 'cover' ? 'Hide Letter' : 'Cover Letter'}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setSidePanel(panel => panel === 'interview' ? null : 'interview')}
-            className="gap-1.5"
-          >
-            <MessageSquareText className="w-3.5 h-3.5 text-violet-500" />
-            {sidePanel === 'interview' ? 'Hide Interview' : 'Interview Prep'}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setSidePanel(panel => panel === 'ai' ? null : 'ai')}
-            className="gap-1.5"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
-            {sidePanel === 'ai' ? t('editor.hideAI') : t('editor.aiOptimize')}
+            <PanelRight className="w-3.5 h-3.5 text-emerald-500" />
+            {sidePanel ? 'Hide Tools' : 'Tools'}
           </Button>
           <Button
             size="sm"
@@ -595,6 +642,7 @@ export default function EditorPage() {
             onChange={handleResumeChange}
             onExport={handleResumeExport}
             onExportData={handleExportIndexedDBData}
+            onExportJsonResume={handleExportJsonResume}
             exportingData={exportingData}
           />
         </div>
@@ -604,6 +652,24 @@ export default function EditorPage() {
           <>
             <DragDivider onMouseDown={startDrag('ai')} active={draggingPanel === 'ai'} />
             <div style={{ width: `${aiWidthPx}px` }} className="bg-white dark:bg-gray-950 flex flex-col overflow-hidden shrink-0">
+              {/* Tool tabs */}
+              <div className="flex flex-wrap gap-1 p-2 border-b border-gray-200 dark:border-gray-800 shrink-0">
+                {PANEL_TABS.map(({ id, label, Icon, activeClass }) => (
+                  <button
+                    key={id}
+                    onClick={() => openPanel(id)}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                      sidePanel === id
+                        ? `${activeClass} text-white shadow-sm`
+                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    }`}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <div className="flex-1 overflow-hidden min-h-0">
               {sidePanel === 'ai' ? (
                 <AIOptimizationPanel
                   resume={localResume}
@@ -624,6 +690,12 @@ export default function EditorPage() {
                   jobContext={jobContext}
                   onJobContextChange={updates => setJobContext(context => ({ ...context, ...updates }))}
                 />
+              ) : sidePanel === 'mock' ? (
+                <MockInterviewPanel
+                  resume={localResume}
+                  jobContext={jobContext}
+                  onJobContextChange={updates => setJobContext(context => ({ ...context, ...updates }))}
+                />
               ) : sidePanel === 'jobs' ? (
                 <JobVersionsPanel
                   resume={localResume}
@@ -637,6 +709,7 @@ export default function EditorPage() {
               ) : (
                 <ATSCheckerPanel resume={localResume} />
               )}
+              </div>
             </div>
           </>
         )}

@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, forwardRef, useImperativeHandle } from 'react';
 import { Upload, FileText, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -16,11 +16,18 @@ interface PDFImportProps {
   /** Called with parsed resume data instead of saving. Use this to fill an existing form. */
   onFill?: (resume: Resume) => void;
   label?: string;
+  /** Hide the built-in trigger button. Open the dialog imperatively via the ref. */
+  hideTrigger?: boolean;
+}
+
+/** Imperative handle for opening the import dialog from a parent component. */
+export interface PDFImportHandle {
+  open: () => void;
 }
 
 type Step = 'idle' | 'parsing' | 'saving' | 'done' | 'error';
 
-export default function PDFImport({ onImported, onFill, label }: PDFImportProps) {
+const PDFImport = forwardRef<PDFImportHandle, PDFImportProps>(function PDFImport({ onImported, onFill, label, hideTrigger }, ref) {
   const { t } = useTranslation();
   const defaultLabel = label ?? t('pdfImport.button');
 
@@ -42,6 +49,8 @@ export default function PDFImport({ onImported, onFill, label }: PDFImportProps)
   const useAI = useSettingsStore(state => state.aiSettings.useAI);
 
   const reset = () => { setStep('idle'); setError(null); setFileName(null); };
+
+  useImperativeHandle(ref, () => ({ open: () => { reset(); setOpen(true); } }), []);
 
   const processFile = useCallback(async (file: File) => {
     if (!file.name.toLowerCase().endsWith('.pdf')) {
@@ -91,10 +100,12 @@ export default function PDFImport({ onImported, onFill, label }: PDFImportProps)
 
   return (
     <>
-      <Button variant="outline" onClick={() => { reset(); setOpen(true); }}>
-        <Upload className="w-4 h-4" />
-        {defaultLabel}
-      </Button>
+      {!hideTrigger && (
+        <Button variant="outline" onClick={() => { reset(); setOpen(true); }}>
+          <Upload className="w-4 h-4" />
+          {defaultLabel}
+        </Button>
+      )}
 
       <Modal
         open={open}
@@ -217,4 +228,6 @@ export default function PDFImport({ onImported, onFill, label }: PDFImportProps)
       </Modal>
     </>
   );
-}
+});
+
+export default PDFImport;

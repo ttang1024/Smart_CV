@@ -1,9 +1,10 @@
-import { AlertCircle, Clipboard, MessageSquareText, Sparkles, Star } from 'lucide-react';
+import { AlertCircle, Clipboard, MessageSquareText, Plus, Sparkles, Star } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import type { Resume } from '../../types/resume';
 import type { InterviewPrepResult } from '../../services/ai/aiService';
 import { generateInterviewPrep } from '../../services/ai/aiService';
+import { QUESTION_BANK } from '../../data/interviewQuestions';
 import { useSettingsStore } from '../../store/settingsStore';
 import Badge from '../ui/Badge';
 import Button from '../ui/Button';
@@ -80,6 +81,19 @@ export default function InterviewPrepPanel({ resume, jobContext, onJobContextCha
     onJobContextChange?.({ jobDescription: value });
   };
 
+  const addQuestionCategory = (categoryQuestions: string[]) => {
+    setQuestionsText(prev => {
+      const existing = new Set(prev.split('\n').map(line => line.trim()).filter(Boolean));
+      const additions = categoryQuestions.filter(question => !existing.has(question));
+      if (additions.length === 0) {
+        toast('Those questions are already added');
+        return prev;
+      }
+      const base = prev.trim();
+      return base ? `${base}\n${additions.join('\n')}` : additions.join('\n');
+    });
+  };
+
   const handleGenerate = async () => {
     if (!config) {
       setError(`No API key configured for ${activeProvider}. Go to Settings.`);
@@ -151,6 +165,22 @@ export default function InterviewPrepPanel({ resume, jobContext, onJobContextCha
               onChange={e => setJobDescription(e.target.value)}
               rows={5}
             />
+            <div className="space-y-1.5">
+              <p className="text-xs text-gray-500 dark:text-gray-400">Add from question bank:</p>
+              <div className="flex flex-wrap gap-1.5">
+                {QUESTION_BANK.map(category => (
+                  <button
+                    key={category.id}
+                    type="button"
+                    onClick={() => addQuestionCategory(category.questions)}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-gray-200 dark:border-gray-700 text-xs text-gray-600 dark:text-gray-300 hover:border-violet-400 hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
+                  >
+                    <Plus className="w-3 h-3" />
+                    {category.label}
+                  </button>
+                ))}
+              </div>
+            </div>
             <Textarea
               placeholder="Add interview questions, one per line..."
               value={questionsText}

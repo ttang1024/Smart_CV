@@ -1,11 +1,12 @@
-import { useState } from 'react';
-import { Sparkles, AlertCircle, ChevronRight, Check, Lightbulb, Target, Search, Tag } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Sparkles, AlertCircle, ChevronRight, Check, Lightbulb, Target, Search, Tag, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import type { Resume } from '../../types/resume';
 import type { OptimizationResult, OptimizationSession, OptimizationSuggestion } from '../../types/ai';
 import { useSettingsStore } from '../../store/settingsStore';
 import { optimizeResume } from '../../services/ai/aiService';
+import { runAtsCheck } from '../../services/ats/atsChecker';
 import Button from '../ui/Button';
 import Textarea from '../ui/Textarea';
 import Input from '../ui/Input';
@@ -36,6 +37,16 @@ export default function AIOptimizationPanel({ resume, onApplySuggestion, onSessi
 
   const activeProvider = aiSettings.activeProvider;
   const config = getActiveConfig();
+
+  // Live client-side ATS readiness — recomputes as the resume is edited, so the
+  // user can watch the score move as they apply optimization suggestions.
+  // Full class strings (no runtime interpolation) so Tailwind keeps them.
+  const ats = useMemo(() => runAtsCheck(resume), [resume]);
+  const atsStyle =
+    ats.score >= 85 ? { icon: 'text-emerald-500', bar: 'bg-emerald-500' } :
+    ats.score >= 70 ? { icon: 'text-sky-500', bar: 'bg-sky-500' } :
+    ats.score >= 50 ? { icon: 'text-amber-500', bar: 'bg-amber-500' } :
+    { icon: 'text-red-500', bar: 'bg-red-500' };
 
   const setJobTitle = (value: string) => {
     setJobTitleState(value);
@@ -167,6 +178,18 @@ export default function AIOptimizationPanel({ resume, onApplySuggestion, onSessi
               <span className="break-words min-w-0">{error}</span>
             </div>
           )}
+
+          {/* Live ATS readiness — moves as suggestions are applied */}
+          <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-2.5">
+            <div className="flex items-center gap-2 mb-1.5">
+              <ShieldCheck className={`w-3.5 h-3.5 ${atsStyle.icon}`} />
+              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">ATS readiness</span>
+              <span className="ml-auto text-xs font-semibold text-gray-900 dark:text-white">{ats.score}/100 · {ats.verdict}</span>
+            </div>
+            <div className="h-1.5 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+              <div className={`h-full rounded-full ${atsStyle.bar} transition-all duration-500`} style={{ width: `${ats.score}%` }} />
+            </div>
+          </div>
 
           <Button
             className="w-full"

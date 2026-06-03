@@ -10,10 +10,10 @@ const API_BASE =
     ? 'http://localhost:5167/api'
     : '/api');
 import { DownloadOutlined } from '@ant-design/icons';
-import { Download, GripVertical } from 'lucide-react';
+import { GripVertical, ChevronDown, FileText, Database, FileJson } from 'lucide-react';
 import type { Resume, ResumeSection } from '../../types/resume';
 import { DEFAULT_SECTION_ORDER } from '../../types/resume';
-import Button from '../ui/Button';
+import HoverMenu from '../ui/HoverMenu';
 import { sectionTitle } from './resumeShared';
 import {
   deriveTheme, STYLES,
@@ -37,6 +37,7 @@ interface ResumePreviewProps {
   onChange?: (resume: Resume) => void;
   onExport?: (filename: string) => void;
   onExportData?: () => void;
+  onExportJsonResume?: () => void;
   exportingData?: boolean;
 }
 
@@ -45,6 +46,7 @@ export default function ResumePreview({
   onChange,
   onExport,
   onExportData,
+  onExportJsonResume,
   exportingData,
 }: ResumePreviewProps) {
   const { t } = useTranslation();
@@ -224,23 +226,41 @@ h2{break-after:avoid;page-break-after:avoid;}
               </button>
             ))}
           </div>
-          <div className="flex flex-col items-stretch gap-2 shrink-0">
-            <Button size="sm" variant="secondary" onClick={handleDownloadPDF} loading={downloading}>
-              {!downloading && <DownloadOutlined style={{ fontSize: '16px' }} />}
-              {downloading ? t('resumeLayout.preview.generating') : t('resumeLayout.preview.downloadPdf')}
-            </Button>
-            {onExportData && (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={onExportData}
-                loading={exportingData}
-                title="Export all resume data from IndexedDB"
-              >
-                {!exportingData && <Download className="w-3.5 h-3.5 text-amber-500" />}
-                Export Data
-              </Button>
-            )}
+          <div className="shrink-0">
+            <HoverMenu
+              align="right"
+              trigger={
+                <>
+                  {(downloading || exportingData)
+                    ? <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                    : <DownloadOutlined style={{ fontSize: '16px' }} />}
+                  {t('resumeLayout.preview.download')}
+                  <ChevronDown className="w-3.5 h-3.5 opacity-60" />
+                </>
+              }
+              items={[
+                {
+                  label: downloading ? t('resumeLayout.preview.generating') : t('resumeLayout.preview.downloadPdfItem'),
+                  icon: <FileText className="w-3.5 h-3.5 text-emerald-500" />,
+                  onClick: handleDownloadPDF,
+                  loading: downloading,
+                  title: 'Download this resume as a PDF',
+                },
+                ...(onExportData ? [{
+                  label: t('resumeLayout.preview.exportAllData'),
+                  icon: <Database className="w-3.5 h-3.5 text-amber-500" />,
+                  onClick: onExportData,
+                  loading: exportingData,
+                  title: 'Export all resume data from IndexedDB',
+                }] : []),
+                ...(onExportJsonResume ? [{
+                  label: t('resumeLayout.preview.exportJsonResume'),
+                  icon: <FileJson className="w-3.5 h-3.5 text-sky-500" />,
+                  onClick: onExportJsonResume,
+                  title: 'Export this resume in the JSON Resume standard (jsonresume.org)',
+                }] : []),
+              ]}
+            />
           </div>
         </div>
 

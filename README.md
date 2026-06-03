@@ -19,6 +19,9 @@ AI-powered resume builder. Runs entirely in your browser — no account, no clou
 - **AI optimization** — paste a job description and get an ATS match score, keyword gap analysis, and per-section rewrites
 - **ATS checker** — instant client-side audit of contact completeness, content quality, formatting, and keyword coverage — no AI key needed
 - **Cover letter generator** — AI writes a tailored cover letter from your resume and job description, with tone selection
+- **Interview prep** — generate tailored answers and STAR stories; load common questions from a built-in question bank
+- **Mock interview** — an interactive AI interviewer asks questions one at a time, scores each answer, and gives strengths, fixes, and a model answer; supports voice dictation
+- **JSON Resume interchange** — export to and import from the [JSON Resume](https://jsonresume.org) standard for portability with other tools
 - **Job versions** — fork your resume for a specific role, track application status (draft → offer), and compare the tailored copy against the original
 - **Undo / redo** — bounded revision history persisted in localStorage; coalesced so fast typing creates one snapshot
 - **9 resume styles** — Classic, Modern, Executive, Minimal, Elegant, Academic, Split, Timeline, and a fully configurable **Custom** style
