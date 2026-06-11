@@ -121,6 +121,7 @@ app.MapMethods("/zh-cn", getAndHead, () => FrontendPage("zh-cn.html"));
 app.MapMethods("/zh-tw", getAndHead, () => FrontendPage("zh-tw.html"));
 app.MapMethods("/app", getAndHead, () => FrontendPage("app.html"));
 app.MapMethods("/editor", getAndHead, () => FrontendPage("editor.html"));
+app.MapMethods("/share", getAndHead, () => FrontendPage("share.html"));
 app.MapMethods("/settings", getAndHead, () => FrontendPage("settings.html"));
 
 // Compatibility for pre-static-export editor URLs.

@@ -572,7 +572,7 @@ Return ONLY the JSON.`,
 	}
 }
 
-function formatResumeAsText(resume: Resume): string {
+export function formatResumeAsText(resume: Resume): string {
 	const lines: string[] = []
 	const {
 		personalInfo,

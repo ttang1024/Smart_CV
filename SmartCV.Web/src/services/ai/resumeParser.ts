@@ -3,6 +3,23 @@ import type { Resume } from '../../types/resume';
 import { chatWithAI } from './aiService';
 import { generateId } from '../../lib/utils';
 
+/**
+ * LinkedIn "Save to PDF" exports have a fixed shape (Contact / Top Skills
+ * sidebar text, "Page N of N" footers, "(X years Y months)" date suffixes).
+ * Detecting them lets us give the model targeted parsing guidance.
+ */
+function isLinkedInExport(rawText: string): boolean {
+  return /linkedin\.com\/in\//i.test(rawText) && /page \d+ of \d+/i.test(rawText);
+}
+
+const LINKEDIN_HINT = `
+NOTE: This text comes from a LinkedIn profile "Save to PDF" export. Handle its quirks:
+- Ignore "Page N of N" footer lines mixed into the text.
+- "Contact" and "Top Skills" sidebar content may appear before the main profile; map Top Skills into skills.
+- Experience entries list the company on one line, then the job title, then dates like "January 2020 - Present (4 years 5 months)" — strip the duration in parentheses.
+- A line with only a number after a company name is usually the employment count or duration, not a job title.
+- The "Summary" section maps to summary; "Honors-Awards" maps to achievements; "Certifications" maps to certifications.`;
+
 export async function parseResumeFromText(
   provider: AIProviderType,
   apiKey: string,
@@ -10,6 +27,7 @@ export async function parseResumeFromText(
   rawText: string,
   fileName: string
 ): Promise<Resume> {
+  const linkedInHint = isLinkedInExport(rawText) ? LINKEDIN_HINT : '';
   const content = await chatWithAI({
     provider,
     apiKey,
@@ -22,7 +40,7 @@ export async function parseResumeFromText(
       },
       {
         role: 'user',
-        content: `Parse this resume text into the following JSON structure. Extract every detail you can find.
+        content: `Parse this resume text into the following JSON structure. Extract every detail you can find.${linkedInHint}
 
 RESUME TEXT:
 ${rawText}

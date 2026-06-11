@@ -110,7 +110,19 @@ const en = {
 				},
 				pdfImport: {
 					title: 'PDF Import & Export',
-					desc: 'Import an existing PDF resume, edit it in structured sections, and export a clean ATS-friendly PDF.',
+					desc: 'Import an existing PDF resume (LinkedIn exports included), edit it in structured sections, and export an ATS-friendly PDF or Word document — or share it as a private read-only link.',
+				},
+				proofread: {
+					title: 'AI Proofread',
+					desc: 'Catch spelling, grammar, punctuation, consistency, and clarity issues, then apply fixes per field or all at once — without rewriting your content.',
+				},
+				followUpEmail: {
+					title: 'Follow-up Email',
+					desc: 'Generate thank-you, follow-up, status-inquiry, and referral-request emails in the right tone, then hand them off to your mail app in one click.',
+				},
+				translate: {
+					title: 'Resume Translation',
+					desc: 'Translate the entire resume into another language and save it as a linked copy — names, dates, links, and technical terms stay intact.',
 				},
 			},
 			preview: {
@@ -157,7 +169,31 @@ const en = {
 					file: 'Resume.pdf',
 					parsed: 'Parsed into editable sections',
 					import: 'Import',
-					export: 'Export PDF',
+					export: 'PDF · DOCX · Link',
+				},
+				proofread: {
+					spelling: 'Spelling',
+					spellingFix: '"recieved" → "received"',
+					grammar: 'Grammar',
+					grammarFix: '"team of engineer" → "team of engineers"',
+					clarity: 'Clarity',
+					clarityFix: '"did stuff with data" → "analysed customer data"',
+					applyAll: 'Apply all',
+				},
+				email: {
+					thankYou: 'Thank-you',
+					followUp: 'Follow-up',
+					referral: 'Referral',
+					subject: 'Subject: Thank you — Frontend Engineer interview',
+					body: 'Thank you for taking the time to speak with me today. Our conversation reinforced my enthusiasm for the role…',
+					send: 'Open in mail app',
+				},
+				translate: {
+					from: 'English',
+					to: 'Spanish',
+					source: 'Led a team of 8 engineers building a real-time analytics platform.',
+					target: 'Lideré un equipo de 8 ingenieros construyendo una plataforma de analítica en tiempo real.',
+					languages: '10+ languages',
 				},
 			},
 		},
@@ -455,6 +491,7 @@ const en = {
 		failed: 'Import failed',
 		pdfOnly: 'Only PDF files are supported.',
 		note: 'Text is extracted and parsed server-side. Works best with text-based PDFs (not scanned images).',
+		linkedinHint: 'Tip: LinkedIn profile PDFs work too (Profile → Resources → Save to PDF).',
 	},
 
 	// ── Resume card ──────────────────────────────────────────────────────────────
@@ -541,6 +578,14 @@ const en = {
 			compact: 'Compact',
 			para: 'Para',
 			callout: 'Callout',
+			downloadDocxItem: 'Word (DOCX)',
+			shareLink: 'Share Link',
+			pageSize: 'Page size:',
+			presets: 'Presets:',
+			presetNormal: 'Normal',
+			presetModerate: 'Moderate',
+			presetNarrow: 'Narrow',
+			presetCompact: 'Compact',
 		},
 	},
 } as const

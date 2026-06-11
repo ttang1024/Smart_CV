@@ -104,7 +104,19 @@ const zhCN = {
         },
         pdfImport: {
           title: 'PDF 导入与导出',
-          desc: '导入现有 PDF 简历，在结构化章节中编辑，并导出清晰的 ATS 友好型 PDF。',
+          desc: '导入现有 PDF 简历（支持 LinkedIn 导出），在结构化章节中编辑，导出 ATS 友好的 PDF 或 Word 文档，还可生成私密只读分享链接。',
+        },
+        proofread: {
+          title: 'AI 校对',
+          desc: '检查拼写、语法、标点、一致性和清晰度问题，可逐项或一键全部应用修正——绝不改写您的内容。',
+        },
+        followUpEmail: {
+          title: '跟进邮件',
+          desc: '生成感谢信、申请跟进、进度询问和内推请求邮件，可选择语气，一键交给您的邮件应用发送。',
+        },
+        translate: {
+          title: '简历翻译',
+          desc: '将整份简历翻译成另一种语言并保存为关联副本——姓名、日期、链接和技术术语保持不变。',
         },
       },
       preview: {
@@ -151,7 +163,31 @@ const zhCN = {
           file: '简历.pdf',
           parsed: '已解析为可编辑章节',
           import: '导入',
-          export: '导出 PDF',
+          export: 'PDF · DOCX · 链接',
+        },
+        proofread: {
+          spelling: '拼写',
+          spellingFix: '"recieved" → "received"',
+          grammar: '语法',
+          grammarFix: '"team of engineer" → "team of engineers"',
+          clarity: '清晰度',
+          clarityFix: '"做了一些数据工作" → "分析客户数据"',
+          applyAll: '全部应用',
+        },
+        email: {
+          thankYou: '感谢信',
+          followUp: '跟进',
+          referral: '内推',
+          subject: '主题：感谢您——前端工程师面试',
+          body: '感谢您今天抽出时间与我交流。这次对话让我对这个职位更加期待……',
+          send: '在邮件应用中打开',
+        },
+        translate: {
+          from: '中文',
+          to: '英语',
+          source: '带领 8 名工程师团队构建实时分析平台。',
+          target: 'Led a team of 8 engineers building a real-time analytics platform.',
+          languages: '10+ 种语言',
         },
       },
     },
@@ -438,6 +474,7 @@ const zhCN = {
     failed: '导入失败',
     pdfOnly: '仅支持 PDF 文件。',
     note: '文本在服务器端提取和解析，对基于文本的 PDF（非扫描件）效果最佳。',
+    linkedinHint: '提示：也支持 LinkedIn 个人资料 PDF（个人资料 → 资源 → 保存为 PDF）。',
   },
 
   resumeCard: {
@@ -522,6 +559,14 @@ const zhCN = {
       compact: '紧凑',
       para: '段落',
       callout: '引用框',
+      downloadDocxItem: 'Word (DOCX)',
+      shareLink: '分享链接',
+      pageSize: '页面大小：',
+      presets: '预设：',
+      presetNormal: '标准',
+      presetModerate: '适中',
+      presetNarrow: '窄',
+      presetCompact: '紧凑',
     },
   },
 } as const;

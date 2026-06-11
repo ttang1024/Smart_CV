@@ -1,7 +1,11 @@
 import { useRef, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
-const PAPER_W_PX = 210 * (96 / 25.4); // A4 width in CSS px at 96 dpi ≈ 793.7
+const PAGE_SIZES = {
+  a4: { label: 'A4', widthCss: '210mm', minHeightCss: '297mm', widthPx: 210 * (96 / 25.4), heightPx: 297 * (96 / 25.4), pageCss: 'A4' },
+  letter: { label: 'Letter', widthCss: '8.5in', minHeightCss: '11in', widthPx: 8.5 * 96, heightPx: 11 * 96, pageCss: 'Letter' },
+} as const;
+type PageSizeId = keyof typeof PAGE_SIZES;
 const MIN_PAGE_MARGIN_MM = 6;
 const MAX_PAGE_MARGIN_MM = 50;
 const API_BASE =
@@ -10,11 +14,16 @@ const API_BASE =
     ? 'http://localhost:5167/api'
     : '/api');
 import { DownloadOutlined } from '@ant-design/icons';
-import { GripVertical, ChevronDown, FileText, Database, FileJson } from 'lucide-react';
+import { GripVertical, ChevronDown, Clipboard, FileText, FileDown, Database, FileJson, Lock, Share2 } from 'lucide-react';
+import QRCode from 'qrcode';
+import toast from 'react-hot-toast';
 import type { Resume, ResumeSection } from '../../types/resume';
 import { DEFAULT_SECTION_ORDER } from '../../types/resume';
 import HoverMenu from '../ui/HoverMenu';
+import Modal from '../ui/Modal';
 import { sectionTitle } from './resumeShared';
+import { exportResumeAsDocx } from '../../services/docx/docxExport';
+import { buildShareUrl, encodeSharePayload } from '../../lib/shareLink';
 import {
   deriveTheme, STYLES,
   type StyleId, type CustomOptions, type CustomHeader, type CustomExp,
@@ -57,9 +66,14 @@ export default function ResumePreview({
   const [backgroundColor, setBackgroundColor] = useState<string | null>(null);
   const [fullNameColor, setFullNameColor] = useState('#ffffff');
   const [downloading, setDownloading] = useState(false);
+  const [downloadingDocx, setDownloadingDocx] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shareUrl, setShareUrl] = useState('');
+  const [shareQr, setShareQr] = useState<string | null>(null);
   const [dragKey, setDragKey] = useState<ResumeSection | null>(null);
   const [dragOverKey, setDragOverKey] = useState<ResumeSection | null>(null);
   const [scale, setScale] = useState(1);
+  const [pageSize, setPageSize] = useState<PageSizeId>('a4');
   const [paperHeight, setPaperHeight] = useState(297 * (96 / 25.4)); // A4 height px
   const [pageMarginsMm, setPageMarginsMm] = useState<PageMarginsMm>(DEFAULT_PAGE_MARGINS_MM);
   const [marginDraft, setMarginDraft] = useState<Record<keyof PageMarginsMm, string>>(() => {
@@ -67,14 +81,16 @@ export default function ResumePreview({
     return { top: String(d.top), bottom: String(d.bottom), left: String(d.left), right: String(d.right) };
   });
 
-  // Recompute scale whenever the clip wrapper resizes
+  // Recompute scale whenever the clip wrapper resizes or the page size changes
   useEffect(() => {
     const el = scaleWrapRef.current;
     if (!el) return;
-    const obs = new ResizeObserver(() => setScale(Math.min(1, el.clientWidth / PAPER_W_PX)));
+    const paperWidthPx = PAGE_SIZES[pageSize].widthPx;
+    const obs = new ResizeObserver(() => setScale(Math.min(1, el.clientWidth / paperWidthPx)));
     obs.observe(el);
+    setScale(Math.min(1, el.clientWidth / paperWidthPx));
     return () => obs.disconnect();
-  }, []);
+  }, [pageSize]);
 
   // Track the paper's actual rendered height for the clip wrapper
   useEffect(() => {
@@ -100,6 +116,16 @@ export default function ResumePreview({
     styleId === 'executive';
   const updatePageMarginDraft = (side: keyof PageMarginsMm, value: string) => {
     setMarginDraft(d => ({ ...d, [side]: value }));
+  };
+
+  const applyMarginPreset = (margins: PageMarginsMm) => {
+    setPageMarginsMm(margins);
+    setMarginDraft({
+      top: String(margins.top),
+      bottom: String(margins.bottom),
+      left: String(margins.left),
+      right: String(margins.right),
+    });
   };
 
   const commitPageMargin = (side: keyof PageMarginsMm) => {
@@ -168,7 +194,7 @@ h2{break-after:avoid;page-break-after:avoid;}
 .rich-text-content [data-list-style="dash"]>li::before,.rich-text-content [data-list-style="check"]>li::before{position:absolute;left:0;}
 .rich-text-content [data-list-style="dash"]>li::before{content:"-";}
 .rich-text-content [data-list-style="check"]>li::before{content:"✓";}
-@page{size:A4;margin:${pageMarginsMm.top}mm ${pageMarginsMm.right}mm ${pageMarginsMm.bottom}mm ${pageMarginsMm.left}mm;}
+@page{size:${PAGE_SIZES[pageSize].pageCss};margin:${pageMarginsMm.top}mm ${pageMarginsMm.right}mm ${pageMarginsMm.bottom}mm ${pageMarginsMm.left}mm;}
 </style>
 </head>
 <body>${clone.outerHTML}</body>
@@ -204,6 +230,61 @@ h2{break-after:avoid;page-break-after:avoid;}
     } finally {
       setDownloading(false);
     }
+  };
+
+  const handleDownloadDocx = async () => {
+    setDownloadingDocx(true);
+    try {
+      const blob = await exportResumeAsDocx(r, {
+        pageSize,
+        pageMarginsMm,
+        accentColor: mainColor,
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${r.personalInfo.fullName || 'resume'}.docx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'DOCX export failed');
+    } finally {
+      setDownloadingDocx(false);
+    }
+  };
+
+  const handleShare = async () => {
+    try {
+      const encoded = await encodeSharePayload({
+        resume: r,
+        styleId,
+        mainColor,
+        pageSize,
+        pageMarginsMm,
+        backgroundColor,
+        fullNameColor,
+      });
+      const url = buildShareUrl(encoded);
+      setShareUrl(url);
+      // QR codes top out around 2.9KB; longer URLs still work as plain links.
+      let qr: string | null = null;
+      if (url.length <= 1800) {
+        try {
+          qr = await QRCode.toDataURL(url, { width: 220, margin: 1 });
+        } catch {
+          qr = null;
+        }
+      }
+      setShareQr(qr);
+      setShareOpen(true);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Could not create share link');
+    }
+  };
+
+  const handleCopyShareUrl = async () => {
+    await navigator.clipboard.writeText(shareUrl);
+    toast.success('Share link copied');
   };
 
   return (
@@ -245,6 +326,19 @@ h2{break-after:avoid;page-break-after:avoid;}
                   onClick: handleDownloadPDF,
                   loading: downloading,
                   title: 'Download this resume as a PDF',
+                },
+                {
+                  label: downloadingDocx ? t('resumeLayout.preview.generating') : t('resumeLayout.preview.downloadDocxItem'),
+                  icon: <FileDown className="w-3.5 h-3.5 text-blue-500" />,
+                  onClick: handleDownloadDocx,
+                  loading: downloadingDocx,
+                  title: 'Download this resume as a Word document',
+                },
+                {
+                  label: t('resumeLayout.preview.shareLink'),
+                  icon: <Share2 className="w-3.5 h-3.5 text-violet-500" />,
+                  onClick: handleShare,
+                  title: 'Create a read-only share link — the resume is encoded in the link itself, nothing is uploaded',
                 },
                 ...(onExportData ? [{
                   label: t('resumeLayout.preview.exportAllData'),
@@ -299,9 +393,22 @@ h2{break-after:avoid;page-break-after:avoid;}
           )}
         </div>
 
-        {/* Page margins */}
+        {/* Page size + margins */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0">{t('resumeLayout.preview.pageMargins')}</span>
+          <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0">{t('resumeLayout.preview.pageSize')}</span>
+          {(Object.keys(PAGE_SIZES) as PageSizeId[]).map(id => (
+            <button
+              key={id}
+              onClick={() => setPageSize(id)}
+              className={`px-2 py-0.5 rounded text-xs font-medium transition-all ${pageSize === id
+                ? 'bg-emerald-600 text-white shadow-sm'
+                : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-emerald-400 dark:hover:border-emerald-500'
+                }`}
+            >
+              {PAGE_SIZES[id].label}
+            </button>
+          ))}
+          <span className="ml-2 text-xs text-gray-500 dark:text-gray-400 shrink-0">{t('resumeLayout.preview.pageMargins')}</span>
           {(
             [
               ['top', t('resumeLayout.preview.marginTop')],
@@ -325,6 +432,23 @@ h2{break-after:avoid;page-break-after:avoid;}
             </label>
           ))}
           <span className="text-xs text-gray-400 dark:text-gray-500">{t('resumeLayout.preview.mm')}</span>
+          <span className="ml-2 text-xs text-gray-500 dark:text-gray-400 shrink-0">{t('resumeLayout.preview.presets')}</span>
+          {(
+            [
+              [t('resumeLayout.preview.presetNormal'), { top: 25.4, bottom: 25.4, left: 25.4, right: 25.4 }],
+              [t('resumeLayout.preview.presetModerate'), DEFAULT_PAGE_MARGINS_MM],
+              [t('resumeLayout.preview.presetNarrow'), { top: 12.7, bottom: 12.7, left: 12.7, right: 12.7 }],
+              [t('resumeLayout.preview.presetCompact'), { top: 8, bottom: 8, left: 8, right: 8 }],
+            ] as [string, PageMarginsMm][]
+          ).map(([label, margins]) => (
+            <button
+              key={label}
+              onClick={() => applyMarginPreset(margins)}
+              className="px-2 py-0.5 rounded text-xs font-medium transition-all bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-emerald-400 dark:hover:border-emerald-500"
+            >
+              {label}
+            </button>
+          ))}
         </div>
 
         {/* Custom layout options */}
@@ -374,8 +498,8 @@ h2{break-after:avoid;page-break-after:avoid;}
             className="flex-1 min-w-0 overflow-hidden shadow-lg flex justify-center"
             style={{ height: `${paperHeight * scale}px` }}
           >
-            <div style={{ width: '210mm', flexShrink: 0, transformOrigin: 'top center', transform: `scale(${scale})` }}>
-              <div ref={printRef} className="bg-white" style={{ width: '210mm', minHeight: '297mm' }}>
+            <div style={{ width: PAGE_SIZES[pageSize].widthCss, flexShrink: 0, transformOrigin: 'top center', transform: `scale(${scale})` }}>
+              <div ref={printRef} className="bg-white" style={{ width: PAGE_SIZES[pageSize].widthCss, minHeight: PAGE_SIZES[pageSize].minHeightCss }}>
                 {styleId === 'classic' && <ClassicLayout r={r} theme={theme} pageMarginsMm={pageMarginsMm} />}
                 {styleId === 'modern' && <ModernLayout r={r} theme={theme} pageMarginsMm={pageMarginsMm} />}
                 {styleId === 'executive' && <ExecutiveLayout r={r} theme={theme} pageMarginsMm={pageMarginsMm} backgroundColor={layoutBackgroundColor} fullNameColor={fullNameColor} />}
@@ -418,6 +542,47 @@ h2{break-after:avoid;page-break-after:avoid;}
           )}
         </div>
       </div>
+
+      {/* Share link modal */}
+      <Modal open={shareOpen} onClose={() => setShareOpen(false)} title="Share Resume" size="md">
+        <div className="space-y-4">
+          <div className="flex items-start gap-2 p-3 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 rounded-lg text-sm">
+            <Lock className="w-4 h-4 mt-0.5 shrink-0" />
+            <span>
+              The resume is compressed into the link itself (after the #), so it is never uploaded
+              to any server. Anyone with the link sees a read-only copy and can import it into
+              their own SmartCV.
+            </span>
+          </div>
+
+          <div className="flex gap-2">
+            <input
+              readOnly
+              value={shareUrl}
+              onFocus={e => e.target.select()}
+              className="flex-1 min-w-0 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 px-3 py-2 text-xs text-gray-700 dark:text-gray-200 font-mono"
+            />
+            <button
+              onClick={handleCopyShareUrl}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-700 transition-colors shrink-0"
+            >
+              <Clipboard className="w-3.5 h-3.5" />
+              Copy
+            </button>
+          </div>
+
+          {shareQr ? (
+            <div className="flex flex-col items-center gap-2">
+              <img src={shareQr} alt="QR code for the share link" className="rounded-lg border border-gray-200 dark:border-gray-700" />
+              <p className="text-xs text-gray-400 dark:text-gray-500">Scan to open on another device</p>
+            </div>
+          ) : (
+            <p className="text-xs text-gray-400 dark:text-gray-500 text-center">
+              This resume is too large for a QR code — use the copy button instead.
+            </p>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 }
@@ -488,7 +653,22 @@ const LAYOUT_MAP: Record<string, React.ComponentType<LayoutProps>> = {
 export { deriveTheme };
 export type { ThemeColors };
 
-export function TemplatePreview({ resume, styleId, theme }: { resume: Resume; styleId: string; theme: ThemeColors }) {
+export function TemplatePreview({ resume, styleId, theme, pageMarginsMm, backgroundColor, fullNameColor }: {
+  resume: Resume;
+  styleId: string;
+  theme: ThemeColors;
+  pageMarginsMm?: PageMarginsMm;
+  backgroundColor?: string;
+  fullNameColor?: string;
+}) {
   const Layout = LAYOUT_MAP[styleId] ?? ClassicLayout;
-  return <Layout r={resume} theme={theme} />;
+  return (
+    <Layout
+      r={resume}
+      theme={theme}
+      pageMarginsMm={pageMarginsMm}
+      backgroundColor={backgroundColor}
+      fullNameColor={fullNameColor}
+    />
+  );
 }

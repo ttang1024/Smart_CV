@@ -104,7 +104,19 @@ const zhTW = {
         },
         pdfImport: {
           title: 'PDF 匯入與匯出',
-          desc: '匯入現有 PDF 履歷，在結構化章節中編輯，並匯出清晰的 ATS 友善型 PDF。',
+          desc: '匯入現有 PDF 履歷（支援 LinkedIn 匯出），在結構化章節中編輯，匯出 ATS 友善的 PDF 或 Word 文件，還可產生私密唯讀分享連結。',
+        },
+        proofread: {
+          title: 'AI 校對',
+          desc: '檢查拼字、文法、標點、一致性和清晰度問題，可逐項或一鍵全部套用修正——絕不改寫您的內容。',
+        },
+        followUpEmail: {
+          title: '跟進郵件',
+          desc: '生成感謝信、申請跟進、進度詢問和內推請求郵件，可選擇語氣，一鍵交給您的郵件應用程式發送。',
+        },
+        translate: {
+          title: '履歷翻譯',
+          desc: '將整份履歷翻譯成另一種語言並儲存為關聯副本——姓名、日期、連結和技術術語保持不變。',
         },
       },
       preview: {
@@ -151,7 +163,31 @@ const zhTW = {
           file: '履歷.pdf',
           parsed: '已解析為可編輯章節',
           import: '匯入',
-          export: '匯出 PDF',
+          export: 'PDF · DOCX · 連結',
+        },
+        proofread: {
+          spelling: '拼字',
+          spellingFix: '"recieved" → "received"',
+          grammar: '文法',
+          grammarFix: '"team of engineer" → "team of engineers"',
+          clarity: '清晰度',
+          clarityFix: '"做了一些資料工作" → "分析客戶資料"',
+          applyAll: '全部套用',
+        },
+        email: {
+          thankYou: '感謝信',
+          followUp: '跟進',
+          referral: '內推',
+          subject: '主旨：感謝您——前端工程師面試',
+          body: '感謝您今天抽出時間與我交流。這次對話讓我對這個職位更加期待……',
+          send: '在郵件應用程式中開啟',
+        },
+        translate: {
+          from: '中文',
+          to: '英語',
+          source: '帶領 8 名工程師團隊建構即時分析平台。',
+          target: 'Led a team of 8 engineers building a real-time analytics platform.',
+          languages: '10+ 種語言',
         },
       },
     },
@@ -438,6 +474,7 @@ const zhTW = {
     failed: '匯入失敗',
     pdfOnly: '僅支援 PDF 檔案。',
     note: '文字在伺服器端提取和解析，對基於文字的 PDF（非掃描件）效果最佳。',
+    linkedinHint: '提示：也支援 LinkedIn 個人檔案 PDF（個人檔案 → 資源 → 儲存為 PDF）。',
   },
 
   resumeCard: {
@@ -522,6 +559,14 @@ const zhTW = {
       compact: '緊湊',
       para: '段落',
       callout: '引用框',
+      downloadDocxItem: 'Word (DOCX)',
+      shareLink: '分享連結',
+      pageSize: '頁面大小：',
+      presets: '預設：',
+      presetNormal: '標準',
+      presetModerate: '適中',
+      presetNarrow: '窄',
+      presetCompact: '緊湊',
     },
   },
 } as const;

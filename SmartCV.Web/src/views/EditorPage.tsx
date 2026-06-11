@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, Briefcase, ChevronDown, Database, FileJson, FileSearch, FileText, MessageSquareText, Mic, PanelRight, Redo2, Save, Sparkles, Undo2, Upload } from 'lucide-react';
+import { ArrowLeft, Briefcase, ChevronDown, Database, FileJson, FileSearch, FileText, Languages, Mail, MessageSquareText, Mic, PanelRight, Redo2, Save, Sparkles, SpellCheck, Undo2, Upload } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useResumeStore } from '../store/resumeStore';
 import type { Resume } from '../types/resume';
@@ -15,6 +15,10 @@ import CoverLetterPanel from '../components/cover/CoverLetterPanel';
 import InterviewPrepPanel from '../components/interview/InterviewPrepPanel';
 import MockInterviewPanel from '../components/interview/MockInterviewPanel';
 import JobVersionsPanel from '../components/jobs/JobVersionsPanel';
+import TranslatePanel from '../components/translate/TranslatePanel';
+import FollowUpEmailPanel from '../components/email/FollowUpEmailPanel';
+import ProofreadPanel from '../components/proofread/ProofreadPanel';
+import { applyFieldCorrection } from '../services/ai/proofreader';
 import PDFImport, { type PDFImportHandle } from '../components/resume/PDFImport';
 import Button from '../components/ui/Button';
 import HoverMenu from '../components/ui/HoverMenu';
@@ -45,7 +49,7 @@ function DragDivider({ onMouseDown, active }: { onMouseDown: (e: React.MouseEven
   );
 }
 
-type PanelId = 'ai' | 'ats' | 'cover' | 'interview' | 'mock' | 'jobs';
+type PanelId = 'ai' | 'ats' | 'cover' | 'interview' | 'mock' | 'jobs' | 'translate' | 'email' | 'proofread';
 
 // Single source of truth for the side-panel tab strip. Full Tailwind class
 // strings (no runtime interpolation) so the active colours survive purge.
@@ -56,6 +60,9 @@ const PANEL_TABS: { id: PanelId; label: string; Icon: typeof Sparkles; activeCla
   { id: 'interview', label: 'Interview', Icon: MessageSquareText, activeClass: 'bg-violet-500' },
   { id: 'mock', label: 'Mock', Icon: Mic, activeClass: 'bg-rose-500' },
   { id: 'jobs', label: 'Jobs', Icon: Briefcase, activeClass: 'bg-indigo-500' },
+  { id: 'translate', label: 'Translate', Icon: Languages, activeClass: 'bg-amber-500' },
+  { id: 'email', label: 'Email', Icon: Mail, activeClass: 'bg-cyan-500' },
+  { id: 'proofread', label: 'Proofread', Icon: SpellCheck, activeClass: 'bg-fuchsia-500' },
 ];
 
 interface ResumeChangeOptions {
@@ -470,6 +477,23 @@ export default function EditorPage() {
     await saveOptimization(session);
   }, [saveOptimization]);
 
+  const handleApplyProofreadFixes = useCallback((fixes: { fieldKey: string; correctedText: string }[]) => {
+    if (!localResume) return 0;
+    let updated = localResume;
+    let applied = 0;
+    for (const fix of fixes) {
+      const next = applyFieldCorrection(updated, fix.fieldKey, fix.correctedText);
+      if (next) {
+        updated = next;
+        applied += 1;
+      }
+    }
+    if (applied > 0) {
+      handleResumeChange(updated, { forceHistory: true, historyLabel: 'Proofread fix' });
+    }
+    return applied;
+  }, [localResume, handleResumeChange]);
+
   const handleFillFromPDF = useCallback((parsed: Resume) => {
     if (!localResume) return;
     handleResumeChange({
@@ -607,7 +631,7 @@ export default function EditorPage() {
             size="sm"
             onClick={togglePanel}
             className="gap-1.5"
-            title="AI tools: optimize, ATS, cover letter, interview prep, mock interview, job versions"
+            title="AI tools: optimize, ATS, cover letter, interview prep, mock interview, job versions, translate, follow-up email, proofread"
           >
             <PanelRight className="w-3.5 h-3.5 text-emerald-500" />
             {sidePanel ? 'Hide Tools' : 'Tools'}
@@ -705,6 +729,22 @@ export default function EditorPage() {
                   onCreateVersion={handleCreateJobVersion}
                   onRefresh={() => refreshJobApplications(localResume.id)}
                   onOpenResume={resumeId => router.push(`/editor?id=${encodeURIComponent(resumeId)}`)}
+                />
+              ) : sidePanel === 'translate' ? (
+                <TranslatePanel
+                  resume={localResume}
+                  onOpenResume={resumeId => router.push(`/editor?id=${encodeURIComponent(resumeId)}`)}
+                />
+              ) : sidePanel === 'email' ? (
+                <FollowUpEmailPanel
+                  resume={localResume}
+                  jobContext={jobContext}
+                  onJobContextChange={updates => setJobContext(context => ({ ...context, ...updates }))}
+                />
+              ) : sidePanel === 'proofread' ? (
+                <ProofreadPanel
+                  resume={localResume}
+                  onApplyFixes={handleApplyProofreadFixes}
                 />
               ) : (
                 <ATSCheckerPanel resume={localResume} />

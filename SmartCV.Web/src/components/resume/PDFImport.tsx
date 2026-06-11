@@ -224,6 +224,9 @@ const PDFImport = forwardRef<PDFImportHandle, PDFImportProps>(function PDFImport
           <p className="text-xs text-gray-400 dark:text-gray-500 text-center">
             {t('pdfImport.note')}
           </p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 text-center">
+            {t('pdfImport.linkedinHint')}
+          </p>
         </div>
       </Modal>
     </>

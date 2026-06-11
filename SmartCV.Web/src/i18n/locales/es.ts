@@ -104,7 +104,19 @@ const es = {
         },
         pdfImport: {
           title: 'Importar y exportar PDF',
-          desc: 'Importa un CV en PDF, edítalo en secciones estructuradas y exporta un PDF limpio compatible con ATS.',
+          desc: 'Importa un CV en PDF (incluidos los de LinkedIn), edítalo en secciones estructuradas y exporta un PDF o documento Word compatible con ATS — o compártelo con un enlace privado de solo lectura.',
+        },
+        proofread: {
+          title: 'Corrección con IA',
+          desc: 'Detecta errores de ortografía, gramática, puntuación, consistencia y claridad, y aplica correcciones por campo o todas a la vez — sin reescribir tu contenido.',
+        },
+        followUpEmail: {
+          title: 'Correo de seguimiento',
+          desc: 'Genera correos de agradecimiento, seguimiento, consulta de estado y solicitud de referencia con el tono adecuado, y envíalos a tu app de correo con un clic.',
+        },
+        translate: {
+          title: 'Traducción de CV',
+          desc: 'Traduce el CV completo a otro idioma y guárdalo como copia vinculada — nombres, fechas, enlaces y términos técnicos se conservan intactos.',
         },
       },
       preview: {
@@ -151,7 +163,31 @@ const es = {
           file: 'CV.pdf',
           parsed: 'Convertido en secciones editables',
           import: 'Importar',
-          export: 'Exportar PDF',
+          export: 'PDF · DOCX · Enlace',
+        },
+        proofread: {
+          spelling: 'Ortografía',
+          spellingFix: '"recivido" → "recibido"',
+          grammar: 'Gramática',
+          grammarFix: '"equipo de ingeniero" → "equipo de ingenieros"',
+          clarity: 'Claridad',
+          clarityFix: '"hice cosas con datos" → "analicé datos de clientes"',
+          applyAll: 'Aplicar todo',
+        },
+        email: {
+          thankYou: 'Agradecimiento',
+          followUp: 'Seguimiento',
+          referral: 'Referencia',
+          subject: 'Asunto: Gracias — entrevista de Ingeniero Frontend',
+          body: 'Gracias por dedicar tiempo a hablar conmigo hoy. Nuestra conversación reforzó mi entusiasmo por el puesto…',
+          send: 'Abrir en correo',
+        },
+        translate: {
+          from: 'Español',
+          to: 'Inglés',
+          source: 'Lideré un equipo de 8 ingenieros construyendo una plataforma de analítica en tiempo real.',
+          target: 'Led a team of 8 engineers building a real-time analytics platform.',
+          languages: 'Más de 10 idiomas',
         },
       },
     },
@@ -438,6 +474,7 @@ const es = {
     failed: 'Error al importar',
     pdfOnly: 'Solo se admiten archivos PDF.',
     note: 'El texto se extrae y analiza en el servidor. Funciona mejor con PDFs basados en texto (no imágenes escaneadas).',
+    linkedinHint: 'Consejo: también funcionan los PDFs de perfil de LinkedIn (Perfil → Recursos → Guardar como PDF).',
   },
 
   resumeCard: {
@@ -522,6 +559,14 @@ const es = {
       compact: 'Compacto',
       para: 'Párr.',
       callout: 'Destacado',
+      downloadDocxItem: 'Word (DOCX)',
+      shareLink: 'Compartir enlace',
+      pageSize: 'Tamaño de página:',
+      presets: 'Preajustes:',
+      presetNormal: 'Normal',
+      presetModerate: 'Moderado',
+      presetNarrow: 'Estrecho',
+      presetCompact: 'Compacto',
     },
   },
 } as const;
