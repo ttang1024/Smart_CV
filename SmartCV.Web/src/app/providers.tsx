@@ -15,6 +15,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
             color: '#111827',
             borderRadius: '10px',
             border: '1px solid #e5e7eb',
+            maxWidth: '360px',
+            wordBreak: 'break-word',
+            overflowWrap: 'anywhere',
           },
         }}
       />
