@@ -1,20 +1,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-
-const PAGE_SIZES = {
-  a4: { label: 'A4', widthCss: '210mm', minHeightCss: '297mm', widthPx: 210 * (96 / 25.4), heightPx: 297 * (96 / 25.4), pageCss: 'A4' },
-  letter: { label: 'Letter', widthCss: '8.5in', minHeightCss: '11in', widthPx: 8.5 * 96, heightPx: 11 * 96, pageCss: 'Letter' },
-} as const;
-type PageSizeId = keyof typeof PAGE_SIZES;
-const MIN_PAGE_MARGIN_MM = 6;
-const MAX_PAGE_MARGIN_MM = 50;
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL ??
-  (typeof window !== 'undefined' && window.location.port === '3000'
-    ? 'http://localhost:5167/api'
-    : '/api');
 import { DownloadOutlined } from '@ant-design/icons';
-import { GripVertical, ChevronDown, Clipboard, FileText, FileDown, Database, FileJson, Lock, Share2 } from 'lucide-react';
+import { ChevronDown, Clipboard, FileText, FileDown, Database, FileJson, Lock, Share2 } from 'lucide-react';
 import QRCode from 'qrcode';
 import toast from 'react-hot-toast';
 import type { Resume, ResumeSection } from '../../types/resume';
@@ -28,7 +15,7 @@ import {
   deriveTheme, STYLES,
   type StyleId, type CustomOptions, type CustomHeader, type CustomExp,
   type CustomSectionStyle, type CustomSkillsStyle,
-  type CustomEduStyle, type CustomSummaryStyle, type ThemeColors, type LayoutProps,
+  type CustomEduStyle, type CustomSummaryStyle, type ThemeColors,
   type PageMarginsMm, DEFAULT_PAGE_MARGINS_MM,
 } from './resumeTypes';
 import { ClassicLayout } from './layouts/ClassicLayout';
@@ -40,6 +27,13 @@ import { AcademicLayout } from './layouts/AcademicLayout';
 import { SplitLayout } from './layouts/SplitLayout';
 import { TimelineLayout } from './layouts/TimelineLayout';
 import { CustomLayout } from './layouts/CustomLayout';
+import { PAGE_SIZES, type PageSizeId, MIN_PAGE_MARGIN_MM, MAX_PAGE_MARGIN_MM, API_BASE } from './preview/constants';
+import { buildResumePrintHtml } from './preview/printHtml';
+import { MiniModuleList } from './preview/MiniModuleList';
+
+export { TemplatePreview } from './preview/TemplatePreview';
+export { deriveTheme };
+export type { ThemeColors };
 
 interface ResumePreviewProps {
   resume: Resume;
@@ -171,34 +165,7 @@ export default function ResumePreview({
         }
       }
 
-      const html = `<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<style>
-*{margin:0;padding:0;box-sizing:border-box;}
-body{background:#fff;font-family:'Noto Sans CJK SC','Noto Sans CJK TC','Noto Sans SC','Noto Sans TC','PingFang SC','Microsoft YaHei','SimHei',sans-serif;}
-h2{break-after:avoid;page-break-after:avoid;}
-.rich-text-content ul,.rich-text-content ol{margin:0;padding-left:1.35em;}
-.rich-text-content [data-list-style="disc"]{list-style-type:disc;}
-.rich-text-content [data-list-style="circle"]{list-style-type:circle;}
-.rich-text-content [data-list-style="square"]{list-style-type:square;}
-.rich-text-content [data-list-style="decimal"]{list-style-type:decimal;}
-.rich-text-content [data-list-style="lower-alpha"]{list-style-type:lower-alpha;}
-.rich-text-content [data-list-style="upper-alpha"]{list-style-type:upper-alpha;}
-.rich-text-content [data-list-style="lower-roman"]{list-style-type:lower-roman;}
-.rich-text-content [data-list-style="upper-roman"]{list-style-type:upper-roman;}
-.rich-text-content [data-list-style="none"]{list-style-type:none;}
-.rich-text-content [data-list-style="dash"],.rich-text-content [data-list-style="check"]{list-style-type:none;padding-left:0;}
-.rich-text-content [data-list-style="dash"]>li,.rich-text-content [data-list-style="check"]>li{position:relative;padding-left:1.15em;}
-.rich-text-content [data-list-style="dash"]>li::before,.rich-text-content [data-list-style="check"]>li::before{position:absolute;left:0;}
-.rich-text-content [data-list-style="dash"]>li::before{content:"-";}
-.rich-text-content [data-list-style="check"]>li::before{content:"✓";}
-@page{size:${PAGE_SIZES[pageSize].pageCss};margin:${pageMarginsMm.top}mm ${pageMarginsMm.right}mm ${pageMarginsMm.bottom}mm ${pageMarginsMm.left}mm;}
-</style>
-</head>
-<body>${clone.outerHTML}</body>
-</html>`;
+      const html = buildResumePrintHtml(clone.outerHTML, PAGE_SIZES[pageSize].pageCss, pageMarginsMm);
 
       const filename = `${r.personalInfo.fullName || 'resume'}.pdf`;
 
@@ -587,88 +554,3 @@ h2{break-after:avoid;page-break-after:avoid;}
   );
 }
 
-// ─── Mini module list for drag-reorder in preview ────────────────────────────
-
-function MiniModuleList({ sectionOrder, dragKey, dragOverKey, onDragStart, onDragOver, onDrop, onDragEnd, panelTitle, sectionLabels }: {
-  sectionOrder: ResumeSection[];
-  dragKey: ResumeSection | null;
-  dragOverKey: ResumeSection | null;
-  onDragStart: (key: ResumeSection) => void;
-  onDragOver: (key: ResumeSection) => void;
-  onDrop: (key: ResumeSection) => void;
-  onDragEnd: () => void;
-  panelTitle: string;
-  sectionLabels: Record<ResumeSection, string>;
-}) {
-  return (
-    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm w-[120px] p-2">
-      <div className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5 px-0.5">{panelTitle}</div>
-      {sectionOrder.map(key => (
-        <div
-          key={key}
-          className={`flex items-center gap-1 py-0.5 px-0.5 rounded transition-colors ${dragOverKey === key && dragKey !== key ? 'bg-emerald-50 dark:bg-emerald-950/40' : ''
-            } ${dragKey === key ? 'opacity-40' : ''}`}
-          onDragOver={e => { e.preventDefault(); onDragOver(key); }}
-          onDrop={() => onDrop(key)}
-        >
-          <span
-            draggable
-            onDragStart={e => { e.dataTransfer.effectAllowed = 'move'; onDragStart(key); }}
-            onDragEnd={onDragEnd}
-            className="cursor-grab text-gray-300 dark:text-gray-600 hover:text-gray-400 dark:hover:text-gray-500 shrink-0"
-          >
-            <GripVertical className="w-3 h-3" />
-          </span>
-          <span className="text-[11px] text-gray-600 dark:text-gray-300 truncate leading-5">{sectionLabels[key]}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ─── Named export for embedding templates in other pages ─────────────────────
-
-const DEFAULT_CUSTOM: CustomOptions = {
-  header: 'split', experience: 'list', skillsColumns: 2,
-  sectionStyle: 'bar', skillsStyle: 'tags',
-  education: 'standard', summary: 'paragraph',
-};
-
-function CustomPreview(props: LayoutProps) {
-  return <CustomLayout {...props} options={DEFAULT_CUSTOM} />;
-}
-
-const LAYOUT_MAP: Record<string, React.ComponentType<LayoutProps>> = {
-  classic: ClassicLayout,
-  modern: ModernLayout,
-  executive: ExecutiveLayout,
-  minimal: MinimalLayout,
-  elegant: ElegantLayout,
-  academic: AcademicLayout,
-  split: SplitLayout,
-  timeline: TimelineLayout,
-  custom: CustomPreview,
-};
-
-export { deriveTheme };
-export type { ThemeColors };
-
-export function TemplatePreview({ resume, styleId, theme, pageMarginsMm, backgroundColor, fullNameColor }: {
-  resume: Resume;
-  styleId: string;
-  theme: ThemeColors;
-  pageMarginsMm?: PageMarginsMm;
-  backgroundColor?: string;
-  fullNameColor?: string;
-}) {
-  const Layout = LAYOUT_MAP[styleId] ?? ClassicLayout;
-  return (
-    <Layout
-      r={resume}
-      theme={theme}
-      pageMarginsMm={pageMarginsMm}
-      backgroundColor={backgroundColor}
-      fullNameColor={fullNameColor}
-    />
-  );
-}

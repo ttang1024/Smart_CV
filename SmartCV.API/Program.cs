@@ -7,6 +7,7 @@ builder.Services.AddHttpClient();
 builder.Services.AddScoped<AIProxyService>();
 builder.Services.AddScoped<PdfResumeParserService>();
 builder.Services.AddSingleton<PdfGenerationService>();
+builder.Services.AddSingleton<IPdfGenerationService>(sp => sp.GetRequiredService<PdfGenerationService>());
 builder.Services.AddHostedService(sp => sp.GetRequiredService<PdfGenerationService>());
 
 builder.Services.AddCors(options =>
@@ -39,7 +40,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 // PDF generation endpoint (Puppeteer/Chromium)
-app.MapPost("/api/pdf/generate", async (PdfGenerateRequest req, PdfGenerationService pdfService) =>
+app.MapPost("/api/pdf/generate", async (PdfGenerateRequest req, IPdfGenerationService pdfService) =>
 {
     if (string.IsNullOrWhiteSpace(req.Html))
         return Results.BadRequest(new { error = "No HTML provided." });
@@ -135,3 +136,6 @@ app.Run();
 
 record ParseTextRequest(string Text);
 record PdfGenerateRequest(string Html, string? Filename);
+
+// Exposes the top-level Program for WebApplicationFactory<Program> in SmartCV.API.Tests.
+public partial class Program;

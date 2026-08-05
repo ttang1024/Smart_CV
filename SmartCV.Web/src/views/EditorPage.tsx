@@ -2,22 +2,13 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, Briefcase, ChevronDown, Database, FileJson, FileSearch, FileText, Languages, Mail, MessageSquareText, Mic, PanelRight, Redo2, Save, Sparkles, SpellCheck, Undo2, Upload } from 'lucide-react';
+import { ArrowLeft, ChevronDown, Database, FileJson, FileText, PanelRight, Redo2, Save, Undo2, Upload } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useResumeStore } from '../store/resumeStore';
 import type { Resume } from '../types/resume';
 import type { OptimizationSession, OptimizationSuggestion } from '../types/ai';
 import ResumeEditor from '../components/resume/ResumeEditor';
 import ResumePreview from '../components/resume/ResumePreview';
-import AIOptimizationPanel from '../components/ai/AIOptimizationPanel';
-import ATSCheckerPanel from '../components/ats/ATSCheckerPanel';
-import CoverLetterPanel from '../components/cover/CoverLetterPanel';
-import InterviewPrepPanel from '../components/interview/InterviewPrepPanel';
-import MockInterviewPanel from '../components/interview/MockInterviewPanel';
-import JobVersionsPanel from '../components/jobs/JobVersionsPanel';
-import TranslatePanel from '../components/translate/TranslatePanel';
-import FollowUpEmailPanel from '../components/email/FollowUpEmailPanel';
-import ProofreadPanel from '../components/proofread/ProofreadPanel';
 import { applyFieldCorrection } from '../services/ai/proofreader';
 import PDFImport, { type PDFImportHandle } from '../components/resume/PDFImport';
 import Button from '../components/ui/Button';
@@ -26,44 +17,14 @@ import Input from '../components/ui/Input';
 import { richTextToPlainText } from '../lib/richText';
 import { revisionHistory, type ResumeRevision } from '../services/storage/revisionHistory';
 import { jobApplicationDB } from '../services/storage/jobApplications';
-import { resumeDB } from '../services/storage/indexedDB';
+import { resumeDB, scoreSnapshotDB } from '../services/storage/indexedDB';
+import { runAtsCheck } from '../services/ats/atsChecker';
 import { fromJsonResume, isJsonResume, toJsonResume } from '../services/jsonResume';
 import type { JobApplication } from '../types/jobApplication';
 import toast from 'react-hot-toast';
-
-function DragDivider({ onMouseDown, active }: { onMouseDown: (e: React.MouseEvent) => void; active: boolean }) {
-  return (
-    <div
-      onMouseDown={onMouseDown}
-      className={`relative w-1 shrink-0 cursor-col-resize group select-none transition-colors
-        ${active ? 'bg-emerald-500' : 'bg-gray-200 dark:bg-gray-800 hover:bg-emerald-400 dark:hover:bg-emerald-600'}`}
-    >
-      <div className="absolute inset-y-0 -left-1 -right-1" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col gap-0.5">
-        {[0, 1, 2].map(i => (
-          <div key={i} className={`w-1 h-1 rounded-full transition-colors
-            ${active ? 'bg-white' : 'bg-gray-400 dark:bg-gray-600 group-hover:bg-emerald-300'}`} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-type PanelId = 'ai' | 'ats' | 'cover' | 'interview' | 'mock' | 'jobs' | 'translate' | 'email' | 'proofread';
-
-// Single source of truth for the side-panel tab strip. Full Tailwind class
-// strings (no runtime interpolation) so the active colours survive purge.
-const PANEL_TABS: { id: PanelId; label: string; Icon: typeof Sparkles; activeClass: string }[] = [
-  { id: 'ai', label: 'AI Optimize', Icon: Sparkles, activeClass: 'bg-emerald-500' },
-  { id: 'ats', label: 'ATS', Icon: FileSearch, activeClass: 'bg-teal-500' },
-  { id: 'cover', label: 'Cover Letter', Icon: FileText, activeClass: 'bg-sky-500' },
-  { id: 'interview', label: 'Interview', Icon: MessageSquareText, activeClass: 'bg-violet-500' },
-  { id: 'mock', label: 'Mock', Icon: Mic, activeClass: 'bg-rose-500' },
-  { id: 'jobs', label: 'Jobs', Icon: Briefcase, activeClass: 'bg-indigo-500' },
-  { id: 'translate', label: 'Translate', Icon: Languages, activeClass: 'bg-amber-500' },
-  { id: 'email', label: 'Email', Icon: Mail, activeClass: 'bg-cyan-500' },
-  { id: 'proofread', label: 'Proofread', Icon: SpellCheck, activeClass: 'bg-fuchsia-500' },
-];
+import { DragDivider } from './editor/DragDivider';
+import { usePanelResize } from './editor/usePanelResize';
+import { SidePanel, type PanelId, type EditorJobContext } from './editor/SidePanel';
 
 interface ResumeChangeOptions {
   historyLabel?: string;
@@ -82,7 +43,7 @@ export default function EditorPage() {
   const [localResume, setLocalResume] = useState<Resume | null>(null);
   const [sidePanel, setSidePanel] = useState<PanelId | null>(null);
   const [lastPanel, setLastPanel] = useState<PanelId>('ai');
-  const [jobContext, setJobContext] = useState({ jobTitle: '', company: '', jobDescription: '', jobUrl: '' });
+  const [jobContext, setJobContext] = useState<EditorJobContext>({ jobTitle: '', company: '', jobDescription: '', jobUrl: '' });
   const [jobApplications, setJobApplications] = useState<JobApplication[]>([]);
   const [saving, setSaving] = useState(false);
   const [exportingData, setExportingData] = useState(false);
@@ -97,46 +58,7 @@ export default function EditorPage() {
   const lastHistoryPushRef = useRef(0);
   const loadedResumeIdRef = useRef<string | null>(null);
 
-  // Panel resize state
-  const [leftWidthPct, setLeftWidthPct] = useState(40);
-  const [aiWidthPx, setAiWidthPx] = useState(384);
-  const [draggingPanel, setDraggingPanel] = useState<'left' | 'ai' | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const dragging = useRef<'left' | 'ai' | null>(null);
-  const dragStartX = useRef(0);
-  const dragStartValue = useRef(0);
-
-  const startDrag = useCallback((panel: 'left' | 'ai') => (e: React.MouseEvent) => {
-    e.preventDefault();
-    dragging.current = panel;
-    setDraggingPanel(panel);
-    dragStartX.current = e.clientX;
-    dragStartValue.current = panel === 'left' ? leftWidthPct : aiWidthPx;
-  }, [leftWidthPct, aiWidthPx]);
-
-  useEffect(() => {
-    const onMouseMove = (e: MouseEvent) => {
-      if (!dragging.current || !containerRef.current) return;
-      const containerWidth = containerRef.current.getBoundingClientRect().width;
-      const delta = e.clientX - dragStartX.current;
-      if (dragging.current === 'left') {
-        const deltaPct = (delta / containerWidth) * 100;
-        setLeftWidthPct(Math.max(20, Math.min(60, dragStartValue.current + deltaPct)));
-      } else {
-        setAiWidthPx(Math.max(280, Math.min(640, dragStartValue.current - delta)));
-      }
-    };
-    const onMouseUp = () => {
-      dragging.current = null;
-      setDraggingPanel(null);
-    };
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
-    return () => {
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
-    };
-  }, []);
+  const { leftWidthPct, aiWidthPx, draggingPanel, containerRef, startDrag } = usePanelResize();
 
   useEffect(() => {
     if (id) loadResume(id);
@@ -161,6 +83,7 @@ export default function EditorPage() {
         jobTitle: context.jobTitle || currentResume.targetJob || '',
       }));
       refreshJobApplications(currentResume.id);
+      scoreSnapshotDB.recordIfChanged(currentResume.id, runAtsCheck(currentResume));
     }
   }, [currentResume, refreshJobApplications]);
 
@@ -174,6 +97,7 @@ export default function EditorPage() {
       try {
         await saveResume(updated);
         setHasUnsaved(false);
+        scoreSnapshotDB.recordIfChanged(updated.id, runAtsCheck(updated));
       } catch {
         // Silent autosave failure
       }
@@ -210,6 +134,7 @@ export default function EditorPage() {
     try {
       await saveResume(localResume);
       setHasUnsaved(false);
+      scoreSnapshotDB.recordIfChanged(localResume.id, runAtsCheck(localResume));
       toast.success(t('editor.toast.saved'));
     } catch {
       toast.error(t('editor.toast.saveFailed'));
@@ -505,6 +430,10 @@ export default function EditorPage() {
     toast.success(t('editor.toast.filledFromPdf'));
   }, [localResume, handleResumeChange, t]);
 
+  const handleJobContextChange = useCallback((updates: Partial<EditorJobContext>) => {
+    setJobContext(context => ({ ...context, ...updates }));
+  }, []);
+
   const openPanel = useCallback((panel: PanelId) => {
     setSidePanel(panel);
     setLastPanel(panel);
@@ -675,82 +604,21 @@ export default function EditorPage() {
         {sidePanel && (
           <>
             <DragDivider onMouseDown={startDrag('ai')} active={draggingPanel === 'ai'} />
-            <div style={{ width: `${aiWidthPx}px` }} className="bg-white dark:bg-gray-950 flex flex-col overflow-hidden shrink-0">
-              {/* Tool tabs */}
-              <div className="flex flex-wrap gap-1 p-2 border-b border-gray-200 dark:border-gray-800 shrink-0">
-                {PANEL_TABS.map(({ id, label, Icon, activeClass }) => (
-                  <button
-                    key={id}
-                    onClick={() => openPanel(id)}
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
-                      sidePanel === id
-                        ? `${activeClass} text-white shadow-sm`
-                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-                    }`}
-                  >
-                    <Icon className="w-3.5 h-3.5" />
-                    {label}
-                  </button>
-                ))}
-              </div>
-              <div className="flex-1 overflow-hidden min-h-0">
-              {sidePanel === 'ai' ? (
-                <AIOptimizationPanel
-                  resume={localResume}
-                  onApplySuggestion={handleApplySuggestion}
-                  onSessionSaved={handleSessionSaved}
-                  jobContext={jobContext}
-                  onJobContextChange={updates => setJobContext(context => ({ ...context, ...updates }))}
-                />
-              ) : sidePanel === 'cover' ? (
-                <CoverLetterPanel
-                  resume={localResume}
-                  jobContext={jobContext}
-                  onJobContextChange={updates => setJobContext(context => ({ ...context, ...updates }))}
-                />
-              ) : sidePanel === 'interview' ? (
-                <InterviewPrepPanel
-                  resume={localResume}
-                  jobContext={jobContext}
-                  onJobContextChange={updates => setJobContext(context => ({ ...context, ...updates }))}
-                />
-              ) : sidePanel === 'mock' ? (
-                <MockInterviewPanel
-                  resume={localResume}
-                  jobContext={jobContext}
-                  onJobContextChange={updates => setJobContext(context => ({ ...context, ...updates }))}
-                />
-              ) : sidePanel === 'jobs' ? (
-                <JobVersionsPanel
-                  resume={localResume}
-                  applications={jobApplications}
-                  jobContext={jobContext}
-                  onJobContextChange={updates => setJobContext(context => ({ ...context, ...updates }))}
-                  onCreateVersion={handleCreateJobVersion}
-                  onRefresh={() => refreshJobApplications(localResume.id)}
-                  onOpenResume={resumeId => router.push(`/editor?id=${encodeURIComponent(resumeId)}`)}
-                />
-              ) : sidePanel === 'translate' ? (
-                <TranslatePanel
-                  resume={localResume}
-                  onOpenResume={resumeId => router.push(`/editor?id=${encodeURIComponent(resumeId)}`)}
-                />
-              ) : sidePanel === 'email' ? (
-                <FollowUpEmailPanel
-                  resume={localResume}
-                  jobContext={jobContext}
-                  onJobContextChange={updates => setJobContext(context => ({ ...context, ...updates }))}
-                />
-              ) : sidePanel === 'proofread' ? (
-                <ProofreadPanel
-                  resume={localResume}
-                  onApplyFixes={handleApplyProofreadFixes}
-                />
-              ) : (
-                <ATSCheckerPanel resume={localResume} />
-              )}
-              </div>
-            </div>
+            <SidePanel
+              width={aiWidthPx}
+              sidePanel={sidePanel}
+              onSelectPanel={openPanel}
+              resume={localResume}
+              jobContext={jobContext}
+              onJobContextChange={handleJobContextChange}
+              applications={jobApplications}
+              onApplySuggestion={handleApplySuggestion}
+              onSessionSaved={handleSessionSaved}
+              onCreateVersion={handleCreateJobVersion}
+              onRefreshJobs={() => refreshJobApplications(localResume.id)}
+              onOpenResume={resumeId => router.push(`/editor?id=${encodeURIComponent(resumeId)}`)}
+              onApplyProofreadFixes={handleApplyProofreadFixes}
+            />
           </>
         )}
       </div>
