@@ -2,10 +2,10 @@ import { AlertCircle, Clipboard, MessageSquareText, Plus, Sparkles, Star } from 
 import { useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import type { Resume } from '../../types/resume';
-import type { InterviewPrepResult } from '../../services/ai/aiService';
-import { generateInterviewPrep } from '../../services/ai/aiService';
+import type { InterviewPrepResult } from '../../services/ai/interviewPrep';
+import { generateInterviewPrep } from '../../services/ai/interviewPrep';
 import { QUESTION_BANK } from '../../data/interviewQuestions';
-import { useSettingsStore } from '../../store/settingsStore';
+import { useActiveAIConfig } from '../../services/ai/useActiveAIConfig';
 import Badge from '../ui/Badge';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
@@ -49,7 +49,7 @@ function formatPrepForClipboard(result: InterviewPrepResult): string {
 }
 
 export default function InterviewPrepPanel({ resume, jobContext, onJobContextChange }: InterviewPrepPanelProps) {
-  const { getActiveConfig, aiSettings } = useSettingsStore();
+  const { config, activeProvider, missingKeyMessage } = useActiveAIConfig();
   const [jobTitle, setJobTitleState] = useState(jobContext?.jobTitle || resume.targetJob || '');
   const [company, setCompanyState] = useState(jobContext?.company ?? '');
   const [jobDescription, setJobDescriptionState] = useState(jobContext?.jobDescription ?? '');
@@ -59,8 +59,6 @@ export default function InterviewPrepPanel({ resume, jobContext, onJobContextCha
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const activeProvider = aiSettings.activeProvider;
-  const config = getActiveConfig();
   const questions = useMemo(
     () => questionsText.split('\n').map(line => line.trim()).filter(Boolean),
     [questionsText],
@@ -96,7 +94,7 @@ export default function InterviewPrepPanel({ resume, jobContext, onJobContextCha
 
   const handleGenerate = async () => {
     if (!config) {
-      setError(`No API key configured for ${activeProvider}. Go to Settings.`);
+      setError(missingKeyMessage);
       return;
     }
     if (questions.length === 0 && starStoryCount < 1) {

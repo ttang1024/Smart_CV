@@ -3,7 +3,7 @@ import { Upload, FileText, AlertCircle, CheckCircle2, Loader2 } from 'lucide-rea
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { cn } from '../../lib/utils';
-import { parseResumeFromPdf } from '../../services/pdf/resumeParserApi';
+import { parseResumeFromPdf } from '../../services/pdf/importPdf';
 import { useResumeStore } from '../../store/resumeStore';
 import { useSettingsStore } from '../../store/settingsStore';
 import type { Resume } from '../../types/resume';

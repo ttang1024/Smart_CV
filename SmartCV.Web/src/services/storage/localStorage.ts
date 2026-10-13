@@ -1,73 +1,40 @@
-import type { AISettings, AIProviderType } from '../../types/ai';
+import type { AISettings } from '../../types/ai';
+import { AI_PROVIDER_CONFIGS, AI_PROVIDER_IDS } from '../../types/ai';
 
-const KEYS = {
-  AI_SETTINGS: 'smartcv_ai_settings',
-  THEME: 'smartcv_theme',
-  SIDEBAR_OPEN: 'smartcv_sidebar_open'
-} as const;
+const AI_SETTINGS_KEY = 'smartcv_ai_settings';
 
-const DEFAULT_AI_SETTINGS: AISettings = {
-  activeProvider: 'openai',
-  useAI: false,
-  providers: {
-    openai: { apiKey: '', model: 'gpt-4o' },
-    gemini: { apiKey: '', model: 'gemini-2.5-pro' },
-    claude: { apiKey: '', model: 'claude-opus-4-6' },
-    grok: { apiKey: '', model: 'grok-3' },
-    deepseek: { apiKey: '', model: 'deepseek-v4-flash' },
-    qianwen: { apiKey: '', model: 'qwen-plus' },
-    kimi: { apiKey: '', model: 'moonshot-v1-32k' },
-    doubao: { apiKey: '', model: 'doubao-pro-32k' },
-    wenyanyixin: { apiKey: '', model: 'ernie-4.0-8k' }
-  }
-};
+export function defaultAISettings(): AISettings {
+  return {
+    activeProvider: 'openai',
+    useAI: false,
+    providers: Object.fromEntries(
+      AI_PROVIDER_IDS.map(id => [id, { apiKey: '', model: AI_PROVIDER_CONFIGS[id].defaultModel }]),
+    ) as AISettings['providers'],
+  };
+}
 
+/** AI settings, including API keys, persisted in this browser's localStorage. */
 export const settingsStorage = {
   getAISettings(): AISettings {
+    const defaults = defaultAISettings();
     try {
-      const raw = localStorage.getItem(KEYS.AI_SETTINGS);
-      if (!raw) return DEFAULT_AI_SETTINGS;
-      const parsed = JSON.parse(raw);
+      const stored = JSON.parse(localStorage.getItem(AI_SETTINGS_KEY) ?? '{}') as Partial<AISettings>;
       return {
-        ...DEFAULT_AI_SETTINGS,
-        ...parsed,
-        providers: {
-          ...DEFAULT_AI_SETTINGS.providers,
-          ...parsed.providers,
-        }
+        ...defaults,
+        ...stored,
+        providers: { ...defaults.providers, ...stored.providers },
       };
     } catch {
-      return DEFAULT_AI_SETTINGS;
+      // Missing/corrupt data, or no localStorage (static prerender): use defaults.
+      return defaults;
     }
   },
 
   saveAISettings(settings: AISettings): void {
-    localStorage.setItem(KEYS.AI_SETTINGS, JSON.stringify(settings));
+    try {
+      localStorage.setItem(AI_SETTINGS_KEY, JSON.stringify(settings));
+    } catch {
+      // Storage unavailable (private mode, quota): settings last for this session only.
+    }
   },
-
-  saveAPIKey(provider: AIProviderType, key: string): void {
-    const settings = settingsStorage.getAISettings();
-    settings.providers[provider].apiKey = key;
-    settingsStorage.saveAISettings(settings);
-  },
-
-  saveActiveProvider(provider: AIProviderType): void {
-    const settings = settingsStorage.getAISettings();
-    settings.activeProvider = provider;
-    settingsStorage.saveAISettings(settings);
-  },
-
-  saveProviderModel(provider: AIProviderType, model: string): void {
-    const settings = settingsStorage.getAISettings();
-    settings.providers[provider].model = model;
-    settingsStorage.saveAISettings(settings);
-  },
-
-  getTheme(): 'light' | 'dark' {
-    return (localStorage.getItem(KEYS.THEME) as 'light' | 'dark') ?? 'light';
-  },
-
-  saveTheme(theme: 'light' | 'dark'): void {
-    localStorage.setItem(KEYS.THEME, theme);
-  }
 };

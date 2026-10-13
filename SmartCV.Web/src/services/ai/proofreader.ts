@@ -1,6 +1,6 @@
 import type { AIMessage, AIProviderType } from '../../types/ai'
 import type { Resume } from '../../types/resume'
-import { chatWithAI } from './aiService'
+import { chatWithAI } from './chatClient'
 import { parseAIJson } from '../../lib/aiJson'
 import { sanitizeRichText } from '../../lib/richText'
 

@@ -35,9 +35,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Tell PuppeteerSharp to use the system browser instead of downloading one
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
+# Chromium's own sandbox needs user namespaces, which App Runner doesn't provide. The
+# renderer compensates by disabling JavaScript and blocking all network requests per page
+# (see PdfGenerationService), and the process runs as an unprivileged user below.
+ENV PdfRendering__DisableSandbox=true
 ENV ASPNETCORE_HTTP_PORTS=8080
 
 COPY --from=backend /app/publish .
+
+# Non-root user shipped with the official .NET images.
+USER $APP_UID
 
 EXPOSE 8080
 ENTRYPOINT ["dotnet", "SmartCV.API.dll"]

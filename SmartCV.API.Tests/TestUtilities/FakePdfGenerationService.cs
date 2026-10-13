@@ -11,9 +11,13 @@ public sealed class FakePdfGenerationService : IPdfGenerationService
 {
     public string? LastHtml { get; private set; }
 
-    public Task<byte[]> GenerateAsync(string html)
+    /// <summary>When set, GenerateAsync throws this instead of returning bytes.</summary>
+    public Exception? FailWith { get; set; }
+
+    public Task<byte[]> GenerateAsync(string html, CancellationToken ct = default)
     {
         LastHtml = html;
+        if (FailWith is not null) throw FailWith;
         return Task.FromResult(Encoding.UTF8.GetBytes($"%PDF-FAKE% {html.Length} bytes of html"));
     }
 }

@@ -21,7 +21,14 @@ export function formatDate(isoString: string): string {
   }
 }
 
-export function truncate(str: string, max: number): string {
-  if (str.length <= max) return str;
-  return str.slice(0, max - 3) + '...';
+
+let lastTimestampMs = 0;
+
+/**
+ * ISO timestamp that is strictly greater than the previous one returned, even when
+ * called twice in the same millisecond. Used for records ordered by `createdAt`.
+ */
+export function monotonicIsoNow(): string {
+  lastTimestampMs = Math.max(Date.now(), lastTimestampMs + 1);
+  return new Date(lastTimestampMs).toISOString();
 }

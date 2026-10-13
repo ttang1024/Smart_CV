@@ -1,6 +1,7 @@
 import type { AIMessage, AIProviderType } from '../../types/ai'
 import type { Resume } from '../../types/resume'
-import { chatWithAI, formatResumeAsText } from './aiService'
+import { chatWithAI } from './chatClient'
+import { formatResumeAsText } from './resumeFormatter'
 import { parseAIJson } from '../../lib/aiJson'
 
 export type FollowUpEmailType =

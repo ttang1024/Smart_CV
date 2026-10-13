@@ -181,8 +181,8 @@ public partial class PdfResumeParserService
         {
             if (block.Count == 0) continue;
 
-            // A tab character in any line signals a two-column layout (ExtractLines inserts \t
-            // when the gap between consecutive words exceeds 8pt, indicating a column separator).
+            // A tab character in any line signals a two-column layout (the browser-side text
+            // extractor inserts \t when the gap between runs exceeds 8pt, i.e. a column gap).
             bool isTwoColumn = block.Any(l => l.Contains('\t'));
 
             if (isTwoColumn)

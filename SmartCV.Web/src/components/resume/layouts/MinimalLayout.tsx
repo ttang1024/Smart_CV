@@ -1,113 +1,62 @@
-import { useTranslation } from 'react-i18next';
 import { DEFAULT_PAGE_MARGINS_MM, type LayoutProps, type ThemeColors } from '../resumeTypes';
-import { ContactRow, contactItems, ExpEntry, EduEntry, CertList, LangList, HighlightList, AchievementRows, InterestsList, RefereesBlock, ProjectTechnologies, sectionTitle } from '../resumeShared';
-import { isRichTextEmpty } from '../../../lib/richText';
+import { ContactRow, contactItems, ExpEntry, EduEntry, HighlightList, ProjectTechnologies } from '../resumeShared';
 import { RichTextContent } from '../RichText';
-import { DEFAULT_SECTION_ORDER } from '../../../types/resume';
+import { ResumeSections, simpleSectionBodies, visibleHighlights, type SectionBodies } from './ResumeSections';
 
 export function MinimalLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_MM }: LayoutProps) {
-  const { t } = useTranslation();
-  const { personalInfo: p, summary, coreHighlights, experience, education, skills, projects, certifications, languages } = r;
-  const sectionOrder = r.sectionOrder ?? DEFAULT_SECTION_ORDER;
+  const { personalInfo: p, summary, experience, education, skills, projects } = r;
 
-  const renderSection = (key: string) => {
-    switch (key) {
-      case 'summary':
-        return summary ? (
-          <MinimalSection key="summary" title={sectionTitle(r, 'summary', t('resumeLayout.sections.summary'))} theme={theme}>
-            <RichTextContent html={summary} style={{ color: '#444444', textAlign: 'justify', whiteSpace: 'pre-wrap' }} />
-          </MinimalSection>
-        ) : null;
-      case 'coreHighlights':
-        return coreHighlights?.length > 0 ? (
-          <MinimalSection key="coreHighlights" title={sectionTitle(r, 'coreHighlights', t('resumeLayout.sections.highlightsMinimal'))} theme={theme}>
-            <ul style={{ paddingLeft: '18px', margin: 0, listStyleType: 'disc' }}>
-              {coreHighlights.filter(h => !isRichTextEmpty(h.text)).map(h => (
-                <li key={h.id} style={{ marginBottom: '3px', color: '#444444', fontSize: '11pt' }}><RichTextContent html={h.text} /></li>
-              ))}
-            </ul>
-          </MinimalSection>
-        ) : null;
-      case 'skills':
-        return skills.length > 0 ? (
-          <MinimalSection key="skills" title={sectionTitle(r, 'skills', t('resumeLayout.sections.skills'))} theme={theme}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-              {skills.map(s => (
-                <div key={s.id}>
-                  <span style={{ fontWeight: 600, color: '#333333' }}>{s.category} </span>
-                  <span style={{ color: '#666666' }}>— {s.items.join(', ')}</span>
-                </div>
-              ))}
-            </div>
-          </MinimalSection>
-        ) : null;
-      case 'experience':
-        return experience.length > 0 ? (
-          <MinimalSection key="experience" title={sectionTitle(r, 'experience', t('resumeLayout.sections.experience'))} theme={theme}>
-            {experience.map(exp => (
-              <ExpEntry key={exp.id} exp={exp}
-                companyColor="#888888" locColor="#aaaaaa" locSep=", "
-                dateColor="#aaaaaa" descColor="#555555"
-                positionWeight={600} descFontSize="11pt" highlightFontSize="11pt" />
-            ))}
-          </MinimalSection>
-        ) : null;
-      case 'education':
-        return education.length > 0 ? (
-          <MinimalSection key="education" title={sectionTitle(r, 'education', t('resumeLayout.sections.education'))} theme={theme}>
-            {education.map(edu => (
-              <EduEntry key={edu.id} edu={edu}
-                accentColor="#888888" instSep=", "
-                dateColor="#aaaaaa" gpaColor="#888888" degreeWeight={600} />
-            ))}
-          </MinimalSection>
-        ) : null;
-      case 'projects':
-        return projects.length > 0 ? (
-          <MinimalSection key="projects" title={sectionTitle(r, 'projects', t('resumeLayout.sections.projects'))} theme={theme}>
-            {projects.map(p => (
-              <div key={p.id} style={{ marginBottom: '8px' }}>
-                <span style={{ fontWeight: 600 }}>{p.name}</span>
-                <RichTextContent html={p.description} style={{ color: '#555555', marginTop: '2px', whiteSpace: 'pre-wrap', fontSize: '11pt' }} />
-                <HighlightList highlights={p.highlights ?? []} color="#555555" fontSize="11pt" />
-                <ProjectTechnologies project={p} color="#555555" />
-              </div>
-            ))}
-          </MinimalSection>
-        ) : null;
-      case 'certifications':
-        return certifications.length > 0 ? (
-          <MinimalSection key="certifications" title={sectionTitle(r, 'certifications', t('resumeLayout.sections.certifications'))} theme={theme}>
-            <CertList items={certifications} dateColor="#aaaaaa" />
-          </MinimalSection>
-        ) : null;
-      case 'languages':
-        return languages.length > 0 ? (
-          <MinimalSection key="languages" title={sectionTitle(r, 'languages', t('resumeLayout.sections.languages'))} theme={theme}>
-            <LangList items={languages} gap="8px 20px" color="#555555" />
-          </MinimalSection>
-        ) : null;
-      case 'achievements':
-        return (r.achievements ?? []).filter(a => a.title).length > 0 ? (
-          <MinimalSection key="achievements" title={sectionTitle(r, 'achievements', t('resumeLayout.sections.achievements'))} theme={theme}>
-            <AchievementRows achievements={r.achievements} accent={theme.main} />
-          </MinimalSection>
-        ) : null;
-      case 'interests':
-        return (r.interests ?? []).filter(i => i.name).length > 0 ? (
-          <MinimalSection key="interests" title={sectionTitle(r, 'interests', t('resumeLayout.sections.interests'))} theme={theme}>
-            <p style={{ color: '#555555' }}><InterestsList r={r} /></p>
-          </MinimalSection>
-        ) : null;
-      case 'referees':
-        return (r.referees?.length ?? 0) > 0 ? (
-          <MinimalSection key="referees" title={sectionTitle(r, 'referees', t('resumeLayout.sections.referees'))} theme={theme}>
-            <RefereesBlock r={r} />
-          </MinimalSection>
-        ) : null;
-      default:
-        return null;
-    }
+  const bodies: SectionBodies = {
+    summary: () => <RichTextContent html={summary} style={{ color: '#444444', textAlign: 'justify', whiteSpace: 'pre-wrap' }} />,
+    coreHighlights: () => (
+      <ul style={{ paddingLeft: '18px', margin: 0, listStyleType: 'disc' }}>
+        {visibleHighlights(r).map(h => (
+          <li key={h.id} style={{ marginBottom: '3px', color: '#444444', fontSize: '11pt' }}><RichTextContent html={h.text} /></li>
+        ))}
+      </ul>
+    ),
+    skills: () => (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+        {skills.map(s => (
+          <div key={s.id}>
+            <span style={{ fontWeight: 600, color: '#333333' }}>{s.category} </span>
+            <span style={{ color: '#666666' }}>— {s.items.join(', ')}</span>
+          </div>
+        ))}
+      </div>
+    ),
+    experience: () => (
+      <>
+        {experience.map(exp => (
+          <ExpEntry key={exp.id} exp={exp}
+            companyColor="#888888" locColor="#aaaaaa" locSep=", "
+            dateColor="#aaaaaa" descColor="#555555"
+            positionWeight={600} descFontSize="11pt" highlightFontSize="11pt" />
+        ))}
+      </>
+    ),
+    education: () => (
+      <>
+        {education.map(edu => (
+          <EduEntry key={edu.id} edu={edu}
+            accentColor="#888888" instSep=", "
+            dateColor="#aaaaaa" gpaColor="#888888" degreeWeight={600} />
+        ))}
+      </>
+    ),
+    projects: () => (
+      <>
+        {projects.map(p => (
+          <div key={p.id} style={{ marginBottom: '8px' }}>
+            <span style={{ fontWeight: 600 }}>{p.name}</span>
+            <RichTextContent html={p.description} style={{ color: '#555555', marginTop: '2px', whiteSpace: 'pre-wrap', fontSize: '11pt' }} />
+            <HighlightList highlights={p.highlights ?? []} color="#555555" fontSize="11pt" />
+            <ProjectTechnologies project={p} color="#555555" />
+          </div>
+        ))}
+      </>
+    ),
+    ...simpleSectionBodies(r, { accent: theme.main, cert: { dateColor: '#aaaaaa' }, lang: { gap: '8px 20px', color: '#555555' }, text: '#555555' }),
   };
 
   return (
@@ -125,7 +74,7 @@ export function MinimalLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_M
           <ContactRow items={contactItems(p)} />
         </div>
       </div>
-      {sectionOrder.map(key => renderSection(key))}
+      <ResumeSections r={r} bodies={bodies} titleKeys={{ coreHighlights: 'highlightsMinimal' }} renderSection={(title, body) => <MinimalSection title={title} theme={theme}>{body}</MinimalSection>} />
     </div>
   );
 }

@@ -4,27 +4,31 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, ChevronDown, Database, FileJson, FileText, PanelRight, Redo2, Save, Undo2, Upload } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import toast from 'react-hot-toast';
 import { useResumeStore } from '../store/resumeStore';
 import type { Resume } from '../types/resume';
 import type { OptimizationSession, OptimizationSuggestion } from '../types/ai';
+import type { JobApplication } from '../types/jobApplication';
 import ResumeEditor from '../components/resume/ResumeEditor';
 import ResumePreview from '../components/resume/ResumePreview';
-import { applyFieldCorrection } from '../services/ai/proofreader';
 import PDFImport, { type PDFImportHandle } from '../components/resume/PDFImport';
 import Button from '../components/ui/Button';
 import HoverMenu from '../components/ui/HoverMenu';
 import Input from '../components/ui/Input';
-import { richTextToPlainText } from '../lib/richText';
-import { revisionHistory, type ResumeRevision } from '../services/storage/revisionHistory';
-import { jobApplicationDB } from '../services/storage/jobApplications';
-import { resumeDB, scoreSnapshotDB } from '../services/storage/indexedDB';
+import { applyFieldCorrection } from '../services/ai/proofreader';
+import { applySuggestion } from '../services/ai/applySuggestion';
+import { jobApplicationDB, resumeDB, scoreSnapshotDB } from '../services/storage/indexedDB';
 import { runAtsCheck } from '../services/ats/atsChecker';
-import { fromJsonResume, isJsonResume, toJsonResume } from '../services/jsonResume';
-import type { JobApplication } from '../types/jobApplication';
-import toast from 'react-hot-toast';
+import { toJsonResume } from '../services/jsonResume';
+import { exportAllResumes, importResumeFile } from '../services/resumeBackup';
+import { downloadJson } from '../lib/download';
+import { describeValidationError } from '../lib/resumeSchema';
 import { DragDivider } from './editor/DragDivider';
 import { usePanelResize } from './editor/usePanelResize';
 import { SidePanel, type PanelId, type EditorJobContext } from './editor/SidePanel';
+import { useResumeHistory } from './editor/useResumeHistory';
+import { useAutosave } from './editor/useAutosave';
+import { useEditorShortcuts } from './editor/useEditorShortcuts';
 
 interface ResumeChangeOptions {
   historyLabel?: string;
@@ -32,7 +36,11 @@ interface ResumeChangeOptions {
   skipHistory?: boolean;
 }
 
-const HISTORY_COALESCE_MS = 1200;
+const SAVE_ERROR_TOAST_ID = 'resume-save-failed';
+
+/** Run low-priority work when the main thread is idle (ATS scoring after a save). */
+const whenIdle = (fn: () => void) =>
+  typeof requestIdleCallback === 'function' ? requestIdleCallback(fn, { timeout: 2000 }) : setTimeout(fn, 0);
 
 export default function EditorPage() {
   const searchParams = useSearchParams();
@@ -41,6 +49,7 @@ export default function EditorPage() {
   const { t } = useTranslation();
   const { currentResume, loadResume, saveResume, saveOptimization } = useResumeStore();
   const [localResume, setLocalResume] = useState<Resume | null>(null);
+  const resumeRef = useRef<Resume | null>(null);
   const [sidePanel, setSidePanel] = useState<PanelId | null>(null);
   const [lastPanel, setLastPanel] = useState<PanelId>('ai');
   const [jobContext, setJobContext] = useState<EditorJobContext>({ jobTitle: '', company: '', jobDescription: '', jobUrl: '' });
@@ -48,363 +57,210 @@ export default function EditorPage() {
   const [saving, setSaving] = useState(false);
   const [exportingData, setExportingData] = useState(false);
   const [importingData, setImportingData] = useState(false);
-  const pdfImportRef = useRef<PDFImportHandle>(null);
-  const [hasUnsaved, setHasUnsaved] = useState(false);
-  const importFileRef = useRef<HTMLInputElement>(null);
   const [editingName, setEditingName] = useState(false);
-  const [undoStack, setUndoStack] = useState<ResumeRevision[]>([]);
-  const [redoStack, setRedoStack] = useState<ResumeRevision[]>([]);
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
-  const lastHistoryPushRef = useRef(0);
+  const pdfImportRef = useRef<PDFImportHandle>(null);
+  const importFileRef = useRef<HTMLInputElement>(null);
   const loadedResumeIdRef = useRef<string | null>(null);
 
   const { leftWidthPct, aiWidthPx, draggingPanel, containerRef, startDrag } = usePanelResize();
+  const { undoStack, redoStack, record, undo, redo } = useResumeHistory(localResume?.id ?? null);
 
-  useEffect(() => {
-    if (id) loadResume(id);
-  }, [id, loadResume]);
-
-  const refreshJobApplications = useCallback((resumeId?: string) => {
-    const targetId = resumeId ?? localResume?.id;
-    if (!targetId) return;
-    setJobApplications(jobApplicationDB.getByResume(targetId));
-  }, [localResume?.id]);
-
-  useEffect(() => {
-    if (currentResume) {
-      if (loadedResumeIdRef.current === currentResume.id) return;
-      loadedResumeIdRef.current = currentResume.id;
-      setLocalResume(currentResume);
-      setUndoStack(revisionHistory.get(currentResume.id));
-      setRedoStack([]);
-      lastHistoryPushRef.current = 0;
-      setJobContext(context => ({
-        ...context,
-        jobTitle: context.jobTitle || currentResume.targetJob || '',
-      }));
-      refreshJobApplications(currentResume.id);
-      scoreSnapshotDB.recordIfChanged(currentResume.id, runAtsCheck(currentResume));
-    }
-  }, [currentResume, refreshJobApplications]);
-
-  // Autosave with debounce
-  const scheduleSave = useCallback((updated: Resume) => {
-    setLocalResume(updated);
-    setHasUnsaved(true);
-
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    saveTimerRef.current = setTimeout(async () => {
-      try {
-        await saveResume(updated);
-        setHasUnsaved(false);
-        scoreSnapshotDB.recordIfChanged(updated.id, runAtsCheck(updated));
-      } catch {
-        // Silent autosave failure
-      }
-    }, 1500);
+  const persist = useCallback(async (resume: Resume) => {
+    await saveResume(resume);
+    whenIdle(() => { void scoreSnapshotDB.recordIfChanged(resume.id, runAtsCheck(resume)).catch(() => {}); });
   }, [saveResume]);
 
-  // Autosave with debounce and bounded local revision history
+  const { schedule, flush, status: saveStatus, hasUnsaved } = useAutosave(persist, {
+    onError: () => toast.error(t('app.autosave.failed'), { id: SAVE_ERROR_TOAST_ID }),
+  });
+
+  const refreshJobApplications = useCallback(async (resumeId: string) => {
+    try {
+      setJobApplications(await jobApplicationDB.getByResume(resumeId));
+    } catch {
+      setJobApplications([]);
+    }
+  }, []);
+
+  // Switching resumes: save the one being left before loading the next.
+  useEffect(() => {
+    if (!id) return;
+    void flush().then(() => loadResume(id));
+  }, [id, loadResume, flush]);
+
+  useEffect(() => {
+    if (!currentResume || loadedResumeIdRef.current === currentResume.id) return;
+    loadedResumeIdRef.current = currentResume.id;
+    resumeRef.current = currentResume;
+    setLocalResume(currentResume);
+    setJobContext(context => ({ ...context, jobTitle: context.jobTitle || currentResume.targetJob || '' }));
+    void refreshJobApplications(currentResume.id);
+    whenIdle(() => { void scoreSnapshotDB.recordIfChanged(currentResume.id, runAtsCheck(currentResume)).catch(() => {}); });
+  }, [currentResume, refreshJobApplications]);
+
+  const applyResume = useCallback((next: Resume) => {
+    resumeRef.current = next;
+    setLocalResume(next);
+    schedule(next);
+  }, [schedule]);
+
   const handleResumeChange = useCallback((updated: Resume, options: ResumeChangeOptions = {}) => {
-    setLocalResume(current => {
-      if (!current || options.skipHistory) return updated;
-
-      const now = Date.now();
-      const shouldPush =
-        options.forceHistory ||
-        redoStack.length > 0 ||
-        undoStack.length === 0 ||
-        now - lastHistoryPushRef.current > HISTORY_COALESCE_MS;
-
-      if (shouldPush) {
-        const nextHistory = revisionHistory.push(current, options.historyLabel ?? 'Edit', undoStack);
-        setUndoStack(nextHistory);
-        setRedoStack([]);
-        lastHistoryPushRef.current = now;
-      }
-
-      return updated;
-    });
-    scheduleSave(updated);
-  }, [redoStack.length, scheduleSave, undoStack]);
+    const current = resumeRef.current;
+    if (current && !options.skipHistory) {
+      record(current, options.historyLabel ?? 'Edit', options.forceHistory);
+    }
+    applyResume(updated);
+  }, [applyResume, record]);
 
   const handleManualSave = useCallback(async () => {
-    if (!localResume) return;
+    const current = resumeRef.current;
+    if (!current) return;
     setSaving(true);
-    try {
-      await saveResume(localResume);
-      setHasUnsaved(false);
-      scoreSnapshotDB.recordIfChanged(localResume.id, runAtsCheck(localResume));
-      toast.success(t('editor.toast.saved'));
-    } catch {
-      toast.error(t('editor.toast.saveFailed'));
-    } finally {
-      setSaving(false);
-    }
-  }, [localResume, saveResume, t]);
+    schedule(current);
+    const ok = await flush();
+    setSaving(false);
+    if (ok) toast.success(t('editor.toast.saved'));
+    else toast.error(t('editor.toast.saveFailed'), { id: SAVE_ERROR_TOAST_ID });
+  }, [schedule, flush, t]);
 
-  const handleExportIndexedDBData = useCallback(async () => {
+  const handleUndo = useCallback(() => {
+    const current = resumeRef.current;
+    if (!current) return;
+    const revision = undo(current);
+    if (!revision) return;
+    applyResume(revision.resume);
+    toast.success(t('app.history.undid', { label: revision.label }));
+  }, [applyResume, undo, t]);
+
+  const handleRedo = useCallback(() => {
+    const current = resumeRef.current;
+    if (!current) return;
+    const revision = redo(current);
+    if (!revision) return;
+    applyResume(revision.resume);
+    toast.success(t('app.history.redid'));
+  }, [applyResume, redo, t]);
+
+  useEditorShortcuts({ save: handleManualSave, undo: handleUndo, redo: handleRedo });
+
+  const handleExportAllData = useCallback(async () => {
     setExportingData(true);
     try {
-      if (localResume && hasUnsaved) {
-        await saveResume(localResume);
-        setHasUnsaved(false);
-      }
-
-      const resumes = await resumeDB.getAll();
-      const exportedAt = new Date().toISOString();
-      const payload = {
-        app: 'SmartCV',
-        schemaVersion: 1,
-        exportedAt,
-        source: 'indexeddb',
-        resumes,
-      };
-      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `smartcv-indexeddb-resumes-${exportedAt.slice(0, 10)}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-      toast.success(`Exported ${resumes.length} resume${resumes.length === 1 ? '' : 's'}`);
+      await flush();
+      const count = await exportAllResumes();
+      toast.success(t('app.data.exported', { count }));
     } catch {
-      toast.error('Failed to export IndexedDB resume data');
+      toast.error(t('app.data.exportFailed'));
     } finally {
       setExportingData(false);
     }
-  }, [hasUnsaved, localResume, saveResume]);
+  }, [flush, t]);
 
   const handleImportData = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
     e.target.value = '';
+    if (!file) return;
     setImportingData(true);
     try {
-      const text = await file.text();
-      const payload = JSON.parse(text);
-
-      // SmartCV native backup (array of resumes)
-      if (payload?.app === 'SmartCV' && Array.isArray(payload.resumes)) {
-        const resumes: Resume[] = payload.resumes;
-        await Promise.all(resumes.map(r => resumeDB.save(r)));
-        toast.success(`Imported ${resumes.length} resume${resumes.length === 1 ? '' : 's'}`);
-        return;
+      const result = await importResumeFile(file);
+      if (result.kind === 'backup') {
+        if (result.imported === 0) toast.error(t('app.data.nothingValid'));
+        else toast.success([t('app.data.imported', { count: result.imported }), result.skipped ? t('app.data.skipped', { count: result.skipped }) : ''].join(' ').trim());
+      } else if (result.kind === 'jsonResume') {
+        toast.success(t('app.data.importedJsonResume'));
+        router.push(`/editor?id=${encodeURIComponent(result.resume.id)}`);
+      } else {
+        toast.error(t('app.data.unrecognised'));
       }
-
-      // JSON Resume standard (jsonresume.org)
-      if (isJsonResume(payload)) {
-        const importedName = payload.basics?.name ? `${payload.basics.name} (JSON Resume)` : file.name.replace(/\.json$/i, '');
-        const converted = fromJsonResume(payload, importedName);
-        await resumeDB.save(converted);
-        toast.success('JSON Resume imported');
-        router.push(`/editor?id=${encodeURIComponent(converted.id)}`);
-        return;
-      }
-
-      toast.error('Unrecognised file — expected a SmartCV export or JSON Resume');
-    } catch {
-      toast.error('Failed to import data');
+    } catch (error) {
+      toast.error(t('app.data.importFailed', { reason: describeValidationError(error) }));
     } finally {
       setImportingData(false);
     }
-  }, [router]);
+  }, [router, t]);
 
   const handleExportJsonResume = useCallback(() => {
-    if (!localResume) return;
-    const payload = toJsonResume(localResume);
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${(localResume.name || 'resume').replace(/[^\w.-]+/g, '-')}.jsonresume.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success('Exported JSON Resume');
-  }, [localResume]);
-
-  const handleUndo = useCallback(() => {
-    if (!localResume || undoStack.length === 0) return;
-
-    const [revision, ...remaining] = undoStack;
-    const redoRevision: ResumeRevision = {
-      id: crypto.randomUUID(),
-      resumeId: localResume.id,
-      label: 'Redo point',
-      createdAt: new Date().toISOString(),
-      resume: JSON.parse(JSON.stringify(localResume)) as Resume,
-    };
-    setUndoStack(revisionHistory.replace(localResume.id, remaining));
-    setRedoStack(stack => [redoRevision, ...stack].slice(0, 30));
-    lastHistoryPushRef.current = Date.now();
-    scheduleSave(revision.resume);
-    toast.success(`Undid: ${revision.label}`);
-  }, [localResume, undoStack, scheduleSave]);
-
-  const handleRedo = useCallback(() => {
-    if (!localResume || redoStack.length === 0) return;
-
-    const [revision, ...remaining] = redoStack;
-    const nextUndo = revisionHistory.push(localResume, 'Undo point', undoStack);
-    setUndoStack(nextUndo);
-    setRedoStack(remaining);
-    lastHistoryPushRef.current = Date.now();
-    scheduleSave(revision.resume);
-    toast.success('Redid change');
-  }, [localResume, redoStack, scheduleSave, undoStack]);
+    const current = resumeRef.current;
+    if (!current) return;
+    downloadJson(toJsonResume(current), `${(current.name || 'resume').replace(/[^\w.-]+/g, '-')}.jsonresume.json`);
+    toast.success(t('app.data.exportedJsonResume'));
+  }, [t]);
 
   const handleCreateJobVersion = useCallback(async () => {
-    if (!localResume) return;
+    const current = resumeRef.current;
+    if (!current) return;
     const role = jobContext.jobTitle.trim();
     const company = jobContext.company.trim();
     if (!role && !company) {
-      toast.error('Add a role or company first.');
+      toast.error(t('app.jobs.needRoleOrCompany'));
       return;
     }
 
+    await flush();
     const now = new Date().toISOString();
     const applicationId = crypto.randomUUID();
     const versionResumeId = crypto.randomUUID();
-    const baseResumeId = localResume.baseResumeId ?? localResume.id;
-    const versionName = [company, role].filter(Boolean).join(' - ') || 'Job-specific Resume';
-    const version: Resume = {
-      ...JSON.parse(JSON.stringify(localResume)) as Resume,
-      id: versionResumeId,
-      name: versionName,
-      baseResumeId,
-      jobApplicationId: applicationId,
-      versionLabel: versionName,
-      targetJob: role,
-      createdAt: now,
-      updatedAt: now,
-    };
-    const application: JobApplication = {
-      id: applicationId,
-      baseResumeId,
-      versionResumeId,
-      role,
-      company,
-      jobUrl: jobContext.jobUrl.trim() || undefined,
-      jobDescription: jobContext.jobDescription.trim() || undefined,
-      status: 'draft',
-      exportHistory: [],
-      createdAt: now,
-      updatedAt: now,
-    };
+    const baseResumeId = current.baseResumeId ?? current.id;
+    const versionName = [company, role].filter(Boolean).join(' - ') || t('app.jobs.defaultVersionName');
 
-    await resumeDB.save(version);
-    jobApplicationDB.save(application);
-    toast.success('Job-specific resume version created');
+    await resumeDB.createVersion(
+      {
+        ...structuredClone(current),
+        id: versionResumeId,
+        name: versionName,
+        baseResumeId,
+        jobApplicationId: applicationId,
+        versionLabel: versionName,
+        targetJob: role,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: applicationId,
+        baseResumeId,
+        versionResumeId,
+        role,
+        company,
+        jobUrl: jobContext.jobUrl.trim() || undefined,
+        jobDescription: jobContext.jobDescription.trim() || undefined,
+        status: 'draft',
+        exportHistory: [],
+        createdAt: now,
+        updatedAt: now,
+      },
+    );
+    toast.success(t('app.jobs.versionCreated'));
     router.push(`/editor?id=${encodeURIComponent(versionResumeId)}`);
-  }, [jobContext, localResume, router]);
+  }, [flush, jobContext, router, t]);
 
-  const handleResumeExport = useCallback((filename: string) => {
-    if (!localResume?.jobApplicationId) return;
-    jobApplicationDB.addExport(localResume.jobApplicationId, {
+  const handleResumeExport = useCallback(async (filename: string) => {
+    const current = resumeRef.current;
+    if (!current?.jobApplicationId) return;
+    await jobApplicationDB.addExport(current.jobApplicationId, {
       id: crypto.randomUUID(),
       exportedAt: new Date().toISOString(),
       filename,
       format: 'pdf',
     });
-    refreshJobApplications(localResume.id);
-  }, [localResume, refreshJobApplications]);
-
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 's') {
-        e.preventDefault();
-        handleManualSave();
-      }
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
-        e.preventDefault();
-        handleUndo();
-      }
-      if ((e.metaKey || e.ctrlKey) && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) {
-        e.preventDefault();
-        handleRedo();
-      }
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [handleManualSave, handleUndo, handleRedo]);
+    await refreshJobApplications(current.id);
+  }, [refreshJobApplications]);
 
   const handleApplySuggestion = useCallback((suggestion: OptimizationSuggestion) => {
-    if (!localResume || !suggestion.improvedText) return;
-
-    let updated = { ...localResume };
-    let applied = false;
-
-    switch (suggestion.type) {
-      case 'summary':
-        updated = { ...updated, summary: suggestion.improvedText };
-        applied = true;
-        break;
-      case 'experience': {
-        if (suggestion.originalText) {
-          const newExperience = updated.experience.map(exp => {
-            if (richTextToPlainText(exp.description).includes(suggestion.originalText!)) {
-              return { ...exp, description: suggestion.improvedText! };
-            }
-            const updatedHighlights = exp.highlights.map(h =>
-              richTextToPlainText(h).includes(suggestion.originalText!) ? suggestion.improvedText! : h
-            );
-            if (updatedHighlights.some((h, i) => h !== exp.highlights[i])) {
-              return { ...exp, highlights: updatedHighlights };
-            }
-            return exp;
-          });
-          if (newExperience.some((e, i) => e !== updated.experience[i])) {
-            updated = { ...updated, experience: newExperience };
-            applied = true;
-          }
-        }
-        break;
-      }
-      case 'skills': {
-        if (suggestion.originalText) {
-          const newSkills = updated.skills.map(skill => {
-            const skillText = skill.items.join(', ');
-            const categoryPrefix = skill.category ? `${skill.category}:` : null;
-            const isMatch =
-              skillText === suggestion.originalText ||
-              (categoryPrefix !== null && suggestion.originalText!.startsWith(categoryPrefix));
-            if (isMatch) {
-              let improvedContent = suggestion.improvedText!;
-              if (categoryPrefix && improvedContent.startsWith(categoryPrefix)) {
-                improvedContent = improvedContent.slice(categoryPrefix.length).trim();
-              }
-              const newItems = improvedContent
-                .split(',')
-                .map(s => s.trim())
-                .filter(Boolean);
-              return { ...skill, items: newItems };
-            }
-            return skill;
-          });
-          if (newSkills.some((s, i) => s !== updated.skills[i])) {
-            updated = { ...updated, skills: newSkills };
-            applied = true;
-          }
-        }
-        break;
-      }
-      default:
-        break;
-    }
-
-    if (applied) {
-      handleResumeChange(updated, { forceHistory: true, historyLabel: 'AI suggestion' });
-      toast.success(t('editor.toast.suggestionApplied'));
-    }
-  }, [localResume, handleResumeChange, t]);
+    const current = resumeRef.current;
+    if (!current) return;
+    const updated = applySuggestion(current, suggestion);
+    if (!updated) return;
+    handleResumeChange(updated, { forceHistory: true, historyLabel: 'AI suggestion' });
+    toast.success(t('editor.toast.suggestionApplied'));
+  }, [handleResumeChange, t]);
 
   const handleSessionSaved = useCallback(async (session: OptimizationSession) => {
     await saveOptimization(session);
   }, [saveOptimization]);
 
   const handleApplyProofreadFixes = useCallback((fixes: { fieldKey: string; correctedText: string }[]) => {
-    if (!localResume) return 0;
-    let updated = localResume;
+    let updated = resumeRef.current;
+    if (!updated) return 0;
     let applied = 0;
     for (const fix of fixes) {
       const next = applyFieldCorrection(updated, fix.fieldKey, fix.correctedText);
@@ -413,22 +269,19 @@ export default function EditorPage() {
         applied += 1;
       }
     }
-    if (applied > 0) {
-      handleResumeChange(updated, { forceHistory: true, historyLabel: 'Proofread fix' });
-    }
+    if (applied > 0) handleResumeChange(updated, { forceHistory: true, historyLabel: 'Proofread fix' });
     return applied;
-  }, [localResume, handleResumeChange]);
+  }, [handleResumeChange]);
 
   const handleFillFromPDF = useCallback((parsed: Resume) => {
-    if (!localResume) return;
-    handleResumeChange({
-      ...parsed,
-      id: localResume.id,
-      name: localResume.name,
-      createdAt: localResume.createdAt,
-    }, { forceHistory: true, historyLabel: 'PDF import' });
+    const current = resumeRef.current;
+    if (!current) return;
+    handleResumeChange(
+      { ...parsed, id: current.id, name: current.name, createdAt: current.createdAt },
+      { forceHistory: true, historyLabel: 'PDF import' },
+    );
     toast.success(t('editor.toast.filledFromPdf'));
-  }, [localResume, handleResumeChange, t]);
+  }, [handleResumeChange, t]);
 
   const handleJobContextChange = useCallback((updates: Partial<EditorJobContext>) => {
     setJobContext(context => ({ ...context, ...updates }));
@@ -482,9 +335,9 @@ export default function EditorPage() {
         )}
 
         {hasUnsaved && (
-          <span className="text-xs text-amber-500 dark:text-amber-400 flex items-center gap-1 ml-1">
-            <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
-            {t('editor.unsaved')}
+          <span className={`text-xs flex items-center gap-1 ml-1 ${saveStatus === 'error' ? 'text-red-500 dark:text-red-400' : 'text-amber-500 dark:text-amber-400'}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${saveStatus === 'error' ? 'bg-red-500' : 'bg-amber-500 animate-pulse'}`} />
+            {saveStatus === 'error' ? t('app.autosave.notSaved') : t('editor.unsaved')}
           </span>
         )}
 
@@ -519,21 +372,21 @@ export default function EditorPage() {
                 label: t('editor.importFromPdf'),
                 icon: <FileText className="w-3.5 h-3.5 text-emerald-500" />,
                 onClick: () => pdfImportRef.current?.open(),
-                title: 'Extract resume content from a PDF into this resume',
+                title: t('app.importMenu.pdfTitle'),
               },
               {
                 label: t('editor.importAllData'),
                 icon: <Database className="w-3.5 h-3.5 text-amber-500" />,
                 onClick: () => importFileRef.current?.click(),
                 loading: importingData,
-                title: 'Restore resumes from a SmartCV export (.json)',
+                title: t('app.importMenu.backupTitle'),
               },
               {
                 label: t('editor.importJsonResume'),
                 icon: <FileJson className="w-3.5 h-3.5 text-sky-500" />,
                 onClick: () => importFileRef.current?.click(),
                 loading: importingData,
-                title: 'Import a resume in the JSON Resume standard (.json)',
+                title: t('app.importMenu.jsonResumeTitle'),
               },
             ]}
           />
@@ -542,7 +395,7 @@ export default function EditorPage() {
             size="icon"
             onClick={handleUndo}
             disabled={undoStack.length === 0}
-            title={undoStack[0] ? `Undo ${undoStack[0].label}` : 'Undo'}
+            title={undoStack[0] ? t('app.history.undoLabel', { label: undoStack[0].label }) : t('app.history.undo')}
           >
             <Undo2 className="w-4 h-4" />
           </Button>
@@ -551,7 +404,7 @@ export default function EditorPage() {
             size="icon"
             onClick={handleRedo}
             disabled={redoStack.length === 0}
-            title="Redo"
+            title={t('app.history.redo')}
           >
             <Redo2 className="w-4 h-4" />
           </Button>
@@ -560,10 +413,10 @@ export default function EditorPage() {
             size="sm"
             onClick={togglePanel}
             className="gap-1.5"
-            title="AI tools: optimize, ATS, cover letter, interview prep, mock interview, job versions, translate, follow-up email, proofread"
+            title={t('app.tools.title')}
           >
             <PanelRight className="w-3.5 h-3.5 text-emerald-500" />
-            {sidePanel ? 'Hide Tools' : 'Tools'}
+            {sidePanel ? t('app.tools.hide') : t('app.tools.show')}
           </Button>
           <Button
             size="sm"
@@ -594,7 +447,7 @@ export default function EditorPage() {
             resume={localResume}
             onChange={handleResumeChange}
             onExport={handleResumeExport}
-            onExportData={handleExportIndexedDBData}
+            onExportData={handleExportAllData}
             onExportJsonResume={handleExportJsonResume}
             exportingData={exportingData}
           />

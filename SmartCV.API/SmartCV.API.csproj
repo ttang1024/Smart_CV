@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <PackageReference Include="PuppeteerSharp" Version="24.40.0" />
-    <PackageReference Include="UglyToad.PdfPig" Version="1.7.0-custom-5" />
   </ItemGroup>
 
 </Project>

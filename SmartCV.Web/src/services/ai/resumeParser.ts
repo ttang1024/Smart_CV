@@ -1,7 +1,6 @@
 import type { AIProviderType } from '../../types/ai';
-import type { Resume } from '../../types/resume';
-import { chatWithAI } from './aiService';
-import { generateId } from '../../lib/utils';
+import { chatWithAI } from './chatClient';
+import { parseAIJson } from '../../lib/aiJson';
 
 /**
  * LinkedIn "Save to PDF" exports have a fixed shape (Contact / Top Skills
@@ -20,13 +19,15 @@ NOTE: This text comes from a LinkedIn profile "Save to PDF" export. Handle its q
 - A line with only a number after a company name is usually the employment count or duration, not a job title.
 - The "Summary" section maps to summary; "Honors-Awards" maps to achievements; "Certifications" maps to certifications.`;
 
-export async function parseResumeFromText(
-  provider: AIProviderType,
-  apiKey: string,
-  model: string,
+/**
+ * Ask the user's AI provider to structure raw resume text. Returns the parsed JSON
+ * payload; map it with `toResume` from services/pdf/parsedResume.
+ */
+export async function structureResumeWithAI(
+  config: { provider: AIProviderType; apiKey: string; model: string },
   rawText: string,
-  fileName: string
-): Promise<Resume> {
+): Promise<Record<string, unknown>> {
+  const { provider, apiKey, model } = config;
   const linkedInHint = isLinkedInExport(rawText) ? LINKEDIN_HINT : '';
   const content = await chatWithAI({
     provider,
@@ -150,110 +151,5 @@ Rules:
     ]
   });
 
-  const jsonMatch = content.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) throw new Error('AI returned no parseable JSON');
-
-  const parsed = JSON.parse(jsonMatch[0]);
-
-  // Derive a resume name from the file or full name
-  const resName = parsed.personalInfo?.fullName
-    ? `${parsed.personalInfo.fullName}'s Resume`
-    : fileName.replace(/\.pdf$/i, '');
-
-  return {
-    id: generateId(),
-    name: resName,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    personalInfo: {
-      fullName: parsed.personalInfo?.fullName ?? '',
-      email: parsed.personalInfo?.email ?? '',
-      phone: parsed.personalInfo?.phone ?? '',
-      location: parsed.personalInfo?.location ?? '',
-      title: parsed.personalInfo?.title ?? '',
-      linkedin: parsed.personalInfo?.linkedin ?? undefined,
-      github: parsed.personalInfo?.github ?? undefined,
-      website: parsed.personalInfo?.website ?? undefined
-    },
-    summary: parsed.summary ?? '',
-    experience: (parsed.experience ?? []).map((e: Record<string, unknown>) => ({
-      id: generateId(),
-      company: String(e.company ?? ''),
-      position: String(e.position ?? ''),
-      location: String(e.location ?? ''),
-      startDate: String(e.startDate ?? ''),
-      endDate: e.current ? undefined : String(e.endDate ?? ''),
-      current: Boolean(e.current),
-      description: String(e.description ?? ''),
-      highlights: Array.isArray(e.highlights) ? e.highlights.map(String) : [],
-      projects: Array.isArray(e.projects) ? e.projects.map((project: Record<string, unknown>) => ({
-        id: generateId(),
-        name: String(project.name ?? ''),
-        url: project.url ? String(project.url) : undefined,
-        description: project.description ? String(project.description) : undefined,
-        highlights: Array.isArray(project.highlights) ? project.highlights.map(String) : []
-      })) : [],
-      productLinks: Array.isArray(e.productLinks) ? e.productLinks.map(String) : []
-    })),
-    education: (parsed.education ?? []).map((e: Record<string, unknown>) => ({
-      id: generateId(),
-      institution: String(e.institution ?? ''),
-      degree: String(e.degree ?? ''),
-      field: String(e.field ?? ''),
-      location: String(e.location ?? ''),
-      startDate: String(e.startDate ?? ''),
-      endDate: e.current ? undefined : String(e.endDate ?? ''),
-      current: Boolean(e.current),
-      gpa: e.gpa ? String(e.gpa) : undefined,
-      honors: e.honors ? String(e.honors) : undefined
-    })),
-    skills: (parsed.skills ?? []).map((s: Record<string, unknown>) => ({
-      id: generateId(),
-      category: String(s.category ?? ''),
-      items: Array.isArray(s.items) ? s.items.map(String) : []
-    })),
-    projects: (parsed.projects ?? []).map((p: Record<string, unknown>) => ({
-      id: generateId(),
-      name: String(p.name ?? ''),
-      description: String(p.description ?? ''),
-      technologies: Array.isArray(p.technologies) ? p.technologies.map(String) : [],
-      url: p.url ? String(p.url) : undefined,
-      github: p.github ? String(p.github) : undefined
-    })),
-    certifications: (parsed.certifications ?? []).map((c: Record<string, unknown>) => ({
-      id: generateId(),
-      name: String(c.name ?? ''),
-      issuer: String(c.issuer ?? ''),
-      date: String(c.date ?? ''),
-      expiryDate: c.expiryDate ? String(c.expiryDate) : undefined,
-      credentialId: c.credentialId ? String(c.credentialId) : undefined
-    })),
-    languages: (parsed.languages ?? []).map((l: Record<string, unknown>) => ({
-      id: generateId(),
-      language: String(l.language ?? ''),
-      proficiency: (['Native', 'Fluent', 'Advanced', 'Intermediate', 'Basic'].includes(String(l.proficiency))
-        ? l.proficiency
-        : 'Intermediate') as 'Native' | 'Fluent' | 'Advanced' | 'Intermediate' | 'Basic'
-    })),
-    interests: (parsed.interests ?? []).map((name: unknown) => ({
-      id: generateId(),
-      name: String(name ?? '')
-    })),
-    achievements: (parsed.achievements ?? []).map((a: Record<string, unknown>) => ({
-      id:          generateId(),
-      title:       String(a.title ?? ''),
-      issuer:      a.issuer      ? String(a.issuer)      : undefined,
-      date:        a.date        ? String(a.date)        : undefined,
-      description: a.description ? String(a.description) : undefined,
-    })),
-    referees: (parsed.referees ?? []).map((ref: Record<string, unknown>) => ({
-      id:      generateId(),
-      name:    String(ref.name    ?? ''),
-      title:   ref.title   ? String(ref.title)   : undefined,
-      company: ref.company ? String(ref.company) : undefined,
-      email:   ref.email   ? String(ref.email)   : undefined,
-      phone:   ref.phone   ? String(ref.phone)   : undefined,
-    })),
-    coreHighlights: []
-  };
+  return parseAIJson<Record<string, unknown>>(content);
 }

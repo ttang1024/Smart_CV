@@ -6,21 +6,8 @@ public record AIProxyRequest(
     string Model,
     List<AIMessage> Messages,
     double Temperature = 0.7,
-    bool Stream = false,
-    string? ResponseLanguage = null
+    string? ResponseLanguage = null,
+    int? MaxTokens = null
 );
 
 public record AIMessage(string Role, string Content);
-
-public enum AIProvider
-{
-    OpenAI,
-    Gemini,
-    Claude,
-    Grok,
-    DeepSeek,
-    Qianwen,
-    Kimi,
-    Doubao,
-    Wenyanyixin
-}

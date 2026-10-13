@@ -114,10 +114,46 @@ function sanitizeNode(node: Node, doc: Document): Node | null {
 	return clean
 }
 
+/**
+ * Without a DOM (static prerender), keep only allow-listed tags, drop all attributes and
+ * escape everything else. Stricter than the DOM path, which also keeps safe styles.
+ */
+function sanitizeWithoutDom(value: string): string {
+	const escape = (text: string) => text.replace(/</g, '&lt;').replace(/>/g, '&gt;')
+	return value
+		.replace(/<(script|style|iframe|object|embed)\b[\s\S]*?<\/\1\s*>/gi, '')
+		.split(/(<[^<>]*>)/g)
+		.map(part => {
+			const tag = /^<(\/?)([a-zA-Z][a-zA-Z0-9]*)\b[^>]*>$/.exec(part)
+			if (!tag) return escape(part)
+			const name = tag[2].toLowerCase()
+			if (!ALLOWED_TAGS.has(name.toUpperCase())) return ''
+			return name === 'br' ? '<br>' : `<${tag[1]}${name}>`
+		})
+		.join('')
+}
+
+// Rich text is re-rendered constantly (every keystroke, every layout), and the same
+// strings recur, so sanitized output is memoised.
+const SANITIZE_CACHE_LIMIT = 1000
+const sanitizeCache = new Map<string, string>()
+
 export function sanitizeRichText(value: string): string {
 	if (!value.trim()) return ''
-	if (typeof DOMParser === 'undefined' || typeof document === 'undefined') return value
+	if (typeof DOMParser === 'undefined' || typeof document === 'undefined') return sanitizeWithoutDom(value)
 
+	const cached = sanitizeCache.get(value)
+	if (cached !== undefined) return cached
+	const clean = sanitizeWithDom(value)
+	if (sanitizeCache.size >= SANITIZE_CACHE_LIMIT) {
+		const oldest = sanitizeCache.keys().next().value
+		if (oldest !== undefined) sanitizeCache.delete(oldest)
+	}
+	sanitizeCache.set(value, clean)
+	return clean
+}
+
+function sanitizeWithDom(value: string): string {
 	const parser = new DOMParser()
 	const parsed = parser.parseFromString(value, 'text/html')
 	const doc = document.implementation.createHTMLDocument('')
@@ -177,5 +213,13 @@ export function richTextToPlainText(value: string): string {
 }
 
 export function isRichTextEmpty(value: string): boolean {
-	return richTextToPlainText(value).trim().length === 0
+	return !hasVisibleText(sanitizeRichText(value))
+}
+
+/**
+ * Cheap emptiness check for *already sanitized* markup. Sanitized output only contains
+ * allow-listed, attribute-light tags, so stripping tags with a regex is reliable here.
+ */
+export function hasVisibleText(sanitizedHtml: string): boolean {
+	return sanitizedHtml.replace(/<[^>]*>/g, '').replace(/&nbsp;|\u00a0/g, ' ').trim().length > 0
 }

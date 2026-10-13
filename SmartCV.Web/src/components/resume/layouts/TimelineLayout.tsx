@@ -1,146 +1,97 @@
 import { useTranslation } from 'react-i18next';
 import { DEFAULT_PAGE_MARGINS_MM, type LayoutProps, type ThemeColors } from '../resumeTypes';
-import { ContactRow, contactItems, dateRange, EduEntry, CertList, LangList, HighlightList, AchievementRows, InterestsList, RefereesBlock, ProjectTechnologies, ExperienceProjectRows, sectionTitle } from '../resumeShared';
-import { isRichTextEmpty } from '../../../lib/richText';
+import { ContactRow, contactItems, dateRange, EduEntry, HighlightList, ProjectTechnologies, ExperienceProjectRows } from '../resumeShared';
 import { RichTextContent } from '../RichText';
-import { DEFAULT_SECTION_ORDER } from '../../../types/resume';
+import { ResumeSections, simpleSectionBodies, visibleHighlights, type SectionBodies } from './ResumeSections';
 
 export function TimelineLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_MM }: LayoutProps) {
   const { t } = useTranslation();
-  const { personalInfo: p, summary, coreHighlights, experience, education, skills, projects, certifications, languages } = r;
-  const sectionOrder = r.sectionOrder ?? DEFAULT_SECTION_ORDER;
+  const { personalInfo: p, summary, experience, education, skills, projects } = r;
 
-  const renderSection = (key: string) => {
-    switch (key) {
-      case 'summary':
-        return summary ? (
-          <TimelineSection key="summary" title={sectionTitle(r, 'summary', t('resumeLayout.sections.summary'))} theme={theme}>
-            <RichTextContent html={summary} style={{ textAlign: 'justify', color: '#374151', whiteSpace: 'pre-wrap' }} />
-          </TimelineSection>
-        ) : null;
-      case 'coreHighlights':
-        return coreHighlights?.length > 0 ? (
-          <TimelineSection key="coreHighlights" title={sectionTitle(r, 'coreHighlights', t('resumeLayout.sections.coreHighlights'))} theme={theme}>
-            <ul style={{ paddingLeft: '16px', margin: 0, listStyleType: 'disc' }}>
-              {coreHighlights.filter(h => !isRichTextEmpty(h.text)).map(h => (
-                <li key={h.id} style={{ marginBottom: '3px', color: '#374151', fontSize: '11pt' }}><RichTextContent html={h.text} /></li>
-              ))}
-            </ul>
-          </TimelineSection>
-        ) : null;
-      case 'skills':
-        return skills.length > 0 ? (
-          <TimelineSection key="skills" title={sectionTitle(r, 'skills', t('resumeLayout.sections.skills'))} theme={theme}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '4px' }}>
-              {skills.map(s => (
-                <div key={s.id}>
-                  <span style={{ fontWeight: 600 }}>{s.category}: </span>
-                  <span style={{ color: '#374151' }}>{s.items.join(', ')}</span>
-                </div>
-              ))}
+  const bodies: SectionBodies = {
+    summary: () => <RichTextContent html={summary} style={{ textAlign: 'justify', color: '#374151', whiteSpace: 'pre-wrap' }} />,
+    coreHighlights: () => (
+      <ul style={{ paddingLeft: '16px', margin: 0, listStyleType: 'disc' }}>
+        {visibleHighlights(r).map(h => (
+          <li key={h.id} style={{ marginBottom: '3px', color: '#374151', fontSize: '11pt' }}><RichTextContent html={h.text} /></li>
+        ))}
+      </ul>
+    ),
+    skills: () => (
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '4px' }}>
+        {skills.map(s => (
+          <div key={s.id}>
+            <span style={{ fontWeight: 600 }}>{s.category}: </span>
+            <span style={{ color: '#374151' }}>{s.items.join(', ')}</span>
+          </div>
+        ))}
+      </div>
+    ),
+    experience: () => (
+      <>
+        {experience.map((exp, idx) => (
+          <div key={exp.id} style={{ display: 'flex', gap: '0' }}>
+            <div style={{ width: '112px', flexShrink: 0, paddingTop: '3px' }}>
+              {(() => {
+                const range = dateRange(exp.startDate, exp.endDate, exp.current, t('resumeLayout.present'));
+                const [start, end] = range.includes('–') ? range.split('–').map(s => s.trim()) : [range, ''];
+                return (
+                  <div style={{ fontSize: '10pt', fontWeight: 600, color: theme.dark, lineHeight: 1.3 }}>{start} - {end}</div>
+                );
+              })()}
             </div>
-          </TimelineSection>
-        ) : null;
-      case 'experience':
-        return experience.length > 0 ? (
-          <TimelineSection key="experience" title={sectionTitle(r, 'experience', t('resumeLayout.sections.experience'))} theme={theme}>
-            {experience.map((exp, idx) => (
-              <div key={exp.id} style={{ display: 'flex', gap: '0' }}>
-                <div style={{ width: '112px', flexShrink: 0, paddingTop: '3px' }}>
-                  {(() => {
-                    const range = dateRange(exp.startDate, exp.endDate, exp.current, t('resumeLayout.present'));
-                    const [start, end] = range.includes('–') ? range.split('–').map(s => s.trim()) : [range, ''];
-                    return (
-                      <div style={{ fontSize: '10pt', fontWeight: 600, color: theme.dark, lineHeight: 1.3 }}>{start} - {end}</div>
-                    );
-                  })()}
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, width: '20px' }}>
-                  <div style={{
-                    width: '10px', height: '10px', borderRadius: '50%', flexShrink: 0,
-                    background: theme.main, border: '2px solid white',
-                    boxShadow: `0 0 0 2px ${theme.main}`, marginTop: '4px',
-                  }} />
-                  {idx < experience.length - 1 && (
-                    <div style={{ flex: 1, width: '2px', background: theme.light, minHeight: '20px' }} />
-                  )}
-                </div>
-                <div style={{ flex: 1, paddingLeft: '10px', paddingBottom: '16px' }}>
-                  <div>
-                    <span style={{ fontWeight: 700 }}>{exp.position}</span>
-                    {exp.company && <span style={{ color: theme.dark, fontWeight: 500 }}>{exp.position ? ' · ' : ''}{exp.company}</span>}
-                    {exp.location && <span style={{ color: '#6b7280', fontSize: '9pt' }}>{(exp.position || exp.company) ? ' · ' : ''}{exp.location}</span>}
-                  </div>
-                  {exp.description && <RichTextContent html={exp.description} style={{ marginTop: '4px', color: '#374151', fontSize: '10pt', whiteSpace: 'pre-wrap' }} />}
-                  <ExperienceProjectRows projects={exp.projects} color="#374151" />
-                  {(exp.productLinks ?? []).filter(Boolean).length > 0 && (
-                    <p style={{ marginTop: '3px', fontSize: '9pt', color: '#374151', overflowWrap: 'anywhere' }}>
-                      <strong>Product:</strong> {(exp.productLinks ?? []).filter(Boolean).join(' · ')}
-                    </p>
-                  )}
-                  <HighlightList highlights={exp.highlights} color="#374151" fontSize="10pt" />
-                </div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, width: '20px' }}>
+              <div style={{
+                width: '10px', height: '10px', borderRadius: '50%', flexShrink: 0,
+                background: theme.main, border: '2px solid white',
+                boxShadow: `0 0 0 2px ${theme.main}`, marginTop: '4px',
+              }} />
+              {idx < experience.length - 1 && (
+                <div style={{ flex: 1, width: '2px', background: theme.light, minHeight: '20px' }} />
+              )}
+            </div>
+            <div style={{ flex: 1, paddingLeft: '10px', paddingBottom: '16px' }}>
+              <div>
+                <span style={{ fontWeight: 700 }}>{exp.position}</span>
+                {exp.company && <span style={{ color: theme.dark, fontWeight: 500 }}>{exp.position ? ' · ' : ''}{exp.company}</span>}
+                {exp.location && <span style={{ color: '#6b7280', fontSize: '9pt' }}>{(exp.position || exp.company) ? ' · ' : ''}{exp.location}</span>}
               </div>
-            ))}
-          </TimelineSection>
-        ) : null;
-      case 'education':
-        return education.length > 0 ? (
-          <TimelineSection key="education" title={sectionTitle(r, 'education', t('resumeLayout.sections.education'))} theme={theme}>
-            {education.map(edu => (
-              <EduEntry key={edu.id} edu={edu}
-                accentColor={theme.main} dateColor="#6b7280" gpaColor="#4b5563" />
-            ))}
-          </TimelineSection>
-        ) : null;
-      case 'projects':
-        return projects.length > 0 ? (
-          <TimelineSection key="projects" title={sectionTitle(r, 'projects', t('resumeLayout.sections.projects'))} theme={theme}>
-            {projects.map(p => (
-              <div key={p.id} style={{ marginBottom: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-                  <span style={{ fontWeight: 700 }}>{p.name}</span>
-                </div>
-                <RichTextContent html={p.description} style={{ color: '#374151', whiteSpace: 'pre-wrap', fontSize: '11pt' }} />
-                <HighlightList highlights={p.highlights ?? []} color="#374151" fontSize="11pt" />
-                <ProjectTechnologies project={p} color="#374151" />
-              </div>
-            ))}
-          </TimelineSection>
-        ) : null;
-      case 'certifications':
-        return certifications.length > 0 ? (
-          <TimelineSection key="certifications" title={sectionTitle(r, 'certifications', t('resumeLayout.sections.certifications'))} theme={theme}>
-            <CertList items={certifications} dateColor="#6b7280" />
-          </TimelineSection>
-        ) : null;
-      case 'languages':
-        return languages.length > 0 ? (
-          <TimelineSection key="languages" title={sectionTitle(r, 'languages', t('resumeLayout.sections.languages'))} theme={theme}>
-            <LangList items={languages} />
-          </TimelineSection>
-        ) : null;
-      case 'achievements':
-        return (r.achievements ?? []).filter(a => a.title).length > 0 ? (
-          <TimelineSection key="achievements" title={sectionTitle(r, 'achievements', t('resumeLayout.sections.achievements'))} theme={theme}>
-            <AchievementRows achievements={r.achievements} accent={theme.main} />
-          </TimelineSection>
-        ) : null;
-      case 'interests':
-        return (r.interests ?? []).filter(i => i.name).length > 0 ? (
-          <TimelineSection key="interests" title={sectionTitle(r, 'interests', t('resumeLayout.sections.interests'))} theme={theme}>
-            <p style={{ color: '#374151' }}><InterestsList r={r} /></p>
-          </TimelineSection>
-        ) : null;
-      case 'referees':
-        return (r.referees?.length ?? 0) > 0 ? (
-          <TimelineSection key="referees" title={sectionTitle(r, 'referees', t('resumeLayout.sections.referees'))} theme={theme}>
-            <RefereesBlock r={r} />
-          </TimelineSection>
-        ) : null;
-      default:
-        return null;
-    }
+              {exp.description && <RichTextContent html={exp.description} style={{ marginTop: '4px', color: '#374151', fontSize: '10pt', whiteSpace: 'pre-wrap' }} />}
+              <ExperienceProjectRows projects={exp.projects} color="#374151" />
+              {(exp.productLinks ?? []).filter(Boolean).length > 0 && (
+                <p style={{ marginTop: '3px', fontSize: '9pt', color: '#374151', overflowWrap: 'anywhere' }}>
+                  <strong>Product:</strong> {(exp.productLinks ?? []).filter(Boolean).join(' · ')}
+                </p>
+              )}
+              <HighlightList highlights={exp.highlights} color="#374151" fontSize="10pt" />
+            </div>
+          </div>
+        ))}
+      </>
+    ),
+    education: () => (
+      <>
+        {education.map(edu => (
+          <EduEntry key={edu.id} edu={edu}
+            accentColor={theme.main} dateColor="#6b7280" gpaColor="#4b5563" />
+        ))}
+      </>
+    ),
+    projects: () => (
+      <>
+        {projects.map(p => (
+          <div key={p.id} style={{ marginBottom: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+              <span style={{ fontWeight: 700 }}>{p.name}</span>
+            </div>
+            <RichTextContent html={p.description} style={{ color: '#374151', whiteSpace: 'pre-wrap', fontSize: '11pt' }} />
+            <HighlightList highlights={p.highlights ?? []} color="#374151" fontSize="11pt" />
+            <ProjectTechnologies project={p} color="#374151" />
+          </div>
+        ))}
+      </>
+    ),
+    ...simpleSectionBodies(r, { accent: theme.main, cert: { dateColor: '#6b7280' } }),
   };
 
   return (
@@ -154,7 +105,7 @@ export function TimelineLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_
           <ContactRow items={contactItems(p)} />
         </div>
       </div>
-      {sectionOrder.map(key => renderSection(key))}
+      <ResumeSections r={r} bodies={bodies} renderSection={(title, body) => <TimelineSection title={title} theme={theme}>{body}</TimelineSection>} />
     </div>
   );
 }

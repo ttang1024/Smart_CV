@@ -17,20 +17,35 @@ public sealed class SmartCvWebApplicationFactory : WebApplicationFactory<Program
     public FakePdfGenerationService PdfGenerationService { get; } = new();
 
     private readonly Func<HttpRequestMessage, HttpResponseMessage> _aiResponder;
+    private readonly Dictionary<string, string?> _settings = new()
+    {
+        // Integration tests share one client IP; keep the limiter out of the way unless a
+        // test opts in to a low limit.
+        ["RateLimiting:AiPerMinute"] = "1000",
+        ["RateLimiting:PdfPerMinute"] = "1000",
+    };
 
     // xUnit's IClassFixture instantiates fixtures via a plain parameterless constructor, so
     // that form must exist explicitly; tests that need a canned AI response construct the
     // factory directly instead (see AiEndpointsTests).
     public SmartCvWebApplicationFactory() : this(null) { }
 
-    internal SmartCvWebApplicationFactory(Func<HttpRequestMessage, HttpResponseMessage>? aiResponder)
+    internal SmartCvWebApplicationFactory(
+        Func<HttpRequestMessage, HttpResponseMessage>? aiResponder,
+        IDictionary<string, string?>? settings = null)
     {
+        foreach (var (key, value) in settings ?? new Dictionary<string, string?>())
+            _settings[key] = value;
+
         _aiResponder = aiResponder ?? (_ => throw new InvalidOperationException(
             "Test attempted a real outbound AI provider call — configure an aiResponder instead."));
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        foreach (var (key, value) in _settings)
+            builder.UseSetting(key, value);
+
         builder.ConfigureServices(services =>
         {
             // The real hosted service launches/downloads Chromium on startup; tests must

@@ -15,9 +15,9 @@ AI-powered resume builder. Runs entirely in your browser — no account, no clou
 - **Job versions** — fork your resume per role, track application status, and compare against the original
 - **Translation** — translate the whole resume into another language as a new linked copy
 - **9 resume styles** — plus a fully configurable Custom style and live theme colour
-- **Import / export** — PDF import (incl. LinkedIn exports), pixel-perfect PDF export, client-side DOCX export, and [JSON Resume](https://jsonresume.org) interchange
+- **Import / export** — PDF import (incl. LinkedIn exports and scanned PDFs via OCR), pixel-perfect PDF export, client-side DOCX export, and [JSON Resume](https://jsonresume.org) interchange
 - **Private share links** — read-only copy compressed into the URL fragment, with QR code
-- **Fully private** — autosave to IndexedDB, undo/redo history; the only outbound traffic is your own AI API calls
+- **Private by default** — resumes, history and job tracking live in IndexedDB on your device; PDFs are read in the browser. The server only renders PDF exports and relays AI calls made with your own key
 - **Bring your own AI** — OpenAI, Claude, Gemini, Grok, DeepSeek, Qianwen, Kimi, Doubao, or Wenyanyixin
 
 ## Getting Started
@@ -30,7 +30,7 @@ cd SmartCV.API && dotnet run                          # backend → http://local
 cd SmartCV.Web && npm install && npm run dev          # frontend → http://localhost:3000 (second terminal)
 ```
 
-Then add an API key for your preferred AI provider in **Settings**.
+Then add an API key for your preferred AI provider in **Settings**. Keys are stored in your browser's localStorage and sent with each AI request through the API's relay, which never stores or logs them.
 
 **Production build** (one .NET process serves the API and the SPA):
 
@@ -46,12 +46,17 @@ Next.js 16 (static export) + React 19 + TypeScript + Tailwind, with Zustand and 
 
 ```
 Browser (Next.js SSG)
-  │  IndexedDB / localStorage — resumes, settings, history
-  └─ /api ──► .NET 10 Minimal API
-                  ├─ /api/ai/chat      — proxies to AI provider (avoids CORS, hides keys)
-                  ├─ /api/pdf/parse    — extracts sections from uploaded PDFs (PdfPig)
-                  └─ /api/pdf/generate — renders HTML to PDF (Puppeteer/Chromium)
+  │  IndexedDB — resumes, undo history, job applications, score history
+  │  localStorage — settings and API keys
+  │  pdf.js / Tesseract — PDF text extraction and OCR, in the browser
+  └─ /api ──► .NET 10 Minimal API  (rate-limited, CSP + security headers)
+                  ├─ /api/ai/chat        — relays to the chosen AI provider (browsers can't call most provider APIs directly)
+                  ├─ /api/pdf/parse-text — rule-based structuring of extracted resume text (used when AI is off)
+                  ├─ /api/pdf/generate   — renders resume HTML to PDF in a locked-down Chromium page
+                  └─ /api/health
 ```
+
+The PDF renderer disables JavaScript and blocks every network request except inline `data:` URLs, time-boxes each render and limits concurrent renders.
 
 See [`tech/`](tech/) for detailed module documentation.
 
@@ -60,13 +65,15 @@ See [`tech/`](tech/) for detailed module documentation.
 Docker container on AWS App Runner (`ap-southeast-2`), built locally and pushed to Amazon ECR; infrastructure is declared in `aws/cloudformation.yml`. Requires Docker and AWS CLI v2 with permissions for ECR, CloudFormation, IAM, and App Runner.
 
 ```bash
-./deploy.sh [tag]       # full deploy: ECR repo + image + CloudFormation stack
-./deploy-app.sh [tag]   # app only: rebuild image and update the stack (faster)
+./deploy.sh [tag]              # full deploy: ECR repo + image + CloudFormation stack
+./deploy.sh --app-only [tag]   # new image for an existing stack (also: ./deploy-app.sh)
 ```
+
+The stack includes an App Runner health check on `/api/health` and autoscaling.
 
 ## Contributing
 
-Open an issue before submitting a large PR; small fixes can go straight to a PR. Run `npm run lint` in `SmartCV.Web` before opening a PR against `main`.
+Open an issue before submitting a large PR; small fixes can go straight to a PR. CI (`.github/workflows/ci.yml`) runs lint, typecheck, unit and e2e tests, the API tests and a container build on every PR; run `npm run lint && npm test` in `SmartCV.Web` and `dotnet test` at the root before opening one.
 
 ## License
 

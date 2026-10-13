@@ -35,10 +35,27 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess
 
+  AutoScaling:
+    Type: AWS::AppRunner::AutoScalingConfiguration
+    Properties:
+      AutoScalingConfigurationName: !Sub '${AppName}-autoscaling'
+      MinSize: 1
+      MaxSize: !Ref MaxSize
+      # Each instance renders at most 2 PDFs at once; keep per-instance load modest.
+      MaxConcurrency: 50
+
   AppRunnerService:
     Type: AWS::AppRunner::Service
     Properties:
       ServiceName: !Ref AppName
+      AutoScalingConfigurationArn: !GetAtt AutoScaling.AutoScalingConfigurationArn
+      HealthCheckConfiguration:
+        Protocol: HTTP
+        Path: /api/health
+        Interval: 10
+        Timeout: 5
+        HealthyThreshold: 1
+        UnhealthyThreshold: 3
       SourceConfiguration:
         AuthenticationConfiguration:
           AccessRoleArn: !GetAtt AppRunnerAccessRole.Arn

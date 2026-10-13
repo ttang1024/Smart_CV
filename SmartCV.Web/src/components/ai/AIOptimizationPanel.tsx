@@ -4,8 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import type { Resume } from '../../types/resume';
 import type { OptimizationResult, OptimizationSession, OptimizationSuggestion } from '../../types/ai';
-import { useSettingsStore } from '../../store/settingsStore';
-import { optimizeResume } from '../../services/ai/aiService';
+import { useActiveAIConfig } from '../../services/ai/useActiveAIConfig';
+import { optimizeResume } from '../../services/ai/optimize';
 import { runAtsCheck } from '../../services/ats/atsChecker';
 import Button from '../ui/Button';
 import Textarea from '../ui/Textarea';
@@ -26,7 +26,7 @@ interface AIOptimizationPanelProps {
 }
 
 export default function AIOptimizationPanel({ resume, onApplySuggestion, onSessionSaved, jobContext, onJobContextChange }: AIOptimizationPanelProps) {
-  const { getActiveConfig, aiSettings } = useSettingsStore();
+  const { config, activeProvider, missingKeyMessage } = useActiveAIConfig();
   const { t } = useTranslation();
   const [jobDescription, setJobDescriptionState] = useState(jobContext?.jobDescription ?? '');
   const [jobTitle, setJobTitleState] = useState(jobContext?.jobTitle ?? '');
@@ -35,8 +35,6 @@ export default function AIOptimizationPanel({ resume, onApplySuggestion, onSessi
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<OptimizationResult | null>(null);
 
-  const activeProvider = aiSettings.activeProvider;
-  const config = getActiveConfig();
 
   // Live client-side ATS readiness — recomputes as the resume is edited, so the
   // user can watch the score move as they apply optimization suggestions.
@@ -65,7 +63,7 @@ export default function AIOptimizationPanel({ resume, onApplySuggestion, onSessi
 
   const handleOptimize = async () => {
     if (!config) {
-      setError(t('aiPanel.noApiKey', { provider: activeProvider }));
+      setError(missingKeyMessage);
       return;
     }
     if (!jobDescription.trim()) {

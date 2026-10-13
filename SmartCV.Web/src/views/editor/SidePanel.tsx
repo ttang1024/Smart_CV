@@ -2,16 +2,31 @@ import { Briefcase, FileSearch, FileText, Languages, LineChart, Mail, MessageSqu
 import type { Resume } from '../../types/resume';
 import type { OptimizationSession, OptimizationSuggestion } from '../../types/ai';
 import type { JobApplication } from '../../types/jobApplication';
-import AIOptimizationPanel from '../../components/ai/AIOptimizationPanel';
-import ATSCheckerPanel from '../../components/ats/ATSCheckerPanel';
-import CoverLetterPanel from '../../components/cover/CoverLetterPanel';
-import InterviewPrepPanel from '../../components/interview/InterviewPrepPanel';
-import MockInterviewPanel from '../../components/interview/MockInterviewPanel';
-import JobVersionsPanel from '../../components/jobs/JobVersionsPanel';
-import TranslatePanel from '../../components/translate/TranslatePanel';
-import FollowUpEmailPanel from '../../components/email/FollowUpEmailPanel';
-import ProofreadPanel from '../../components/proofread/ProofreadPanel';
-import ScoreHistoryPanel from '../../components/insights/ScoreHistoryPanel';
+import dynamic from 'next/dynamic';
+import { useDeferredValue } from 'react';
+import { useTranslation } from 'react-i18next';
+
+// Only one tool panel is visible at a time, so each is its own chunk, loaded on first open.
+function PanelLoading() {
+  return (
+    <div className="flex h-full items-center justify-center">
+      <div className="h-6 w-6 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
+    </div>
+  );
+}
+const lazyPanel = <P,>(load: () => Promise<{ default: React.ComponentType<P> }>) =>
+  dynamic(load, { ssr: false, loading: PanelLoading });
+
+const AIOptimizationPanel = lazyPanel(() => import('../../components/ai/AIOptimizationPanel'));
+const ATSCheckerPanel = lazyPanel(() => import('../../components/ats/ATSCheckerPanel'));
+const CoverLetterPanel = lazyPanel(() => import('../../components/cover/CoverLetterPanel'));
+const InterviewPrepPanel = lazyPanel(() => import('../../components/interview/InterviewPrepPanel'));
+const MockInterviewPanel = lazyPanel(() => import('../../components/interview/MockInterviewPanel'));
+const JobVersionsPanel = lazyPanel(() => import('../../components/jobs/JobVersionsPanel'));
+const TranslatePanel = lazyPanel(() => import('../../components/translate/TranslatePanel'));
+const FollowUpEmailPanel = lazyPanel(() => import('../../components/email/FollowUpEmailPanel'));
+const ProofreadPanel = lazyPanel(() => import('../../components/proofread/ProofreadPanel'));
+const ScoreHistoryPanel = lazyPanel(() => import('../../components/insights/ScoreHistoryPanel'));
 
 export type PanelId = 'ai' | 'ats' | 'cover' | 'interview' | 'mock' | 'jobs' | 'translate' | 'email' | 'proofread' | 'insights';
 
@@ -24,17 +39,17 @@ export interface EditorJobContext {
 
 // Single source of truth for the side-panel tab strip. Full Tailwind class
 // strings (no runtime interpolation) so the active colours survive purge.
-const PANEL_TABS: { id: PanelId; label: string; Icon: typeof Sparkles; activeClass: string }[] = [
-  { id: 'ai', label: 'AI Optimize', Icon: Sparkles, activeClass: 'bg-emerald-500' },
-  { id: 'ats', label: 'ATS', Icon: FileSearch, activeClass: 'bg-teal-500' },
-  { id: 'cover', label: 'Cover Letter', Icon: FileText, activeClass: 'bg-sky-500' },
-  { id: 'interview', label: 'Interview', Icon: MessageSquareText, activeClass: 'bg-violet-500' },
-  { id: 'mock', label: 'Mock', Icon: Mic, activeClass: 'bg-rose-500' },
-  { id: 'jobs', label: 'Jobs', Icon: Briefcase, activeClass: 'bg-indigo-500' },
-  { id: 'translate', label: 'Translate', Icon: Languages, activeClass: 'bg-amber-500' },
-  { id: 'email', label: 'Email', Icon: Mail, activeClass: 'bg-cyan-500' },
-  { id: 'proofread', label: 'Proofread', Icon: SpellCheck, activeClass: 'bg-fuchsia-500' },
-  { id: 'insights', label: 'Insights', Icon: LineChart, activeClass: 'bg-lime-600' },
+const PANEL_TABS: { id: PanelId; Icon: typeof Sparkles; activeClass: string }[] = [
+  { id: 'ai', Icon: Sparkles, activeClass: 'bg-emerald-500' },
+  { id: 'ats', Icon: FileSearch, activeClass: 'bg-teal-500' },
+  { id: 'cover', Icon: FileText, activeClass: 'bg-sky-500' },
+  { id: 'interview', Icon: MessageSquareText, activeClass: 'bg-violet-500' },
+  { id: 'mock', Icon: Mic, activeClass: 'bg-rose-500' },
+  { id: 'jobs', Icon: Briefcase, activeClass: 'bg-indigo-500' },
+  { id: 'translate', Icon: Languages, activeClass: 'bg-amber-500' },
+  { id: 'email', Icon: Mail, activeClass: 'bg-cyan-500' },
+  { id: 'proofread', Icon: SpellCheck, activeClass: 'bg-fuchsia-500' },
+  { id: 'insights', Icon: LineChart, activeClass: 'bg-lime-600' },
 ];
 
 interface SidePanelProps {
@@ -57,7 +72,7 @@ export function SidePanel({
   width,
   sidePanel,
   onSelectPanel,
-  resume,
+  resume: liveResume,
   jobContext,
   onJobContextChange,
   applications,
@@ -68,11 +83,15 @@ export function SidePanel({
   onOpenResume,
   onApplyProofreadFixes,
 }: SidePanelProps) {
+  const { t } = useTranslation();
+  // Panels (ATS scoring in particular) re-analyse the whole resume; let typing in the
+  // editor take priority over keeping them in sync.
+  const resume = useDeferredValue(liveResume);
   return (
     <div style={{ width: `${width}px` }} className="bg-white dark:bg-gray-950 flex flex-col overflow-hidden shrink-0">
       {/* Tool tabs */}
       <div className="flex flex-wrap gap-1 p-2 border-b border-gray-200 dark:border-gray-800 shrink-0">
-        {PANEL_TABS.map(({ id, label, Icon, activeClass }) => (
+        {PANEL_TABS.map(({ id, Icon, activeClass }) => (
           <button
             key={id}
             onClick={() => onSelectPanel(id)}
@@ -83,7 +102,7 @@ export function SidePanel({
             }`}
           >
             <Icon className="w-3.5 h-3.5" />
-            {label}
+            {t(`app.panels.${id}`)}
           </button>
         ))}
       </div>

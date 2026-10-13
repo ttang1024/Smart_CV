@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import type { Resume } from '../../types/resume';
 import type { FollowUpEmailTone, FollowUpEmailType } from '../../services/ai/emailService';
 import { generateFollowUpEmail } from '../../services/ai/emailService';
-import { useSettingsStore } from '../../store/settingsStore';
+import { useActiveAIConfig } from '../../services/ai/useActiveAIConfig';
 import Badge from '../ui/Badge';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
@@ -35,7 +35,7 @@ const TONES: Array<{ value: FollowUpEmailTone; label: string }> = [
 ];
 
 export default function FollowUpEmailPanel({ resume, jobContext, onJobContextChange }: FollowUpEmailPanelProps) {
-  const { getActiveConfig, aiSettings } = useSettingsStore();
+  const { config, activeProvider, missingKeyMessage } = useActiveAIConfig();
   const [emailType, setEmailType] = useState<FollowUpEmailType>('interview-thank-you');
   const [tone, setTone] = useState<FollowUpEmailTone>('professional');
   const [recipientName, setRecipientName] = useState('');
@@ -47,8 +47,6 @@ export default function FollowUpEmailPanel({ resume, jobContext, onJobContextCha
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const activeProvider = aiSettings.activeProvider;
-  const config = getActiveConfig();
 
   const setJobTitle = (value: string) => {
     setJobTitleState(value);
@@ -62,7 +60,7 @@ export default function FollowUpEmailPanel({ resume, jobContext, onJobContextCha
 
   const handleGenerate = async () => {
     if (!config) {
-      setError(`No API key configured for ${activeProvider}. Go to Settings.`);
+      setError(missingKeyMessage);
       return;
     }
 

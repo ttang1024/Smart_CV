@@ -4,8 +4,8 @@ import toast from 'react-hot-toast';
 import { cn } from '../../../lib/utils';
 import RichTextEditor from '../RichText';
 import { richTextToPlainText } from '../../../lib/richText';
-import { useSettingsStore } from '../../../store/settingsStore';
-import { improveSection } from '../../../services/ai/aiService';
+import { useActiveAIConfig } from '../../../services/ai/useActiveAIConfig';
+import { improveSection } from '../../../services/ai/improveSection';
 import type { InlineAIAction, InlineAIContext } from './types';
 
 export function AIRichTextEditor({
@@ -72,7 +72,7 @@ export function InlineAITools({
   compact?: boolean;
   className?: string;
 }) {
-  const { getActiveConfig, aiSettings } = useSettingsStore();
+  const { config, missingKeyMessage } = useActiveAIConfig();
   const [loadingAction, setLoadingAction] = useState<InlineAIAction | null>(null);
 
   const actionLabels: Record<InlineAIAction, string> = {
@@ -92,10 +92,9 @@ export function InlineAITools({
   };
 
   const handleAction = async (action: InlineAIAction) => {
-    const config = getActiveConfig();
     const currentContent = richTextToPlainText(value);
     if (!config) {
-      toast.error(`No API key configured for ${aiSettings.activeProvider}.`);
+      toast.error(missingKeyMessage);
       return;
     }
     if (!currentContent.trim()) {

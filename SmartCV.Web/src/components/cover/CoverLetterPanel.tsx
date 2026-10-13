@@ -2,9 +2,9 @@ import { AlertCircle, Clipboard, Download, FileText, Sparkles } from 'lucide-rea
 import { useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import type { Resume } from '../../types/resume';
-import type { CoverLetterRequest } from '../../services/ai/aiService';
-import { generateCoverLetter } from '../../services/ai/aiService';
-import { useSettingsStore } from '../../store/settingsStore';
+import type { CoverLetterRequest } from '../../services/ai/coverLetter';
+import { generateCoverLetter } from '../../services/ai/coverLetter';
+import { useActiveAIConfig } from '../../services/ai/useActiveAIConfig';
 import Badge from '../ui/Badge';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
@@ -30,7 +30,7 @@ const tones: Array<{ value: CoverLetterTone; label: string }> = [
 ];
 
 export default function CoverLetterPanel({ resume, jobContext, onJobContextChange }: CoverLetterPanelProps) {
-  const { getActiveConfig, aiSettings } = useSettingsStore();
+  const { config, activeProvider, missingKeyMessage } = useActiveAIConfig();
   const [jobTitle, setJobTitleState] = useState(jobContext?.jobTitle || resume.targetJob || '');
   const [company, setCompanyState] = useState(jobContext?.company ?? '');
   const [hiringManager, setHiringManager] = useState('');
@@ -40,8 +40,6 @@ export default function CoverLetterPanel({ resume, jobContext, onJobContextChang
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const activeProvider = aiSettings.activeProvider;
-  const config = getActiveConfig();
   const wordCount = useMemo(() => letter.split(/\s+/).filter(Boolean).length, [letter]);
 
   const setJobTitle = (value: string) => {
@@ -61,7 +59,7 @@ export default function CoverLetterPanel({ resume, jobContext, onJobContextChang
 
   const handleGenerate = async () => {
     if (!config) {
-      setError(`No API key configured for ${activeProvider}. Go to Settings.`);
+      setError(missingKeyMessage);
       return;
     }
     if (!jobDescription.trim()) {

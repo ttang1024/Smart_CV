@@ -1,5 +1,5 @@
 import type { Resume } from '../../../types/resume';
-import type { CustomOptions, LayoutProps, ThemeColors, PageMarginsMm } from '../resumeTypes';
+import type { CustomOptions, LayoutProps, ThemeColors, PageMarginsMm, StyleId } from '../resumeTypes';
 import { ClassicLayout } from '../layouts/ClassicLayout';
 import { ModernLayout } from '../layouts/ModernLayout';
 import { ExecutiveLayout } from '../layouts/ExecutiveLayout';
@@ -10,17 +10,21 @@ import { SplitLayout } from '../layouts/SplitLayout';
 import { TimelineLayout } from '../layouts/TimelineLayout';
 import { CustomLayout } from '../layouts/CustomLayout';
 
-const DEFAULT_CUSTOM: CustomOptions = {
+// Options used for Custom-style thumbnails when the caller doesn't supply its own.
+const THUMBNAIL_CUSTOM: CustomOptions = {
   header: 'split', experience: 'list', skillsColumns: 2,
   sectionStyle: 'bar', skillsStyle: 'tags',
   education: 'standard', summary: 'paragraph',
 };
 
-function CustomPreview(props: LayoutProps) {
-  return <CustomLayout {...props} options={DEFAULT_CUSTOM} />;
-}
+/** Defaults for the Custom style in the editor. */
+export const DEFAULT_CUSTOM_OPTIONS: CustomOptions = {
+  header: 'split', experience: 'timeline', skillsColumns: 1,
+  sectionStyle: 'bar', skillsStyle: 'list',
+  education: 'standard', summary: 'paragraph',
+};
 
-const LAYOUT_MAP: Record<string, React.ComponentType<LayoutProps>> = {
+const LAYOUT_MAP: Record<Exclude<StyleId, 'custom'>, React.ComponentType<LayoutProps>> = {
   classic: ClassicLayout,
   modern: ModernLayout,
   executive: ExecutiveLayout,
@@ -29,18 +33,31 @@ const LAYOUT_MAP: Record<string, React.ComponentType<LayoutProps>> = {
   academic: AcademicLayout,
   split: SplitLayout,
   timeline: TimelineLayout,
-  custom: CustomPreview,
 };
 
-export function TemplatePreview({ resume, styleId, theme, pageMarginsMm, backgroundColor, fullNameColor }: {
+export function TemplatePreview({ resume, styleId, theme, pageMarginsMm, backgroundColor, fullNameColor, customOptions }: {
   resume: Resume;
   styleId: string;
   theme: ThemeColors;
   pageMarginsMm?: PageMarginsMm;
   backgroundColor?: string;
   fullNameColor?: string;
+  customOptions?: CustomOptions;
 }) {
-  const Layout = LAYOUT_MAP[styleId] ?? ClassicLayout;
+  if (styleId === 'custom') {
+    return (
+      <CustomLayout
+        r={resume}
+        theme={theme}
+        pageMarginsMm={pageMarginsMm}
+        backgroundColor={backgroundColor}
+        fullNameColor={fullNameColor}
+        options={customOptions ?? THUMBNAIL_CUSTOM}
+      />
+    );
+  }
+
+  const Layout = LAYOUT_MAP[styleId as keyof typeof LAYOUT_MAP] ?? ClassicLayout;
   return (
     <Layout
       r={resume}

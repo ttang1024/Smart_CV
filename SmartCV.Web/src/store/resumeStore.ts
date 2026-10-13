@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import type { Resume } from '../types/resume';
 import type { OptimizationSession } from '../types/ai';
 import { resumeDB, optimizationDB } from '../services/storage/indexedDB';
-import { jobApplicationDB } from '../services/storage/jobApplications';
 
 interface ResumeState {
   resumes: Resume[];
@@ -98,8 +97,9 @@ export const useResumeStore = create<ResumeState>((set) => ({
   },
 
   deleteResume: async (id: string) => {
+    // Removes the resume's optimizations, score history, undo history and job
+    // applications in the same transaction.
     await resumeDB.delete(id);
-    jobApplicationDB.getByResume(id).forEach(application => jobApplicationDB.delete(application.id));
     set(state => ({
       resumes: state.resumes.filter(r => r.id !== id),
       currentResume: state.currentResume?.id === id ? null : state.currentResume

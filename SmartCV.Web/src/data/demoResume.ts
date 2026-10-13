@@ -625,7 +625,6 @@ const DEMO_RESUMES: Record<DemoLocale, Resume> = {
 	},
 }
 
-export const DEMO_RESUME: Resume = DEMO_RESUMES.en
 
 export function getDemoResume(language?: string): Resume {
 	return DEMO_RESUMES[normalizeDemoLocale(language)]

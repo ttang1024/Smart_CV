@@ -1,8 +1,13 @@
 import { create } from 'zustand';
-import { subscribeWithSelector } from 'zustand/middleware';
 import type { AISettings, AIProviderType } from '../types/ai';
 import { AI_PROVIDER_CONFIGS } from '../types/ai';
 import { settingsStorage } from '../services/storage/localStorage';
+
+export interface ActiveAIConfig {
+  provider: AIProviderType;
+  apiKey: string;
+  model: string;
+}
 
 interface SettingsState {
   aiSettings: AISettings;
@@ -12,68 +17,47 @@ interface SettingsState {
   setModel: (provider: AIProviderType, model: string) => void;
   setUseAI: (useAI: boolean) => void;
 
-  getActiveConfig: () => { provider: AIProviderType; apiKey: string; model: string } | null;
+  getActiveConfig: () => ActiveAIConfig | null;
 }
 
-export const useSettingsStore = create<SettingsState>()(
-  subscribeWithSelector((set, get) => ({
+export const useSettingsStore = create<SettingsState>()((set, get) => {
+  const update = (change: (settings: AISettings) => AISettings) =>
+    set(state => {
+      const aiSettings = change(state.aiSettings);
+      settingsStorage.saveAISettings(aiSettings);
+      return { aiSettings };
+    });
+
+  const updateProvider = (provider: AIProviderType, patch: Partial<AISettings['providers'][AIProviderType]>) =>
+    update(settings => {
+      const existing = settings.providers[provider];
+      return {
+        ...settings,
+        providers: {
+          ...settings.providers,
+          [provider]: {
+            apiKey: existing?.apiKey ?? '',
+            model: existing?.model ?? AI_PROVIDER_CONFIGS[provider].defaultModel,
+            ...patch,
+          },
+        },
+      };
+    });
+
+  return {
     aiSettings: settingsStorage.getAISettings(),
 
-    setActiveProvider: (provider) => {
-      set(state => {
-        const updated = { ...state.aiSettings, activeProvider: provider };
-        settingsStorage.saveAISettings(updated);
-        return { aiSettings: updated };
-      });
-    },
-
-    setAPIKey: (provider, key) => {
-      set(state => {
-        const existing = state.aiSettings.providers[provider];
-        const updated = {
-          ...state.aiSettings,
-          providers: {
-            ...state.aiSettings.providers,
-            [provider]: {
-              ...existing,
-              model: existing?.model ?? AI_PROVIDER_CONFIGS[provider].defaultModel,
-              apiKey: key
-            }
-          }
-        };
-        settingsStorage.saveAISettings(updated);
-        return { aiSettings: updated };
-      });
-    },
-
-    setModel: (provider, model) => {
-      set(state => {
-        const updated = {
-          ...state.aiSettings,
-          providers: {
-            ...state.aiSettings.providers,
-            [provider]: { ...state.aiSettings.providers[provider], model }
-          }
-        };
-        settingsStorage.saveAISettings(updated);
-        return { aiSettings: updated };
-      });
-    },
-
-    setUseAI: (useAI) => {
-      set(state => {
-        const updated = { ...state.aiSettings, useAI };
-        settingsStorage.saveAISettings(updated);
-        return { aiSettings: updated };
-      });
-    },
+    setActiveProvider: provider => update(settings => ({ ...settings, activeProvider: provider })),
+    setAPIKey: (provider, apiKey) => updateProvider(provider, { apiKey }),
+    setModel: (provider, model) => updateProvider(provider, { model }),
+    setUseAI: useAI => update(settings => ({ ...settings, useAI })),
 
     getActiveConfig: () => {
       const { aiSettings } = get();
       const provider = aiSettings.activeProvider;
       const config = aiSettings.providers[provider];
-      if (!config.apiKey) return null;
-      return { provider, apiKey: config.apiKey, model: config.model };
-    }
-  }))
-);
+      if (!config?.apiKey) return null;
+      return { provider, apiKey: config.apiKey, model: config.model || AI_PROVIDER_CONFIGS[provider].defaultModel };
+    },
+  };
+});

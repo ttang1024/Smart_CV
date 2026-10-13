@@ -7,9 +7,3 @@ export type PageSizeId = keyof typeof PAGE_SIZES;
 
 export const MIN_PAGE_MARGIN_MM = 6;
 export const MAX_PAGE_MARGIN_MM = 50;
-
-export const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL ??
-  (typeof window !== 'undefined' && window.location.port === '3000'
-    ? 'http://localhost:5167/api'
-    : '/api');

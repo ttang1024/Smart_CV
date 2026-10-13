@@ -5,7 +5,7 @@ import type { Resume } from '../../types/resume';
 import type { ProofreadIssue, ProofreadSeverity } from '../../services/ai/proofreader';
 import { proofreadResume } from '../../services/ai/proofreader';
 import { richTextToPlainText } from '../../lib/richText';
-import { useSettingsStore } from '../../store/settingsStore';
+import { useActiveAIConfig } from '../../services/ai/useActiveAIConfig';
 import Badge from '../ui/Badge';
 import Button from '../ui/Button';
 
@@ -22,18 +22,16 @@ const SEVERITY_STYLES: Record<ProofreadSeverity, string> = {
 };
 
 export default function ProofreadPanel({ resume, onApplyFixes }: ProofreadPanelProps) {
-  const { getActiveConfig, aiSettings } = useSettingsStore();
+  const { config, activeProvider, missingKeyMessage } = useActiveAIConfig();
   const [issues, setIssues] = useState<ProofreadIssue[] | null>(null);
   const [appliedIds, setAppliedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const activeProvider = aiSettings.activeProvider;
-  const config = getActiveConfig();
 
   const handleRun = async () => {
     if (!config) {
-      setError(`No API key configured for ${activeProvider}. Go to Settings.`);
+      setError(missingKeyMessage);
       return;
     }
 

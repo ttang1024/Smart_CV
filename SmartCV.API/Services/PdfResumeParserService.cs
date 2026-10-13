@@ -4,7 +4,7 @@ namespace SmartCV.API.Services;
 
 // Heuristic resume parser. Implementation is split across partial files by concern:
 //   .Patterns.cs     — regex patterns + section keyword map
-//   .Sections.cs     — PDF text extraction, section splitting, entry grouping
+//   .Sections.cs     — section splitting, entry grouping
 //   .Dates.cs        — month map, date normalisation, "present" detection
 //   .PersonalInfo.cs — header / contact-details parsing
 //   .Experience.cs   — work experience
@@ -18,14 +18,10 @@ public partial class PdfResumeParserService
 
     // ── Public entry points ───────────────────────────────────────────────────
 
-    public ResumeParseResult Parse(Stream pdfStream)
-    {
-        var lines = ExtractLines(pdfStream);
-        var sections = SplitIntoSections(lines);
-        return BuildResume(sections);
-    }
-
-    /// <summary>Parse resume from raw text (e.g. produced by client-side OCR).</summary>
+    /// <summary>
+    /// Parse resume text extracted in the browser (pdf.js text layer or OCR). Columns on
+    /// one line are tab-separated, which the section parsers use to detect two-column blocks.
+    /// </summary>
     public ResumeParseResult ParseText(string rawText)
     {
         var lines = rawText

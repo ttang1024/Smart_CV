@@ -1,19 +1,9 @@
 const en = {
 	// ── Language names ──────────────────────────────────────────────────────────
-	lang: {
-		en: 'English',
-		es: 'Español',
-		zhCN: '简体中文',
-		zhTW: '繁體中文',
-	},
 
 	// ── Landing page ────────────────────────────────────────────────────────────
 	landing: {
 		nav: {
-			howItWorks: 'How it works',
-			styles: 'Styles',
-			reviews: 'Reviews',
-			faq: 'FAQ',
 			github: 'GitHub',
 			getStarted: 'Get started',
 		},
@@ -40,31 +30,11 @@ const en = {
 			title: 'Your AI, Your Rules',
 			subtitle:
 				'Run SmartCV locally, ship it in containers, or deploy it to AWS. Then choose the AI provider and model that match your workflow.',
-			deployTitle: 'Choose how SmartCV runs',
-			deploySubtitle: 'Use the same app from laptop to cloud.',
 			deployTabs: {
 				local: 'Local',
 				docker: 'Docker',
 				aws: 'AWS',
 			},
-			deploy: {
-				local: {
-					title: 'Local startup',
-					desc: 'Start the web app and API on your machine for private resume editing and quick iteration.',
-				},
-				docker: {
-					title: 'Docker deployment',
-					desc: 'Package the app into repeatable containers for teams, demos, and self-hosted environments.',
-				},
-				aws: {
-					title: 'AWS deployment',
-					desc: 'Deploy the full stack to AWS App Runner (ap-southeast-2) with the included scripts and CloudFormation template.',
-				},
-			},
-			configureTitle: 'Configure AI enumeration',
-			configureSubtitle:
-				'Select a provider, add your API key, and override the default model when you need a different engine.',
-			apiKeyBadge: 'Keys stay yours',
 			keyInstructionPrefix: 'Get a free API key from any provider below, then paste it in',
 			keyInstructionTarget: 'Settings -> AI Provider Settings',
 			keyInstructionSuffix: 'Switch providers anytime with the configured inputs.',
@@ -75,12 +45,7 @@ const en = {
 				selfHost: 'Self-hostable',
 				noSubscriptions: 'No subscriptions',
 			},
-			configurePoints: {
-				provider: 'Provider',
-				key: 'API key',
-				model: 'Model',
-			},
-			privacy: 'Your API key is stored locally and sent directly to the provider.',
+			privacy: "Your API key stays on your device and is relayed to your chosen provider only when you use an AI feature.",
 		},
 		functions: {
 			label: 'Project features',
@@ -266,8 +231,6 @@ const en = {
 		importFromPdf: 'From PDF',
 		importAllData: 'All Data',
 		importJsonResume: 'JSON Resume',
-		hideAI: 'Hide AI',
-		aiOptimize: 'AI Optimize',
 		save: 'Save',
 		toast: {
 			saved: 'Resume saved!',
@@ -329,14 +292,12 @@ const en = {
 			endDate: 'End Date',
 			currentlyWorking: 'Currently working here',
 			description: 'Description',
-			productLinks: 'Product Links',
 			projects: 'Projects',
 			keyAchievements: 'Key Achievements',
 			positionPlaceholder: 'Senior Engineer',
 			companyPlaceholder: 'Acme Inc.',
 			locationPlaceholder: 'Remote',
 			descriptionPlaceholder: 'Brief overview of your role...',
-			productLinkPlaceholder: 'https://product.com',
 			projectNamePlaceholder: 'Product or project name',
 			projectUrlPlaceholder: 'https://product.com',
 			projectDescriptionPlaceholder: 'Brief project description...',
@@ -344,7 +305,6 @@ const en = {
 			projectAchievementPlaceholder: 'Built X to improve Y, resulting in Z',
 			achievementPlaceholder: 'Achieved X by doing Y, resulting in Z',
 			add: 'Add Experience',
-			addProductLink: 'Add Product Link',
 			addProject: 'Add Project',
 			addProjectAchievement: 'Add Project Achievement',
 			addAchievement: 'Add Achievement',
@@ -446,7 +406,6 @@ const en = {
 		jobDescriptionPlaceholder: 'Paste the full job description here...',
 		analyzing: 'Analyzing...',
 		optimize: 'Optimize Resume',
-		noApiKey: 'No API key configured for {{provider}}. Go to Settings.',
 		noJobDesc: 'Please enter a job description.',
 		matchScore: 'Match Score',
 		matchedKeywords: '✓ Matched Keywords ({{count}})',
@@ -460,7 +419,7 @@ const en = {
 	aiSettings: {
 		title: 'AI Provider Settings',
 		subtitle:
-			"API keys are stored securely in your browser's localStorage and never sent to our servers.",
+			"API keys stay in your browser. Each AI request passes your key through SmartCV's relay to the provider; the relay never stores or logs it.",
 		keyConfigured: 'Key configured',
 		noKey: 'No key',
 		active: 'Active',
@@ -471,7 +430,7 @@ const en = {
 		useAILabel: 'Enable AI parsing',
 		useAIDesc: 'Use AI to extract resume data from PDFs. Requires an API key.',
 		privacy:
-			"API keys are stored only in your browser's localStorage. They are sent directly to the AI provider via our backend proxy (no key storage server-side).",
+			"API keys are stored only in this browser's localStorage. They pass through SmartCV's relay to your AI provider and are never stored or logged server-side.",
 		privacyLabel: 'Privacy:',
 	},
 
@@ -586,6 +545,99 @@ const en = {
 			presetModerate: 'Moderate',
 			presetNarrow: 'Narrow',
 			presetCompact: 'Compact',
+		},
+	},
+
+	// ── App chrome added with the storage / export rework ──────────────────────
+	app: {
+		ai: {
+			missingKey: "No API key configured for {{provider}}. Add one in Settings.",
+		},
+		autosave: {
+			failed: "Changes could not be saved. They will be retried — export a backup if this keeps happening.",
+			notSaved: "Not saved",
+		},
+		data: {
+			exported_one: "Exported {{count}} resume",
+			exported_other: "Exported {{count}} resumes",
+			exportFailed: "Could not export your resumes",
+			exportedJsonResume: "Exported JSON Resume",
+			imported_one: "Imported {{count}} resume",
+			imported_other: "Imported {{count}} resumes",
+			skipped_one: "({{count}} invalid entry skipped)",
+			skipped_other: "({{count}} invalid entries skipped)",
+			importedJsonResume: "JSON Resume imported",
+			nothingValid: "This file contains no valid resumes",
+			unrecognised: "Unrecognised file — expected a SmartCV backup or a JSON Resume file",
+			importFailed: "Import failed: {{reason}}",
+		},
+		export: {
+			pdfFailed: "PDF export failed",
+			docxFailed: "DOCX export failed",
+			pdfTitle: "Download this resume as a PDF",
+			docxTitle: "Download this resume as a Word document",
+			shareTitle: "Create a read-only share link — the resume is encoded in the link itself, nothing is uploaded",
+			allDataTitle: "Back up all resumes as a JSON file",
+			jsonResumeTitle: "Export this resume in the JSON Resume standard (jsonresume.org)",
+		},
+		history: {
+			undo: "Undo",
+			undoLabel: "Undo {{label}}",
+			redo: "Redo",
+			undid: "Undid: {{label}}",
+			redid: "Redid change",
+		},
+		importMenu: {
+			pdfTitle: "Extract resume content from a PDF into this resume",
+			backupTitle: "Restore resumes from a SmartCV backup (.json)",
+			jsonResumeTitle: "Import a resume in the JSON Resume standard (.json)",
+		},
+		jobs: {
+			needRoleOrCompany: "Add a role or company first.",
+			versionCreated: "Job-specific resume version created",
+			defaultVersionName: "Job-specific Resume",
+		},
+		panels: {
+			ai: "AI Optimize",
+			ats: "ATS",
+			cover: "Cover Letter",
+			interview: "Interview",
+			mock: "Mock",
+			jobs: "Jobs",
+			translate: "Translate",
+			email: "Email",
+			proofread: "Proofread",
+			insights: "Insights",
+		},
+		preview: {
+			pickTheme: "Pick theme colour",
+			pickBackground: "Pick background colour",
+			pickNameColour: "Pick full name text colour",
+		},
+		share: {
+			title: "Share Resume",
+			privacyNote: "The resume is compressed into the link itself (after the #), so it is never uploaded to any server. Anyone with the link sees a read-only copy and can import it into their own SmartCV.",
+			copy: "Copy",
+			copied: "Share link copied",
+			copyFailed: "Could not copy — select the link and copy it manually",
+			qrAlt: "QR code for the share link",
+			qrHint: "Scan to open on another device",
+			tooLargeForQr: "This resume is too large for a QR code — use the copy button instead.",
+			failed: "Could not create share link",
+		},
+		shared: {
+			missing: "This link does not contain a shared resume.",
+			invalid: "This share link is invalid or was truncated.",
+			cannotOpen: "Cannot open shared resume",
+			readOnlyNote: "Read-only shared resume — the data lives in this link, nothing was uploaded.",
+			import: "Import into SmartCV",
+			imported: "Resume imported",
+			importFailed: "Import failed",
+		},
+		tools: {
+			show: "Tools",
+			hide: "Hide Tools",
+			title: "AI tools: optimize, ATS, cover letter, interview prep, mock interview, job versions, translate, follow-up email, proofread",
 		},
 	},
 } as const

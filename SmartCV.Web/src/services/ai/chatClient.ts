@@ -1,11 +1,6 @@
 import type { AIMessage, AIProviderType } from '../../types/ai'
 import i18n from '../../i18n'
-
-const API_BASE =
-	process.env.NEXT_PUBLIC_API_URL ??
-	(typeof window !== 'undefined' && window.location.port === '3000'
-		? 'http://localhost:5167/api'
-		: '/api')
+import { API_BASE, readApiError } from '../../lib/api'
 
 export interface ChatRequest {
 	provider: AIProviderType
@@ -47,23 +42,7 @@ export async function chatWithAI(request: ChatRequest): Promise<string> {
 	})
 
 	if (!response.ok) {
-		let errorMessage = `API error: ${response.status}`
-		try {
-			const err = await response.json()
-			if (err?.detail) {
-				try {
-					const detail = JSON.parse(err.detail)
-					errorMessage = detail?.error?.message ?? err.title ?? errorMessage
-				} catch {
-					errorMessage = err.title ?? err.detail ?? errorMessage
-				}
-			} else {
-				errorMessage = err?.title ?? err?.error ?? errorMessage
-			}
-		} catch {
-			// keep original message
-		}
-		throw new Error(errorMessage)
+		throw new Error(await readApiError(response, 'AI request failed'))
 	}
 
 	const data = await response.json()

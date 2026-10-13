@@ -1,4 +1,4 @@
-import { MailOutlined, PhoneOutlined, EnvironmentOutlined, LinkedinOutlined, GithubOutlined, GlobalOutlined } from '@ant-design/icons';
+import { MailIcon, PhoneIcon, LocationIcon, LinkedInIcon, GitHubIcon, GlobeIcon } from '../ui/BrandIcons';
 import { useTranslation } from 'react-i18next';
 import type { Resume, Experience, Education, Certification, Language, ResumeSection, Project } from '../../types/resume';
 import { isRichTextEmpty } from '../../lib/richText';
@@ -16,12 +16,12 @@ export const contactIcon = (Icon: React.ComponentType<{ style?: React.CSSPropert
 
 export function contactItems(p: Resume['personalInfo']): ContactItem[] {
   return [
-    p.email ? { icon: contactIcon(MailOutlined), text: p.email } : null,
-    p.phone ? { icon: contactIcon(PhoneOutlined), text: p.phone } : null,
-    p.location ? { icon: contactIcon(EnvironmentOutlined), text: p.location } : null,
-    p.linkedin ? { icon: contactIcon(LinkedinOutlined), text: p.linkedin } : null,
-    p.github ? { icon: contactIcon(GithubOutlined), text: p.github } : null,
-    p.website ? { icon: contactIcon(GlobalOutlined), text: p.website } : null,
+    p.email ? { icon: contactIcon(MailIcon), text: p.email } : null,
+    p.phone ? { icon: contactIcon(PhoneIcon), text: p.phone } : null,
+    p.location ? { icon: contactIcon(LocationIcon), text: p.location } : null,
+    p.linkedin ? { icon: contactIcon(LinkedInIcon), text: p.linkedin } : null,
+    p.github ? { icon: contactIcon(GitHubIcon), text: p.github } : null,
+    p.website ? { icon: contactIcon(GlobeIcon), text: p.website } : null,
   ].filter(Boolean) as ContactItem[];
 }
 
@@ -268,7 +268,7 @@ export function EduEntry({ edu, accentColor, instSep = ' · ', dateColor, dateFo
   );
 }
 
-export function CertList({ items, dateColor, dateFontSize = '9pt', sep = ' · ' }: {
+export function CertList({ items, dateColor, dateFontSize = '9pt', dateItalic = false, sep = ' · ' }: {
   items: Certification[];
   dateColor: string;
   dateFontSize?: string;
@@ -280,7 +280,7 @@ export function CertList({ items, dateColor, dateFontSize = '9pt', sep = ' · ' 
       {items.map(c => (
         <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
           <span><strong>{c.name}</strong>{sep}{c.issuer}</span>
-          <span style={{ fontSize: dateFontSize, color: dateColor }}>{c.date}</span>
+          <span style={{ fontSize: dateFontSize, color: dateColor, ...(dateItalic && { fontStyle: 'italic' }) }}>{c.date}</span>
         </div>
       ))}
     </>

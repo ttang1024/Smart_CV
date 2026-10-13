@@ -1,23 +1,22 @@
 import Link from 'next/link';
 import { Sparkles, ArrowRight, ExternalLink, KeyRound, SlidersHorizontal } from 'lucide-react';
-import { GithubFilled } from '@ant-design/icons';
+import { GitHubFilledIcon } from '../components/ui/BrandIcons';
 import LanguageSwitcher from '../components/ui/LanguageSwitcher';
 import ResumeHeroPreview from '../components/landing/ResumeHeroPreview';
 import DeploymentTerminal from '../components/landing/DeploymentTerminal';
 import { getDemoResume } from '../data/demoResume';
 import { AI_PROVIDER_CONFIGS } from '../types/ai';
 import { SITE_URL } from './metadata';
-import { createTranslator, type LandingLanguage } from '../components/landing/i18n';
+import type { LangCode } from '../i18n';
+import { getServerT } from '../i18n/server';
 import {
   GITHUB_URL, AI_PROVIDER_ORDER, AI_PROVIDER_ACCESS, AI_PROVIDER_LOGOS,
   buildSteps, buildHeroFeatures, buildFunctions,
 } from '../components/landing/content';
 import { FunctionPreview } from '../components/landing/FunctionPreview';
 
-export type { LandingLanguage };
-
-export default function LandingPage({ initialLanguage = 'en' }: { initialLanguage?: LandingLanguage }) {
-  const t = createTranslator(initialLanguage);
+export default function LandingPage({ initialLanguage = 'en' }: { initialLanguage?: LangCode }) {
+  const t = getServerT(initialLanguage);
   const demoResume = getDemoResume(initialLanguage);
   const aiRulesTitle = t('landing.aiRules.title');
   const [aiRulesTitleLead, ...aiRulesTitleRest] = aiRulesTitle.split(',');
@@ -76,7 +75,7 @@ export default function LandingPage({ initialLanguage = 'en' }: { initialLanguag
               rel="noopener noreferrer"
               className="hidden sm:inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 border border-gray-200 hover:border-gray-300 bg-white px-3 py-1.5 rounded-lg transition-all"
             >
-              <GithubFilled />
+              <GitHubFilledIcon />
               <span className="font-medium">{t('landing.nav.github')}</span>
             </a>
             <Link href="/app" className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-md shadow-emerald-200 transition-colors">
@@ -99,7 +98,7 @@ export default function LandingPage({ initialLanguage = 'en' }: { initialLanguag
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 bg-white border border-gray-200 shadow-sm text-gray-700 text-xs font-semibold px-3 py-1.5 rounded-full hover:border-emerald-300 transition-all"
               >
-                <GithubFilled /> {t('landing.hero.openSource')} <ExternalLink className="w-3 h-3 text-gray-400" />
+                <GitHubFilledIcon /> {t('landing.hero.openSource')} <ExternalLink className="w-3 h-3 text-gray-400" />
               </a>
               <span className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-semibold px-3 py-1.5 rounded-full">
                 <Sparkles className="w-3 h-3" /> {t('landing.hero.freeBadge')}
@@ -127,7 +126,7 @@ export default function LandingPage({ initialLanguage = 'en' }: { initialLanguag
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2.5 bg-white border border-gray-200 hover:border-gray-300 text-gray-700 font-bold px-8 py-4 rounded-xl shadow-sm hover:shadow-md transition-all text-base"
               >
-                <GithubFilled /> {t('landing.hero.ctaGithub')}
+                <GitHubFilledIcon /> {t('landing.hero.ctaGithub')}
               </a>
             </div>
 
@@ -268,7 +267,7 @@ export default function LandingPage({ initialLanguage = 'en' }: { initialLanguag
                 </div>
 
                 <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2.5 py-3 px-5 rounded-xl font-bold text-sm" style={{ background: '#ffffff', border: '1px solid #d1fae5', color: '#059669', boxShadow: '0 16px 40px -28px rgba(5,150,105,0.9)' }}>
-                  <GithubFilled />
+                  <GitHubFilledIcon />
                   GitHub
                   <span className="text-xs text-gray-400 font-normal">-&gt; {t('landing.aiRules.githubFree')}</span>
                 </a>

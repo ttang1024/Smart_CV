@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Bold, Italic, Underline, Eraser, Baseline, Rows3 } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { isRichTextEmpty, sanitizeRichText } from '../../lib/richText';
+import { hasVisibleText, sanitizeRichText } from '../../lib/richText';
 
 const FONT_SIZE_OPTIONS = [
   { label: '8', value: '8pt' },
@@ -22,13 +22,14 @@ const LINE_HEIGHT_OPTIONS = [
 ];
 
 export function RichTextContent({ html, style }: { html: string; style?: React.CSSProperties }) {
-  if (isRichTextEmpty(html)) return null;
+  const sanitized = useMemo(() => sanitizeRichText(html ?? ''), [html]);
+  if (!hasVisibleText(sanitized)) return null;
 
   return (
     <div
       className="rich-text-content"
       style={{ whiteSpace: 'pre-wrap', ...style }}
-      dangerouslySetInnerHTML={{ __html: sanitizeRichText(html) }}
+      dangerouslySetInnerHTML={{ __html: sanitized }}
     />
   );
 }

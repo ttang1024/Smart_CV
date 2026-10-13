@@ -1,63 +1,7 @@
-using UglyToad.PdfPig;
-
 namespace SmartCV.API.Services;
 
 public partial class PdfResumeParserService
 {
-    // ── Text extraction ───────────────────────────────────────────────────────
-
-    private static List<string> ExtractLines(Stream pdfStream)
-    {
-        var allLines = new List<string>();
-
-        using var document = PdfDocument.Open(pdfStream);
-        foreach (var page in document.GetPages())
-        {
-            // Group words by rounded Y coordinate (bottom of bounding box)
-            var byY = new SortedDictionary<int, List<(double X, double Right, string Text)>>(
-                Comparer<int>.Create((a, b) => b.CompareTo(a))); // descending = top first
-
-            foreach (var word in page.GetWords())
-            {
-                var y = (int)Math.Round(word.BoundingBox.Bottom);
-                if (!byY.TryGetValue(y, out var bucket))
-                {
-                    bucket = [];
-                    byY[y] = bucket;
-                }
-                bucket.Add((word.BoundingBox.Left, word.BoundingBox.Right, word.Text));
-            }
-
-            foreach (var (_, words) in byY)
-            {
-                var ordered = words.OrderBy(w => w.X).ToList();
-                var sb = new System.Text.StringBuilder();
-                double prevRight = double.MinValue;
-
-                foreach (var (x, right, text) in ordered)
-                {
-                    if (prevRight > double.MinValue)
-                    {
-                        // A gap > 8pt between word bounding boxes indicates a column separator
-                        // (CSS 16px column-gap ≈ 12pt; normal inter-word spacing ≈ 2–3pt)
-                        sb.Append(x - prevRight > 8.0 ? '\t' : ' ');
-                    }
-                    sb.Append(text);
-                    prevRight = right;
-                }
-
-                var line = sb.ToString().Trim();
-                if (!string.IsNullOrWhiteSpace(line))
-                    allLines.Add(line);
-            }
-
-            // Blank line between pages acts as a natural separator
-            allLines.Add("");
-        }
-
-        return allLines;
-    }
-
     // ── Section splitting ─────────────────────────────────────────────────────
 
     private static Dictionary<SectionType, List<string>> SplitIntoSections(List<string> lines)

@@ -1,118 +1,67 @@
-import { useTranslation } from 'react-i18next';
 import { DEFAULT_PAGE_MARGINS_MM, type LayoutProps, type ThemeColors } from '../resumeTypes';
-import { ContactRow, contactItems, ExpEntry, EduEntry, CertList, LangList, HighlightList, AchievementRows, InterestsList, RefereesBlock, ProjectTechnologies, sectionTitle } from '../resumeShared';
-import { isRichTextEmpty } from '../../../lib/richText';
+import { ContactRow, contactItems, ExpEntry, EduEntry, HighlightList, ProjectTechnologies } from '../resumeShared';
 import { RichTextContent } from '../RichText';
-import { DEFAULT_SECTION_ORDER } from '../../../types/resume';
+import { ResumeSections, simpleSectionBodies, visibleHighlights, type SectionBodies } from './ResumeSections';
 
 export function ExecutiveLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_MM, backgroundColor = theme.dark, fullNameColor = '#ffffff' }: LayoutProps) {
-  const { t } = useTranslation();
-  const { personalInfo: p, summary, coreHighlights, experience, education, skills, projects, certifications, languages } = r;
-  const sectionOrder = r.sectionOrder ?? DEFAULT_SECTION_ORDER;
+  const { personalInfo: p, summary, experience, education, skills, projects } = r;
 
-  const renderSection = (key: string) => {
-    switch (key) {
-      case 'summary':
-        return summary ? (
-          <ExecSection key="summary" title={sectionTitle(r, 'summary', t('resumeLayout.sections.summary'))} theme={theme}>
-            <RichTextContent html={summary} style={{ textAlign: 'justify', color: '#374151', lineHeight: '1.6', whiteSpace: 'pre-wrap' }} />
-          </ExecSection>
-        ) : null;
-      case 'coreHighlights':
-        return coreHighlights?.length > 0 ? (
-          <ExecSection key="coreHighlights" title={sectionTitle(r, 'coreHighlights', t('resumeLayout.sections.coreHighlights'))} theme={theme}>
-            <div>
-              {coreHighlights.filter(h => !isRichTextEmpty(h.text)).map(h => (
-                <div key={h.id} style={{ breakInside: 'avoid', marginBottom: '4px', paddingLeft: '12px', position: 'relative', color: '#374151', fontSize: '11.5pt' }}>
-                  <span style={{ position: 'absolute', left: 0, color: theme.main, fontWeight: 700 }}>▸</span>
-                  <RichTextContent html={h.text} />
-                </div>
-              ))}
-            </div>
-          </ExecSection>
-        ) : null;
-      case 'skills':
-        return skills.length > 0 ? (
-          <ExecSection key="skills" title={sectionTitle(r, 'skills', t('resumeLayout.sections.skills'))} theme={theme}>
-            <div style={{ columns: 2, columnGap: '20px' }}>
-              {skills.map(s => (
-                <div key={s.id} style={{ breakInside: 'avoid', marginBottom: '4px' }}>
-                  <span style={{ fontWeight: 700 }}>{s.category}: </span>
-                  <span style={{ color: '#374151' }}>{s.items.join(', ')}</span>
-                </div>
-              ))}
-            </div>
-          </ExecSection>
-        ) : null;
-      case 'experience':
-        return experience.length > 0 ? (
-          <ExecSection key="experience" title={sectionTitle(r, 'experience', t('resumeLayout.sections.experience'))} theme={theme}>
-            {experience.map(exp => (
-              <ExpEntry key={exp.id} exp={exp}
-                companyColor={theme.main} companyFontSize="11pt"
-                locColor="#6b7280" locFontSize="9.5pt" locSep=", "
-                dateColor="#6b7280" dateFontSize="9.5pt" dateItalic
-                descColor="#374151" descFontSize="11.5pt" highlightFontSize="11.5pt"
-                positionFontSize="11.5pt" positionColor="#1a1a2e" />
-            ))}
-          </ExecSection>
-        ) : null;
-      case 'education':
-        return education.length > 0 ? (
-          <ExecSection key="education" title={sectionTitle(r, 'education', t('resumeLayout.sections.education'))} theme={theme}>
-            {education.map(edu => (
-              <EduEntry key={edu.id} edu={edu}
-                accentColor={theme.main} instSep=" — "
-                dateColor="#6b7280" dateFontSize="9.5pt" dateItalic gpaColor="#4b5563" />
-            ))}
-          </ExecSection>
-        ) : null;
-      case 'projects':
-        return projects.length > 0 ? (
-          <ExecSection key="projects" title={sectionTitle(r, 'projects', t('resumeLayout.sections.projectsExecutive'))} theme={theme}>
-            {projects.map(p => (
-              <div key={p.id} style={{ marginBottom: '8px' }}>
-                <span style={{ fontWeight: 700 }}>{p.name}</span>
-                <RichTextContent html={p.description} style={{ color: '#374151', marginTop: '2px', whiteSpace: 'pre-wrap', fontSize: '11.5pt' }} />
-                <HighlightList highlights={p.highlights ?? []} color="#374151" fontSize="11.5pt" />
-                <ProjectTechnologies project={p} color="#374151" />
-              </div>
-            ))}
-          </ExecSection>
-        ) : null;
-      case 'certifications':
-        return certifications.length > 0 ? (
-          <ExecSection key="certifications" title={sectionTitle(r, 'certifications', t('resumeLayout.sections.certifications'))} theme={theme}>
-            <CertList items={certifications} dateColor="#6b7280" dateFontSize="9.5pt" dateItalic />
-          </ExecSection>
-        ) : null;
-      case 'languages':
-        return languages.length > 0 ? (
-          <ExecSection key="languages" title={sectionTitle(r, 'languages', t('resumeLayout.sections.languages'))} theme={theme}>
-            <LangList items={languages} />
-          </ExecSection>
-        ) : null;
-      case 'achievements':
-        return (r.achievements ?? []).filter(a => a.title).length > 0 ? (
-          <ExecSection key="achievements" title={sectionTitle(r, 'achievements', t('resumeLayout.sections.achievements'))} theme={theme}>
-            <AchievementRows achievements={r.achievements} accent={theme.main} />
-          </ExecSection>
-        ) : null;
-      case 'interests':
-        return (r.interests ?? []).filter(i => i.name).length > 0 ? (
-          <ExecSection key="interests" title={sectionTitle(r, 'interests', t('resumeLayout.sections.interests'))} theme={theme}>
-            <p style={{ color: '#374151' }}><InterestsList r={r} /></p>
-          </ExecSection>
-        ) : null;
-      case 'referees':
-        return (r.referees?.length ?? 0) > 0 ? (
-          <ExecSection key="referees" title={sectionTitle(r, 'referees', t('resumeLayout.sections.referees'))} theme={theme}>
-            <RefereesBlock r={r} />
-          </ExecSection>
-        ) : null;
-      default:
-        return null;
-    }
+  const bodies: SectionBodies = {
+    summary: () => <RichTextContent html={summary} style={{ textAlign: 'justify', color: '#374151', lineHeight: '1.6', whiteSpace: 'pre-wrap' }} />,
+    coreHighlights: () => (
+      <div>
+        {visibleHighlights(r).map(h => (
+          <div key={h.id} style={{ breakInside: 'avoid', marginBottom: '4px', paddingLeft: '12px', position: 'relative', color: '#374151', fontSize: '11.5pt' }}>
+            <span style={{ position: 'absolute', left: 0, color: theme.main, fontWeight: 700 }}>▸</span>
+            <RichTextContent html={h.text} />
+          </div>
+        ))}
+      </div>
+    ),
+    skills: () => (
+      <div style={{ columns: 2, columnGap: '20px' }}>
+        {skills.map(s => (
+          <div key={s.id} style={{ breakInside: 'avoid', marginBottom: '4px' }}>
+            <span style={{ fontWeight: 700 }}>{s.category}: </span>
+            <span style={{ color: '#374151' }}>{s.items.join(', ')}</span>
+          </div>
+        ))}
+      </div>
+    ),
+    experience: () => (
+      <>
+        {experience.map(exp => (
+          <ExpEntry key={exp.id} exp={exp}
+            companyColor={theme.main} companyFontSize="11pt"
+            locColor="#6b7280" locFontSize="9.5pt" locSep=", "
+            dateColor="#6b7280" dateFontSize="9.5pt" dateItalic
+            descColor="#374151" descFontSize="11.5pt" highlightFontSize="11.5pt"
+            positionFontSize="11.5pt" positionColor="#1a1a2e" />
+        ))}
+      </>
+    ),
+    education: () => (
+      <>
+        {education.map(edu => (
+          <EduEntry key={edu.id} edu={edu}
+            accentColor={theme.main} instSep=" — "
+            dateColor="#6b7280" dateFontSize="9.5pt" dateItalic gpaColor="#4b5563" />
+        ))}
+      </>
+    ),
+    projects: () => (
+      <>
+        {projects.map(p => (
+          <div key={p.id} style={{ marginBottom: '8px' }}>
+            <span style={{ fontWeight: 700 }}>{p.name}</span>
+            <RichTextContent html={p.description} style={{ color: '#374151', marginTop: '2px', whiteSpace: 'pre-wrap', fontSize: '11.5pt' }} />
+            <HighlightList highlights={p.highlights ?? []} color="#374151" fontSize="11.5pt" />
+            <ProjectTechnologies project={p} color="#374151" />
+          </div>
+        ))}
+      </>
+    ),
+    ...simpleSectionBodies(r, { accent: theme.main, cert: { dateColor: '#6b7280', dateFontSize: '9.5pt', dateItalic: true } }),
   };
 
   return (
@@ -132,7 +81,7 @@ export function ExecutiveLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS
         </div>
       </div>
       <div style={{ padding: `10mm ${pageMarginsMm.right}mm ${pageMarginsMm.bottom}mm ${pageMarginsMm.left}mm` }}>
-        {sectionOrder.map(key => renderSection(key))}
+        <ResumeSections r={r} bodies={bodies} titleKeys={{ projects: 'projectsExecutive' }} renderSection={(title, body) => <ExecSection title={title} theme={theme}>{body}</ExecSection>} />
       </div>
     </div>
   );

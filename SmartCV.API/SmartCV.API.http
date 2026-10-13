@@ -1,6 +1,19 @@
-@SmartCV.API_HostAddress = http://localhost:5167
+@host = http://localhost:5167
 
-GET {{SmartCV.API_HostAddress}}/weatherforecast/
-Accept: application/json
+GET {{host}}/api/health
+
+###
+
+POST {{host}}/api/pdf/parse-text
+Content-Type: application/json
+
+{ "text": "Jane Smith\njane.smith@example.com\n\nExperience\nSoftware Engineer · Acme\tJan 2020 – Present" }
+
+###
+
+POST {{host}}/api/pdf/generate
+Content-Type: application/json
+
+{ "html": "<!DOCTYPE html><html><body><h1>Resume</h1></body></html>", "filename": "resume.pdf" }
 
 ###

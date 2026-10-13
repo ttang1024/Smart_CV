@@ -2,23 +2,11 @@ import { useState } from 'react';
 import { Eye, EyeOff, Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { AIProviderType } from '../../types/ai';
-import { AI_PROVIDER_CONFIGS } from '../../types/ai';
+import { AI_PROVIDER_CONFIGS, AI_PROVIDER_IDS } from '../../types/ai';
 import { useSettingsStore } from '../../store/settingsStore';
 import { OpenAILogo, GeminiLogo, ClaudeLogo, GrokLogo, DeepSeekLogo, QianwenLogo, KimiLogo, DoubaoLogo, WenyanyixinLogo } from '../ui/AIProviderLogos';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
-
-const PROVIDER_MODEL_HINTS: Record<AIProviderType, string> = {
-  openai: 'e.g. gpt-4o, gpt-4o-mini, o1',
-  gemini: 'e.g. gemini-2.5-pro, gemini-2.0-flash',
-  claude: 'e.g. claude-opus-4-7, claude-sonnet-4-6',
-  grok: 'e.g. grok-3, grok-3-mini',
-  deepseek: 'e.g. deepseek-v4-flash, deepseek-v4-pro, deepseek-reasoner',
-  qianwen: 'e.g. qwen-plus, qwen-max, qwen-turbo',
-  kimi: 'e.g. moonshot-v1-32k, moonshot-v1-128k, kimi-k2-0711-preview',
-  doubao: 'e.g. doubao-pro-32k, doubao-lite-32k',
-  wenyanyixin: 'e.g. ernie-4.0-8k, ernie-speed-128k',
-};
 
 const PROVIDER_LOGOS: Record<AIProviderType, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
   openai: OpenAILogo,
@@ -32,18 +20,12 @@ const PROVIDER_LOGOS: Record<AIProviderType, React.ComponentType<{ className?: s
   wenyanyixin: WenyanyixinLogo
 };
 
+const LISTED_PROVIDERS = AI_PROVIDER_IDS.filter(id => AI_PROVIDER_CONFIGS[id].listed);
+
 export default function AIProviderSettings() {
   const { aiSettings, setActiveProvider, setAPIKey, setModel, setUseAI } = useSettingsStore();
   const { t } = useTranslation();
-  const [showKeys, setShowKeys] = useState<Record<AIProviderType, boolean>>({
-    openai: false, gemini: false, claude: false, grok: false,
-    deepseek: false,
-    qianwen: false, kimi: false, doubao: false, wenyanyixin: false
-  });
-
-  const providers: AIProviderType[] = ['openai', 'gemini', 'claude', 'grok', 'deepseek', 'qianwen',
-    // 'kimi', 'doubao','wenyanyixin'
-  ];
+  const [showKeys, setShowKeys] = useState<Partial<Record<AIProviderType, boolean>>>({});
 
   return (
     <div className="space-y-4">
@@ -54,7 +36,7 @@ export default function AIProviderSettings() {
         </p>
       </div>
 
-      <div className="flex items-center justify-between p-3 rounded-xl border border-gray-200 bg-white">
+      <div className="flex items-center justify-between gap-4 p-3 rounded-xl border border-gray-200 bg-white">
         <div>
           <p className="text-sm font-medium text-gray-900">{t('aiSettings.useAILabel')}</p>
           <p className="text-xs text-gray-500 mt-0.5">{t('aiSettings.useAIDesc')}</p>
@@ -63,19 +45,16 @@ export default function AIProviderSettings() {
           type="button"
           role="switch"
           aria-checked={aiSettings.useAI}
+          aria-label={t('aiSettings.useAILabel')}
           onClick={() => setUseAI(!aiSettings.useAI)}
-          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none ${aiSettings.useAI ? 'bg-emerald-600' : 'bg-gray-200'
-            }`}
+          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none ${aiSettings.useAI ? 'bg-emerald-600' : 'bg-gray-200'}`}
         >
-          <span
-            className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform duration-200 ${aiSettings.useAI ? 'translate-x-5' : 'translate-x-0'
-              }`}
-          />
+          <span className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform duration-200 ${aiSettings.useAI ? 'translate-x-5' : 'translate-x-0'}`} />
         </button>
       </div>
 
       <div className="space-y-3">
-        {providers.map(provider => {
+        {LISTED_PROVIDERS.map(provider => {
           const meta = AI_PROVIDER_CONFIGS[provider];
           const config = aiSettings.providers[provider];
           const isActive = aiSettings.activeProvider === provider;
@@ -144,7 +123,7 @@ export default function AIProviderSettings() {
                   onChange={e => setModel(provider, e.target.value)}
                   placeholder={meta.defaultModel}
                 />
-                <p className="text-xs text-gray-400 mt-1">{PROVIDER_MODEL_HINTS[provider]}</p>
+                <p className="text-xs text-gray-400 mt-1">{meta.modelHint}</p>
               </div>
             </div>
           );

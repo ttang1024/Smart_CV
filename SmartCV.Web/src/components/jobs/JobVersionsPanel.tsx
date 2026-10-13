@@ -2,8 +2,7 @@ import { Briefcase, ExternalLink, GitCompareArrows, Plus, Trash2 } from 'lucide-
 import { useEffect, useMemo, useState } from 'react';
 import type { JobApplication, JobApplicationStatus } from '../../types/jobApplication';
 import type { Resume } from '../../types/resume';
-import { jobApplicationDB } from '../../services/storage/jobApplications';
-import { resumeDB } from '../../services/storage/indexedDB';
+import { jobApplicationDB, resumeDB } from '../../services/storage/indexedDB';
 import { richTextToPlainText } from '../../lib/richText';
 import Badge from '../ui/Badge';
 import Button from '../ui/Button';
@@ -68,13 +67,13 @@ export default function JobVersionsPanel({
     }
   };
 
-  const handleStatus = (application: JobApplication, status: JobApplicationStatus) => {
-    jobApplicationDB.updateStatus(application.id, status);
+  const handleStatus = async (application: JobApplication, status: JobApplicationStatus) => {
+    await jobApplicationDB.updateStatus(application.id, status);
     onRefresh();
   };
 
-  const handleDelete = (application: JobApplication) => {
-    jobApplicationDB.delete(application.id);
+  const handleDelete = async (application: JobApplication) => {
+    await jobApplicationDB.delete(application.id);
     onRefresh();
   };
 

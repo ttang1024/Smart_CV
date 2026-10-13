@@ -11,7 +11,6 @@ public class ResumeParseResult
     public List<CertificationModel> Certifications { get; set; } = [];
     public List<LanguageModel> Languages { get; set; } = [];
     public List<string> Interests { get; set; } = [];
-    public List<AchievementModel> Achievements { get; set; } = [];
     public List<RefereeModel> Referees { get; set; } = [];
 }
 
@@ -36,16 +35,6 @@ public class ExperienceModel
     public string? EndDate { get; set; }
     public bool Current { get; set; }
     public string Description { get; set; } = "";
-    public List<string> Highlights { get; set; } = [];
-    public List<string> ProductLinks { get; set; } = [];
-    public List<ExperienceProjectModel> Projects { get; set; } = [];
-}
-
-public class ExperienceProjectModel
-{
-    public string Name { get; set; } = "";
-    public string? Url { get; set; }
-    public string? Description { get; set; }
     public List<string> Highlights { get; set; } = [];
 }
 
@@ -82,22 +71,12 @@ public class CertificationModel
     public string Name { get; set; } = "";
     public string Issuer { get; set; } = "";
     public string Date { get; set; } = "";
-    public string? ExpiryDate { get; set; }
-    public string? CredentialId { get; set; }
 }
 
 public class LanguageModel
 {
     public string Language { get; set; } = "";
     public string Proficiency { get; set; } = "Intermediate";
-}
-
-public class AchievementModel
-{
-    public string Title { get; set; } = "";
-    public string? Issuer { get; set; }
-    public string? Date { get; set; }
-    public string? Description { get; set; }
 }
 
 public class RefereeModel

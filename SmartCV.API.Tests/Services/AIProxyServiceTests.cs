@@ -61,17 +61,104 @@ public class AIProxyServiceTests
     }
 
     [Fact]
-    public async Task ProxyAsync_OpenAI_UpstreamError_PropagatesStatusAndBody()
+    public async Task ProxyAsync_OpenAI_UpstreamClientError_PassesStatusAndExtractsMessage()
     {
         var factory = new FakeHttpClientFactory(_ => new HttpResponseMessage(HttpStatusCode.TooManyRequests)
         {
-            Content = new StringContent("rate limited", Encoding.UTF8, "text/plain"),
+            Content = new StringContent("""{"error":{"message":"You exceeded your current quota","type":"insufficient_quota"}}""", Encoding.UTF8, "application/json"),
         });
         var service = new AIProxyService(factory, NullLogger<AIProxyService>.Instance);
 
         var result = await service.ProxyAsync(MakeRequest("openai"), CancellationToken.None);
 
         Assert.Equal(429, StatusCodeOf(result));
+        Assert.Equal("You exceeded your current quota", ValueOf<string>(result, "error"));
+    }
+
+    [Fact]
+    public async Task ProxyAsync_UpstreamServerError_ReturnsBadGateway()
+    {
+        var factory = new FakeHttpClientFactory(_ => new HttpResponseMessage(HttpStatusCode.InternalServerError)
+        {
+            Content = new StringContent("<html>upstream exploded</html>", Encoding.UTF8, "text/html"),
+        });
+        var service = new AIProxyService(factory, NullLogger<AIProxyService>.Instance);
+
+        var result = await service.ProxyAsync(MakeRequest("openai"), CancellationToken.None);
+
+        Assert.Equal(502, StatusCodeOf(result));
+        Assert.DoesNotContain("<html>", ValueOf<string>(result, "error"));
+    }
+
+    [Fact]
+    public async Task ProxyAsync_UpstreamUnreachable_ReturnsBadGateway()
+    {
+        var factory = new FakeHttpClientFactory(_ => throw new HttpRequestException("connection refused"));
+        var service = new AIProxyService(factory, NullLogger<AIProxyService>.Instance);
+
+        var result = await service.ProxyAsync(MakeRequest("openai"), CancellationToken.None);
+
+        Assert.Equal(502, StatusCodeOf(result));
+    }
+
+    [Theory]
+    [InlineData("""{"choices":[]}""")]
+    [InlineData("""{"unexpected":true}""")]
+    [InlineData("not json")]
+    public async Task ProxyAsync_UnexpectedSuccessShape_ReturnsBadGatewayInsteadOfThrowing(string body)
+    {
+        var factory = new FakeHttpClientFactory(_ => new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(body, Encoding.UTF8, "application/json"),
+        });
+        var service = new AIProxyService(factory, NullLogger<AIProxyService>.Instance);
+
+        var result = await service.ProxyAsync(MakeRequest("openai"), CancellationToken.None);
+
+        Assert.Equal(502, StatusCodeOf(result));
+    }
+
+    [Fact]
+    public async Task ProxyAsync_GeminiBlockedPrompt_ReportsBlockReason()
+    {
+        var factory = new FakeHttpClientFactory(_ => new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent("""{"promptFeedback":{"blockReason":"SAFETY"}}""", Encoding.UTF8, "application/json"),
+        });
+        var service = new AIProxyService(factory, NullLogger<AIProxyService>.Instance);
+
+        var result = await service.ProxyAsync(MakeRequest("gemini"), CancellationToken.None);
+
+        Assert.Equal(502, StatusCodeOf(result));
+        Assert.Contains("SAFETY", ValueOf<string>(result, "error"));
+    }
+
+    [Theory]
+    [InlineData("../../v1/files")]
+    [InlineData("gemini-pro?alt=x")]
+    [InlineData("model#frag")]
+    [InlineData("")]
+    public async Task ProxyAsync_InvalidModelId_IsRejectedWithoutCallingNetwork(string model)
+    {
+        var factory = new FakeHttpClientFactory(_ => throw new InvalidOperationException("must not call network"));
+        var service = new AIProxyService(factory, NullLogger<AIProxyService>.Instance);
+        var request = new AIProxyRequest("gemini", "key", model, [new AIMessage("user", "Hi")]);
+
+        var result = await service.ProxyAsync(request, CancellationToken.None);
+
+        Assert.Equal(400, StatusCodeOf(result));
+    }
+
+    [Fact]
+    public async Task ProxyAsync_InvalidRole_IsRejected()
+    {
+        var factory = new FakeHttpClientFactory(_ => throw new InvalidOperationException("must not call network"));
+        var service = new AIProxyService(factory, NullLogger<AIProxyService>.Instance);
+
+        var result = await service.ProxyAsync(
+            MakeRequest("openai", messages: [new AIMessage("tool", "Hi")]), CancellationToken.None);
+
+        Assert.Equal(400, StatusCodeOf(result));
     }
 
     [Fact]
@@ -142,8 +229,11 @@ public class AIProxyServiceTests
         Assert.Equal(200, StatusCodeOf(result));
         Assert.Equal("Gemini reply", ValueOf<string>(result, "content"));
 
-        var sent = Assert.Single(factory.Requests).Body!;
-        using var doc = JsonDocument.Parse(sent);
+        var (sentRequest, sent) = Assert.Single(factory.Requests);
+        Assert.DoesNotContain("key=", sentRequest.RequestUri!.Query);
+        Assert.Equal("https://generativelanguage.googleapis.com/v1beta/models/test-model:generateContent", sentRequest.RequestUri.ToString());
+        Assert.Equal("test-api-key", sentRequest.Headers.GetValues("x-goog-api-key").Single());
+        using var doc = JsonDocument.Parse(sent!);
         var contents = doc.RootElement.GetProperty("contents").EnumerateArray().ToList();
         Assert.Equal("user", contents[0].GetProperty("role").GetString());
         Assert.Equal("model", contents[1].GetProperty("role").GetString());

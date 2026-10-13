@@ -1,9 +1,9 @@
 import { ArrowRight, Send, Upload } from 'lucide-react';
-import type { Translate } from './i18n';
+import type { TFunction } from 'i18next';
 
 // The illustrative mini-mockup shown inside each feature card. `type` selects
 // which mockup to render; the blocks are mutually exclusive.
-export function FunctionPreview({ type, t }: { type: string; t: Translate }) {
+export function FunctionPreview({ type, t }: { type: string; t: TFunction }) {
   return (
     <>
       {type === 'versions' && (

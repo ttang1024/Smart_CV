@@ -1,8 +1,9 @@
 using System.Net;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using SmartCV.API.Endpoints;
+using SmartCV.API.Services;
 using SmartCV.API.Tests.TestUtilities;
 
 namespace SmartCV.API.Tests.Endpoints;
@@ -45,55 +46,52 @@ public class PdfEndpointsTests : IClassFixture<SmartCvWebApplicationFactory>
     }
 
     [Fact]
-    public async Task PdfParse_NonMultipartRequest_ReturnsBadRequest()
+    public async Task PdfGenerate_OversizedHtml_ReturnsPayloadTooLarge()
     {
-        var response = await _client.PostAsJsonAsync("/api/pdf/parse", new { });
+        var html = new string('a', PdfEndpoints.MaxHtmlChars + 1);
 
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var response = await _client.PostAsJsonAsync("/api/pdf/generate", new { html });
+
+        Assert.Equal(HttpStatusCode.RequestEntityTooLarge, response.StatusCode);
     }
 
-    [Fact]
-    public async Task PdfParse_MultipartWithoutFile_ReturnsBadRequest()
+    [Theory]
+    [InlineData("../../etc/passwd", "passwd.pdf")]
+    [InlineData("Jane \"Smith\".pdf", "Jane Smith.pdf")]
+    [InlineData(null, "resume.pdf")]
+    public async Task PdfGenerate_SanitisesDownloadFileName(string? requested, string expected)
     {
-        using var form = new MultipartFormDataContent();
-        form.Add(new StringContent("not-a-file"), "note");
-
-        var response = await _client.PostAsync("/api/pdf/parse", form);
-
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-    }
-
-    [Fact]
-    public async Task PdfParse_NonPdfFile_ReturnsBadRequest()
-    {
-        using var form = new MultipartFormDataContent();
-        var fileContent = new ByteArrayContent(Encoding.UTF8.GetBytes("hello"));
-        fileContent.Headers.ContentType = new MediaTypeHeaderValue("text/plain");
-        form.Add(fileContent, "file", "resume.txt");
-
-        var response = await _client.PostAsync("/api/pdf/parse", form);
-
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-    }
-
-    [Fact]
-    public async Task PdfParse_ValidPdf_ReturnsParsedPersonalInfo()
-    {
-        var pdfBytes = MinimalPdfFixture.Create("Jane Smith", "jane.smith@example.com");
-
-        using var form = new MultipartFormDataContent();
-        var fileContent = new ByteArrayContent(pdfBytes);
-        fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/pdf");
-        form.Add(fileContent, "file", "resume.pdf");
-
-        var response = await _client.PostAsync("/api/pdf/parse", form);
+        var response = await _client.PostAsJsonAsync("/api/pdf/generate", new { html = "<p>x</p>", filename = requested });
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-        var personalInfo = doc.RootElement.GetProperty("personalInfo");
+        Assert.Equal(expected, response.Content.Headers.ContentDisposition?.FileNameStar
+            ?? response.Content.Headers.ContentDisposition?.FileName?.Trim('"'));
+    }
 
-        Assert.Equal("Jane Smith", personalInfo.GetProperty("fullName").GetString());
-        Assert.Equal("jane.smith@example.com", personalInfo.GetProperty("email").GetString());
+    [Fact]
+    public async Task PdfGenerate_RendererTimesOut_ReturnsStatusFromException()
+    {
+        using var factory = new SmartCvWebApplicationFactory();
+        factory.PdfGenerationService.FailWith = new PdfGenerationException(504, "PDF rendering timed out.");
+        using var client = factory.CreateClient();
+
+        var response = await client.PostAsJsonAsync("/api/pdf/generate", new { html = "<p>x</p>" });
+
+        Assert.Equal(HttpStatusCode.GatewayTimeout, response.StatusCode);
+        using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        Assert.Equal("PDF rendering timed out.", doc.RootElement.GetProperty("error").GetString());
+    }
+
+    [Fact]
+    public async Task PdfParse_UploadEndpointIsGone()
+    {
+        // PDFs are read in the browser now; the server no longer accepts PDF uploads.
+        using var form = new MultipartFormDataContent();
+        form.Add(new ByteArrayContent([1, 2, 3]), "file", "resume.pdf");
+
+        var response = await _client.PostAsync("/api/pdf/parse", form);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
     [Fact]
@@ -102,6 +100,16 @@ public class PdfEndpointsTests : IClassFixture<SmartCvWebApplicationFactory>
         var response = await _client.PostAsJsonAsync("/api/pdf/parse-text", new { text = "" });
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task PdfParseText_OversizedText_ReturnsPayloadTooLarge()
+    {
+        var text = new string('a', PdfEndpoints.MaxResumeTextChars + 1);
+
+        var response = await _client.PostAsJsonAsync("/api/pdf/parse-text", new { text });
+
+        Assert.Equal(HttpStatusCode.RequestEntityTooLarge, response.StatusCode);
     }
 
     [Fact]
@@ -115,5 +123,21 @@ public class PdfEndpointsTests : IClassFixture<SmartCvWebApplicationFactory>
 
         Assert.Equal("Jane Smith", personalInfo.GetProperty("fullName").GetString());
         Assert.Equal("jane.smith@example.com", personalInfo.GetProperty("email").GetString());
+    }
+
+    [Fact]
+    public async Task PdfEndpoints_AreRateLimitedPerClient()
+    {
+        using var factory = new SmartCvWebApplicationFactory(null, new Dictionary<string, string?>
+        {
+            ["RateLimiting:PdfPerMinute"] = "2",
+        });
+        using var client = factory.CreateClient();
+
+        var statuses = new List<HttpStatusCode>();
+        for (var i = 0; i < 3; i++)
+            statuses.Add((await client.PostAsJsonAsync("/api/pdf/parse-text", new { text = "Jane Smith" })).StatusCode);
+
+        Assert.Equal([HttpStatusCode.OK, HttpStatusCode.OK, HttpStatusCode.TooManyRequests], statuses);
     }
 }

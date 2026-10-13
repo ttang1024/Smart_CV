@@ -6,45 +6,14 @@ import { Plus, Search, Sparkles, FileText, Upload } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useResumeStore } from '../store/resumeStore';
-import type { Resume } from '../types/resume';
 import ResumeCard from '../components/resume/ResumeCard';
 import PDFImport from '../components/resume/PDFImport';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Modal from '../components/ui/Modal';
-import { resumeDB } from '../services/storage/indexedDB';
+import { importResumeFile } from '../services/resumeBackup';
+import { describeValidationError } from '../lib/resumeSchema';
 import toast from 'react-hot-toast';
-
-function isResume(value: unknown): value is Resume {
-  if (!value || typeof value !== 'object') return false;
-  const candidate = value as Partial<Resume>;
-  return (
-    typeof candidate.id === 'string' &&
-    typeof candidate.name === 'string' &&
-    !!candidate.personalInfo &&
-    typeof candidate.personalInfo === 'object' &&
-    Array.isArray(candidate.experience) &&
-    Array.isArray(candidate.education) &&
-    Array.isArray(candidate.skills)
-  );
-}
-
-function readSmartCVResumes(payload: unknown): Resume[] {
-  if (Array.isArray(payload)) {
-    return payload.filter(isResume);
-  }
-
-  if (!payload || typeof payload !== 'object') {
-    return [];
-  }
-
-  const exported = payload as { app?: unknown; resumes?: unknown };
-  if (exported.app !== 'SmartCV' || !Array.isArray(exported.resumes)) {
-    return [];
-  }
-
-  return exported.resumes.filter(isResume);
-}
 
 export default function HomePage() {
   const router = useRouter();
@@ -90,23 +59,23 @@ export default function HomePage() {
 
     setImportingData(true);
     try {
-      const payload = JSON.parse(await file.text()) as unknown;
-      const importedResumes = readSmartCVResumes(payload);
-
-      if (importedResumes.length === 0) {
-        toast.error('Invalid SmartCV IndexedDB export file');
-        return;
+      const result = await importResumeFile(file);
+      if (result.kind === 'unrecognised') {
+        toast.error(t('app.data.unrecognised'));
+      } else if (result.kind === 'backup' && result.imported === 0) {
+        toast.error(t('app.data.nothingValid'));
+      } else {
+        await loadResumes();
+        toast.success(result.kind === 'backup'
+          ? [t('app.data.imported', { count: result.imported }), result.skipped ? t('app.data.skipped', { count: result.skipped }) : ''].join(' ').trim()
+          : t('app.data.importedJsonResume'));
       }
-
-      await Promise.all(importedResumes.map(resume => resumeDB.save(resume)));
-      await loadResumes();
-      toast.success(`Imported ${importedResumes.length} resume${importedResumes.length === 1 ? '' : 's'}`);
-    } catch {
-      toast.error('Failed to import data');
+    } catch (error) {
+      toast.error(t('app.data.importFailed', { reason: describeValidationError(error) }));
     } finally {
       setImportingData(false);
     }
-  }, [loadResumes]);
+  }, [loadResumes, t]);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">

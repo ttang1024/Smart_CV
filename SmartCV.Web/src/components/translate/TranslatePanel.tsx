@@ -5,7 +5,7 @@ import type { Resume } from '../../types/resume';
 import { translateResume } from '../../services/ai/resumeTranslator';
 import { resumeDB } from '../../services/storage/indexedDB';
 import { richTextToPlainText } from '../../lib/richText';
-import { useSettingsStore } from '../../store/settingsStore';
+import { useActiveAIConfig } from '../../services/ai/useActiveAIConfig';
 import Badge from '../ui/Badge';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
@@ -29,7 +29,7 @@ const LANGUAGES: Array<{ value: string; label: string }> = [
 ];
 
 export default function TranslatePanel({ resume, onOpenResume }: TranslatePanelProps) {
-  const { getActiveConfig, aiSettings } = useSettingsStore();
+  const { config, activeProvider, missingKeyMessage } = useActiveAIConfig();
   const [language, setLanguage] = useState('English');
   const [customLanguage, setCustomLanguage] = useState('');
   const [translated, setTranslated] = useState<Resume | null>(null);
@@ -38,15 +38,13 @@ export default function TranslatePanel({ resume, onOpenResume }: TranslatePanelP
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const activeProvider = aiSettings.activeProvider;
-  const config = getActiveConfig();
   const custom = customLanguage.trim();
   const targetLanguage = custom || language;
   const languageLabel = custom || LANGUAGES.find(option => option.value === language)?.label || language;
 
   const handleTranslate = async () => {
     if (!config) {
-      setError(`No API key configured for ${activeProvider}. Go to Settings.`);
+      setError(missingKeyMessage);
       return;
     }
 

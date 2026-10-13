@@ -9,7 +9,7 @@ import {
   OpenAILogo, GeminiLogo, ClaudeLogo, GrokLogo,
   DeepSeekLogo, QianwenLogo, KimiLogo, DoubaoLogo, WenyanyixinLogo,
 } from '../ui/AIProviderLogos';
-import type { Translate } from './i18n';
+import type { TFunction } from 'i18next';
 
 export const GITHUB_URL = 'https://github.com/ttang1024/Smart_CV';
 
@@ -50,7 +50,7 @@ export const AI_PROVIDER_LOGOS: Record<AIProviderType, ComponentType<{ className
   wenyanyixin: WenyanyixinLogo,
 };
 
-export function buildSteps(t: Translate) {
+export function buildSteps(t: TFunction) {
   return [
     { icon: STEP_ICONS[0], n: '1', title: t('landing.howItWorks.steps.step1.title'), desc: t('landing.howItWorks.steps.step1.desc'), color: STEP_COLORS[0] },
     { icon: STEP_ICONS[1], n: '2', title: t('landing.howItWorks.steps.step2.title'), desc: t('landing.howItWorks.steps.step2.desc'), color: STEP_COLORS[1] },
@@ -59,7 +59,7 @@ export function buildSteps(t: Translate) {
   ];
 }
 
-export function buildHeroFeatures(t: Translate) {
+export function buildHeroFeatures(t: TFunction) {
   return [
     { icon: Palette, text: t('landing.hero.features.styles') },
     { icon: Brain, text: t('landing.hero.features.aiProviders') },
@@ -70,7 +70,7 @@ export function buildHeroFeatures(t: Translate) {
   ];
 }
 
-export function buildFunctions(t: Translate) {
+export function buildFunctions(t: TFunction) {
   return [
     {
       type: 'pdf',

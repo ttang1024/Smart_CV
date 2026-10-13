@@ -2,9 +2,9 @@ import { AlertCircle, Award, CheckCircle2, Mic, MicOff, RefreshCw, Send, ThumbsU
 import { useCallback, useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import type { Resume } from '../../types/resume';
-import type { MockAnswerEvaluation, MockInterviewTurn } from '../../services/ai/aiService';
-import { evaluateMockAnswer, startMockInterview } from '../../services/ai/aiService';
-import { useSettingsStore } from '../../store/settingsStore';
+import type { MockAnswerEvaluation, MockInterviewTurn } from '../../services/ai/mockInterview';
+import { evaluateMockAnswer, startMockInterview } from '../../services/ai/mockInterview';
+import { useActiveAIConfig } from '../../services/ai/useActiveAIConfig';
 import Badge from '../ui/Badge';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
@@ -43,7 +43,7 @@ function getSpeechRecognition(): SpeechRecognitionLike | null {
 }
 
 export default function MockInterviewPanel({ resume, jobContext, onJobContextChange }: MockInterviewPanelProps) {
-  const { getActiveConfig, aiSettings } = useSettingsStore();
+  const { config, activeProvider, missingKeyMessage } = useActiveAIConfig();
   const [jobTitle, setJobTitleState] = useState(jobContext?.jobTitle || resume.targetJob || '');
   const [company, setCompanyState] = useState(jobContext?.company ?? '');
   const [jobDescription, setJobDescriptionState] = useState(jobContext?.jobDescription ?? '');
@@ -62,8 +62,6 @@ export default function MockInterviewPanel({ resume, jobContext, onJobContextCha
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const speechSupported = useRef<boolean>(false);
 
-  const activeProvider = aiSettings.activeProvider;
-  const config = getActiveConfig();
   const mockConfig = { resume, jobTitle, company, jobDescription, focus, difficulty };
 
   useEffect(() => {
@@ -104,7 +102,7 @@ export default function MockInterviewPanel({ resume, jobContext, onJobContextCha
 
   const handleStart = async () => {
     if (!config) {
-      setError(`No API key configured for ${activeProvider}. Go to Settings.`);
+      setError(missingKeyMessage);
       return;
     }
     setLoading(true);

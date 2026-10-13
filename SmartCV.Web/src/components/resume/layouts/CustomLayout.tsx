@@ -1,21 +1,15 @@
 import type { CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DEFAULT_PAGE_MARGINS_MM, type LayoutProps, type CustomOptions, type CustomSectionStyle } from '../resumeTypes';
-import { contactItems, ContactRow, dateRange, EduEntry, ExpEntry, CertList, LangList, HighlightList, AchievementRows, InterestsList, RefereesBlock, ProjectTechnologies, ExperienceProjectRows, sectionTitle } from '../resumeShared';
-import { isRichTextEmpty } from '../../../lib/richText';
+import { contactItems, ContactRow, dateRange, EduEntry, ExpEntry, HighlightList, ProjectTechnologies, ExperienceProjectRows } from '../resumeShared';
 import { RichTextContent } from '../RichText';
-import { DEFAULT_SECTION_ORDER } from '../../../types/resume';
+import { ResumeSections, simpleSectionBodies, visibleHighlights, type SectionBodies } from './ResumeSections';
 
 export function CustomLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_MM, options }: LayoutProps & { options: CustomOptions }) {
   const { t } = useTranslation();
-  const { personalInfo: p, summary, coreHighlights, experience, education, skills, projects, certifications, languages } = r;
+  const { personalInfo: p, summary, experience, education, skills, projects } = r;
   const accent = theme.main;
   const presentLabel = t('resumeLayout.present');
-  const sectionOrder = r.sectionOrder ?? DEFAULT_SECTION_ORDER;
-
-  const Sec = ({ title, children }: { title: string; children: React.ReactNode }) => (
-    <CustomSection title={title} accent={accent} sectionStyle={options.sectionStyle}>{children}</CustomSection>
-  );
 
   const header = (
     <>
@@ -125,31 +119,26 @@ export function CustomLayout({ r, theme, pageMarginsMm = DEFAULT_PAGE_MARGINS_MM
 
   const baseStyle: CSSProperties = { fontFamily: 'Arial, Helvetica, sans-serif', fontSize: '10.5pt', lineHeight: '1.45', color: '#1a1a1a' };
 
-  const renderCustomSection = (key: string) => {
-    switch (key) {
-      case 'summary': return summary ? <Sec key="summary" title={sectionTitle(r, 'summary', t('resumeLayout.sections.summary'))}>{renderSummary()}</Sec> : null;
-      case 'coreHighlights': return (coreHighlights ?? []).filter(h => !isRichTextEmpty(h.text)).length > 0 ? (
-        <Sec key="coreHighlights" title={sectionTitle(r, 'coreHighlights', t('resumeLayout.sections.coreHighlights'))}>
-          <ul style={{ paddingLeft: '16px', margin: 0, listStyleType: 'disc' }}>{coreHighlights.filter(h => !isRichTextEmpty(h.text)).map(h => <li key={h.id} style={{ marginBottom: '3px', color: '#374151', fontSize: '11pt' }}><RichTextContent html={h.text} /></li>)}</ul>
-        </Sec>
-      ) : null;
-      case 'skills': return skills.length > 0 ? <Sec key="skills" title={sectionTitle(r, 'skills', t('resumeLayout.sections.skills'))}>{renderSkills(options.skillsColumns)}</Sec> : null;
-      case 'experience': return experience.length > 0 ? <Sec key="experience" title={sectionTitle(r, 'experience', t('resumeLayout.sections.experience'))}>{renderExperience()}</Sec> : null;
-      case 'education': return education.length > 0 ? <Sec key="education" title={sectionTitle(r, 'education', t('resumeLayout.sections.education'))}>{renderEducation()}</Sec> : null;
-      case 'projects': return projects.length > 0 ? <Sec key="projects" title={sectionTitle(r, 'projects', t('resumeLayout.sections.projects'))}>{renderProjects()}</Sec> : null;
-      case 'certifications': return certifications.length > 0 ? <Sec key="certifications" title={sectionTitle(r, 'certifications', t('resumeLayout.sections.certifications'))}><CertList items={certifications} dateColor="#9ca3af" /></Sec> : null;
-      case 'languages': return languages.length > 0 ? <Sec key="languages" title={sectionTitle(r, 'languages', t('resumeLayout.sections.languages'))}><LangList items={languages} gap="8px 20px" profColor="#9ca3af" /></Sec> : null;
-      case 'achievements': return (r.achievements ?? []).filter(a => a.title).length > 0 ? <Sec key="achievements" title={sectionTitle(r, 'achievements', t('resumeLayout.sections.achievements'))}><AchievementRows achievements={r.achievements} accent={accent} /></Sec> : null;
-      case 'interests': return (r.interests ?? []).filter(i => i.name).length > 0 ? <Sec key="interests" title={sectionTitle(r, 'interests', t('resumeLayout.sections.interests'))}><p style={{ color: '#374151' }}><InterestsList r={r} /></p></Sec> : null;
-      case 'referees': return (r.referees?.length ?? 0) > 0 ? <Sec key="referees" title={sectionTitle(r, 'referees', t('resumeLayout.sections.referees'))}><RefereesBlock r={r} /></Sec> : null;
-      default: return null;
-    }
+  const bodies: SectionBodies = {
+    summary: renderSummary,
+    coreHighlights: () => (
+      <ul style={{ paddingLeft: '16px', margin: 0, listStyleType: 'disc' }}>{visibleHighlights(r).map(h => <li key={h.id} style={{ marginBottom: '3px', color: '#374151', fontSize: '11pt' }}><RichTextContent html={h.text} /></li>)}</ul>
+    ),
+    skills: () => renderSkills(options.skillsColumns),
+    experience: renderExperience,
+    education: renderEducation,
+    projects: renderProjects,
+    ...simpleSectionBodies(r, { accent, cert: { dateColor: '#9ca3af' }, lang: { gap: '8px 20px', profColor: '#9ca3af' } }),
   };
 
   return (
     <div style={{ ...baseStyle, padding: `${pageMarginsMm.top}mm ${pageMarginsMm.right}mm ${pageMarginsMm.bottom}mm ${pageMarginsMm.left}mm` }}>
       {header}
-      {sectionOrder.map(key => renderCustomSection(key))}
+      <ResumeSections
+        r={r}
+        bodies={bodies}
+        renderSection={(title, body) => <CustomSection title={title} accent={accent} sectionStyle={options.sectionStyle}>{body}</CustomSection>}
+      />
     </div>
   );
 }

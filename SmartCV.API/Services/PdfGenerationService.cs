@@ -5,15 +5,33 @@ namespace SmartCV.API.Services;
 
 public interface IPdfGenerationService
 {
-    Task<byte[]> GenerateAsync(string html);
+    Task<byte[]> GenerateAsync(string html, CancellationToken ct = default);
 }
 
-public class PdfGenerationService : IPdfGenerationService, IHostedService, IAsyncDisposable
+/// <summary>Raised when a render can't be performed; carries the HTTP status to return.</summary>
+public sealed class PdfGenerationException(int statusCode, string message) : Exception(message)
 {
-    private static readonly string[] LaunchArgs =
-        ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"];
+    public int StatusCode { get; } = statusCode;
+}
+
+/// <summary>
+/// Renders resume HTML to PDF with a long-lived headless Chromium.
+///
+/// The HTML comes from an anonymous client, so every page is locked down: JavaScript is
+/// disabled, every network request other than inline <c>data:</c> URLs is aborted (no
+/// SSRF into the host network or cloud metadata endpoints), renders are time-boxed, and
+/// only a few run at once so a burst of requests can't exhaust memory.
+/// </summary>
+public class PdfGenerationService(IConfiguration configuration, ILogger<PdfGenerationService> logger)
+    : IPdfGenerationService, IHostedService, IAsyncDisposable
+{
+    private static readonly TimeSpan RenderTimeout = TimeSpan.FromSeconds(20);
+    private static readonly TimeSpan QueueTimeout = TimeSpan.FromSeconds(15);
 
     private readonly SemaphoreSlim _browserLock = new(1, 1);
+    private readonly SemaphoreSlim _renderSlots = new(
+        configuration.GetValue("PdfRendering:MaxConcurrentRenders", 2),
+        configuration.GetValue("PdfRendering:MaxConcurrentRenders", 2));
     private Task? _warmupTask;
     private string? _executablePath;
     private IBrowser? _browser;
@@ -58,17 +76,62 @@ public class PdfGenerationService : IPdfGenerationService, IHostedService, IAsyn
         }
     }
 
-    public async Task<byte[]> GenerateAsync(string html)
+    public async Task<byte[]> GenerateAsync(string html, CancellationToken ct = default)
     {
-        if (_warmupTask is not null) await _warmupTask;
+        if (_warmupTask is not null) await _warmupTask.WaitAsync(ct);
 
-        var browser = await EnsureBrowserAsync(CancellationToken.None);
+        if (!await _renderSlots.WaitAsync(QueueTimeout, ct))
+            throw new PdfGenerationException(StatusCodes.Status503ServiceUnavailable, "The PDF renderer is busy. Please try again.");
 
-        // Reuse the long-lived browser; only the page is per-request.
-        await using var page = await browser.NewPageAsync();
+        try
+        {
+            var browser = await EnsureBrowserAsync(ct);
+
+            // Reuse the long-lived browser; only the page is per-request.
+            await using var page = await browser.NewPageAsync();
+            await LockDownAsync(page);
+
+            try
+            {
+                return await RenderAsync(page, html).WaitAsync(RenderTimeout, ct);
+            }
+            catch (TimeoutException)
+            {
+                logger.LogWarning("PDF render exceeded {Timeout}s", RenderTimeout.TotalSeconds);
+                throw new PdfGenerationException(StatusCodes.Status504GatewayTimeout, "PDF rendering timed out.");
+            }
+        }
+        finally
+        {
+            _renderSlots.Release();
+        }
+    }
+
+    private static async Task LockDownAsync(IPage page)
+    {
+        await page.SetJavaScriptEnabledAsync(false);
+        await page.SetRequestInterceptionAsync(true);
+        page.Request += async (_, e) =>
+        {
+            var url = e.Request.Url;
+            if (url.StartsWith("data:", StringComparison.OrdinalIgnoreCase) ||
+                url.Equals("about:blank", StringComparison.OrdinalIgnoreCase))
+            {
+                await e.Request.ContinueAsync();
+            }
+            else
+            {
+                await e.Request.AbortAsync();
+            }
+        };
+    }
+
+    private static async Task<byte[]> RenderAsync(IPage page, string html)
+    {
         await page.SetContentAsync(html, new NavigationOptions
         {
-            WaitUntil = [WaitUntilNavigation.Networkidle0],
+            WaitUntil = [WaitUntilNavigation.Load],
+            Timeout = (int)RenderTimeout.TotalMilliseconds,
         });
         await page.EvaluateExpressionAsync("document.fonts?.ready ?? Promise.resolve()");
 
@@ -102,16 +165,25 @@ public class PdfGenerationService : IPdfGenerationService, IHostedService, IAsyn
             {
                 Headless = true,
                 ExecutablePath = _executablePath,
-                Args = LaunchArgs,
+                Args = LaunchArgs(),
             });
             return _browser;
         }
         finally { _browserLock.Release(); }
     }
 
+    // Chromium's sandbox needs user namespaces, which most container runtimes (App Runner
+    // included) don't grant, so the container opts out via PdfRendering__DisableSandbox.
+    // Local runs keep the sandbox. The page lock-down above is what makes that acceptable.
+    private string[] LaunchArgs() => configuration.GetValue("PdfRendering:DisableSandbox", false)
+        ? ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
+        : ["--disable-dev-shm-usage"];
+
     public async ValueTask DisposeAsync()
     {
         await StopAsync(CancellationToken.None);
         _browserLock.Dispose();
+        _renderSlots.Dispose();
+        GC.SuppressFinalize(this);
     }
 }
